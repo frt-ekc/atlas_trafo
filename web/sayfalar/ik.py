@@ -69,10 +69,14 @@ with sekme_gelen:
                         g, c = giris.strftime("%H:%M"), cikis.strftime("%H:%M")
                     else:
                         g, c = k["ham_giris"], k["ham_cikis"]
-                    veri.kayit_karar(secili_id, KULLANICI, f"İK kararı: {islem}", gerekce,
-                                     veri.DURUM_KAPALI, g, c)
-                    veri.mesaj_birak(f"Kayıt #{secili_id} kapatıldı: {islem}.")
-                    st.rerun()
+                    try:
+                        veri.kayit_karar(secili_id, KULLANICI, f"İK kararı: {islem}", gerekce,
+                                         veri.DURUM_KAPALI, g, c)
+                    except Exception as hata:
+                        st.error(f"Karar kaydedilemedi: {veri.hata_metni(hata)}")
+                    else:
+                        veri.mesaj_birak(f"Kayıt #{secili_id} kapatıldı: {islem}.")
+                        st.rerun()
 
 # --- İtiraz kaydı gir ------------------------------------------------------
 with sekme_itiraz_gir:
@@ -92,11 +96,15 @@ with sekme_itiraz_gir:
         if not beyan.strip():
             st.error("Çalışanın beyanı boş bırakılamaz.")
         else:
-            no = veri.itiraz_ekle(KULLANICI, sicil, tarih, konu, basvuru, beyan)
-            ilgili = veri.itiraz(no)["ilgili_kayit"]
-            ek = f" O güne ait kayıt #{ilgili} ile ilişkilendirildi." if ilgili else ""
-            veri.mesaj_birak(f"İtiraz #{no} kaydedildi.{ek}")
-            st.rerun()
+            try:
+                no = veri.itiraz_ekle(KULLANICI, sicil, tarih, konu, basvuru, beyan)
+            except Exception as hata:
+                st.error(f"İtiraz kaydedilemedi: {veri.hata_metni(hata)}")
+            else:
+                ilgili = veri.itiraz(no)["ilgili_kayit"]
+                ek = f" O güne ait kayıt #{ilgili} ile ilişkilendirildi." if ilgili else ""
+                veri.mesaj_birak(f"İtiraz #{no} kaydedildi.{ek}")
+                st.rerun()
 
 # --- İtirazlar --------------------------------------------------------------
 with sekme_itirazlar:
@@ -141,9 +149,13 @@ with sekme_itirazlar:
                     if not aciklama.strip():
                         st.error("Açıklama yazmadan sonuç kaydedilemez.")
                     else:
-                        veri.itiraz_sonuclandir(itiraz_id, KULLANICI, sonuc, aciklama)
-                        veri.mesaj_birak(f"İtiraz #{itiraz_id} sonuçlandı: {sonuc}.")
-                        st.rerun()
+                        try:
+                            veri.itiraz_sonuclandir(itiraz_id, KULLANICI, sonuc, aciklama)
+                        except Exception as hata:
+                            st.error(f"Sonuç kaydedilemedi: {veri.hata_metni(hata)}")
+                        else:
+                            veri.mesaj_birak(f"İtiraz #{itiraz_id} sonuçlandı: {sonuc}.")
+                            st.rerun()
 
 # --- Denetim kaydı ---------------------------------------------------------
 with sekme_denetim:

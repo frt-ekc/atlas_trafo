@@ -16,8 +16,8 @@ sayfa = st.navigation([
 ])
 
 st.sidebar.caption(
-    "Örnek veriyle çalışıyor; veritabanı bağlantısı henüz yok. "
-    "Sayfa yenilenince veriler başa döner."
+    "Supabase veritabanına bağlı. Giriş sistemi henüz yok; ekranlar veritabanındaki "
+    "ilk amir ve İK hesabıyla çalışır."
 )
 
 sayfa.run()

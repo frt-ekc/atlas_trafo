@@ -83,13 +83,17 @@ with st.container(border=True):
         elif islem == "Saati düzelt" and cikis <= giris:
             st.error("Çıkış saati girişten sonra olmalı.")
         else:
-            if islem == "Öneriyi onayla":
-                veri.kayit_karar(secili_id, KULLANICI, "Öneri onaylandı", gerekce,
-                                 veri.DURUM_KAPALI, k["onerilen_giris"], k["onerilen_cikis"])
-            elif islem == "Saati düzelt":
-                veri.kayit_karar(secili_id, KULLANICI, "Saat düzeltildi", gerekce,
-                                 veri.DURUM_KAPALI, giris.strftime("%H:%M"), cikis.strftime("%H:%M"))
+            try:
+                if islem == "Öneriyi onayla":
+                    veri.kayit_karar(secili_id, KULLANICI, "Öneri onaylandı", gerekce,
+                                     veri.DURUM_KAPALI, k["onerilen_giris"], k["onerilen_cikis"])
+                elif islem == "Saati düzelt":
+                    veri.kayit_karar(secili_id, KULLANICI, "Saat düzeltildi", gerekce,
+                                     veri.DURUM_KAPALI, giris.strftime("%H:%M"), cikis.strftime("%H:%M"))
+                else:
+                    veri.kayit_karar(secili_id, KULLANICI, "İK'ya gönderildi", gerekce, veri.DURUM_IK)
+            except Exception as hata:  # veritabanı kuralı reddettiyse hiçbir şey kaydedilmez
+                st.error(f"Karar kaydedilemedi: {veri.hata_metni(hata)}")
             else:
-                veri.kayit_karar(secili_id, KULLANICI, "İK'ya gönderildi", gerekce, veri.DURUM_IK)
-            veri.mesaj_birak(f"Kayıt #{secili_id} için karar kaydedildi: {islem}.")
-            st.rerun()
+                veri.mesaj_birak(f"Kayıt #{secili_id} için karar kaydedildi: {islem}.")
+                st.rerun()
