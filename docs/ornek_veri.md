@@ -10,7 +10,7 @@ Veri her çalıştırmada aynı çıkar: saatler rastgele değil, sicil ve tarih
 
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/ornek_veri_testi.sql   # 37 kontrol
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/ornek_veri_testi.sql   # 58 kontrol (Kasım'ı gece işinden de geçirir, sonda geri alır)
 ```
 
 Seed ikinci kez çalıştırılırsa hiçbir şey yazmadan durur. Yerelde `supabase db reset` seed'i kendisi yükler.
@@ -39,7 +39,7 @@ Seed ikinci kez çalıştırılırsa hiçbir şey yazmadan durur. Yerelde `supab
 | Bilgi İşlem | beyaz | 6801–6803 | 08:30–18:00 |
 | Üst Yönetim | beyaz | 6901–6903 | 08:30–18:00 |
 
-76 çalışan, 77 kart, 19 departman (9 mavi, 10 beyaz yaka). Hafta içi her gün herkesin vardiya planı var (2–30 Kasım). Her departmanın amiri grubun ilk siciliyle başlar (İdari İşler'in amiri üretim müdürü Levent Sarı). Mavi yaka amirlerinin üst amiri üretim müdürü, beyaz yaka amirlerinin üst amiri genel müdür Rıza Kalkan (6901). Esnek mesaili çalışanlar 08:00–09:30 arasında gelir, günde ortalama 9 saat kalır. Bobinaj atölye PDKS'sini (PDKS-2), diğer herkes ana giriş PDKS'sini (PDKS-1) kullanır. Herkes kapı turnikesinden geçer ve yemekhanede okutur; bazı çalışanlar servisle gelir (SRV-1, SRV-2).
+76 çalışan, 77 kart, 19 departman (9 mavi, 10 beyaz yaka). Hafta içi her gün herkesin vardiya planı var (2–30 Kasım); ayrıca iki Pazar planı (S29, S30) ve demo günü 7 Aralık için yalnızca Montaj'ın 10 kişisinin planı (okutmaları `demo/` klasöründeki CSV'lerle demoda yüklenir, bkz. `docs/demo_akisi.md`). Her kaynaktan Kasım'ın her günü için bir dosya, ayrıca 1 Aralık için PDKS ve kapı dosyası var: 30 Kasım'ın gece vardiyaları (V2, V3, 16–24) 1 Aralık sabahı biter ve bu dosyalar olmadan işlenemez. Her departmanın amiri grubun ilk siciliyle başlar (İdari İşler'in amiri üretim müdürü Levent Sarı). Mavi yaka amirlerinin üst amiri üretim müdürü, beyaz yaka amirlerinin üst amiri genel müdür Rıza Kalkan (6901). Esnek mesaili çalışanlar 08:00–09:30 arasında gelir, günde ortalama 9 saat kalır. Bobinaj atölye PDKS'sini (PDKS-2), diğer herkes ana giriş PDKS'sini (PDKS-1) kullanır. Herkes kapı turnikesinden geçer ve yemekhanede okutur; bazı çalışanlar servisle gelir (SRV-1, SRV-2).
 
 ## Demo hesapları
 
@@ -62,7 +62,7 @@ Yeni departmanların amirleri (`nuve.amiri@example.com`, `arge.amiri@example.com
 
 ## İSG
 
-Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boyahane (`BOYA-KAPI`). YG Test Lab'a Kalite Kontrol ve YG Test Laboratuvarı ile Bakım ve Onarım, Boyahane'ye Boyahane ve Yüzey İşlem ile Bakım ve Onarım girebilir. Mavi yakadaki 46 çalışanın hepsinin geçerli İSG eğitimi ve sağlık muayenesi kaydı var (bitişler 2027'de), bu yüzden Kasım'da İSG uyarısı çıkmaz.
+Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boyahane (`BOYA-KAPI`). YG Test Lab'a Kalite Kontrol ve YG Test Laboratuvarı ile Bakım ve Onarım, Boyahane'ye Boyahane ve Yüzey İşlem ile Bakım ve Onarım girebilir. Mavi yakadaki 46 çalışanın hepsinin İSG eğitimi ve sağlık muayenesi kaydı var. Bitişler 2027'de; iki bilerek konmuş istisna var: Uğur Keskin'in (5303) İSG eğitimi 10 Kasım'da doldu (S25), Taner Yazıcı'nın (5302) sağlık muayenesi 15 Aralık'ta doluyor (S26).
 
 ## Bilerek konmuş durumlar
 
@@ -74,7 +74,7 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S4 | Mustafa Şahin (1005), 5 Kas | Çıkışa dair hiçbir okutma yok | 2 | Amire soru (`cikis_yok`) |
 | S5 | Hüseyin Aydın (1006), 6 Kas | PDKS girişi 40 sn arayla iki kez | 3 | İkincisi `mukerrer` işaretlenir |
 | S6 | İbrahim Arslan (1007), 10 Kas | Kartını unuttu, gün boyu geçici kart GK-01; 13:05'te asıl kartı kapıda okutuldu | 4 | Okutmalar İbrahim'e yazılır; `gecici_kart_cakisma` uyarısı |
-| S7 | Osman Doğan (1008), 11, 17, 24 Kas | Ayda 3 kez geçici kart | 4 | `sik_kart_unutma` bilgisi |
+| S7 | Osman Doğan (1008), 11, 17, 19 Kas | Ayda 3 kez geçici kart (hepsi akşam iade edildi) | 4 | `sik_kart_unutma` bilgisi |
 | S8 | Emre Koç (1009), 12 Kas | Kartını kaybetti; o gün geçici kart, sonra yeni kart (K1009B). 16 Kas'ta iptal edilmiş eski kartı okutuldu | 4 | Eski kart okutması iptal kart olarak işaretlenir |
 | S9 | Burak Kurt (1010), 18 Kas | Geçici kart GK-02'yi iade etmedi; ertesi gün asıl kartını kullandı | 4 | `gecici_kart_iade_edilmedi` ve `gecici_kart_cakisma` uyarıları |
 | S10 | Atölye PDKS (PDKS-2), 19 Kas 05:30–09:30 | Okuyucu çalışmadı; kapı kayıtları var | 5 | Arıza şüphesi; girişler kapı kaydıyla düzeltilir |
@@ -91,7 +91,16 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S21 | 27 Kas | Servis dosyası gelmedi | 16 | `dosya_gelmedi` uyarısı |
 | S22 | Hasan Yılmaz (1001, Montaj amiri), 26 Kas | Girişine dair hiçbir okutma yok | 13 | Soru kendisine değil üst amiri Levent Sarı'ya gider (görevler ayrılığı) |
 | S23 | 27 Kas 08:10, PDKS-1 | Kimseye zimmetli olmayan geçici kart GK-05 | 4 | `gecici_kart_zimmetsiz` uyarısı |
+| S24 | Ferhat Kara (5002), 17 Kas (00–08); Gökhan Tuna (5003), 2–6 Kas (16–24) | Ferhat 16 Kas 23:39'da girdi, 17 Kas 08:09'da çıktı; Gökhan her gün gece yarısından sonra çıktı | 7 | Ferhat: tek iş günü (17 Kas), mola 60 dk, gece çalışması 315 dk. Gökhan: gün girişin olduğu güne yazılır |
+| S25 | Uğur Keskin (5303, Bakım), 12 Kas 10:15 | İSG eğitimi 10 Kas'ta doldu; YG Test Lab kapısından geçti (Bakım'ın yetkisi var) | İSG | Bir kez `isg_belgesi_suresi_dolmus` (dolmadan önce `_doluyor` da); kapı açık, bölge uyarısı yok |
+| S26 | Taner Yazıcı (5302, Bakım) | Sağlık muayenesi 15 Ara'da doluyor | İSG | 15 Kas'tan itibaren `isg_belgesi_suresi_doluyor` |
+| S27 | Selim Ünal (5402, Depo) 19 Kas 14:10; Hakan Ekinci (5202, Boyahane) 09:00 | İkisi de Boyahane kapısından geçti | İSG | Selim'e `yetkisiz_bolge_okutmasi`, Hakan'a yok |
+| S28 | Ece Ateş (S16), Merve Yücel (S17), Erkan Duman (S30) | Onaysız fazla mesai | 10 | İK Fazla mesai ekranında 3 bekleyen havuz kaydı: 150, 100 ve 485 dk (tatil çalışması) |
+| S29 | Mehmet Kaya (1002), 22 Kas Pazar | Yazılı onayı var; Gündüz planıyla çalıştı | 10 | FM100 480 dk, puantaj kodu FM100 |
+| S30 | Erkan Duman (5102), 29 Kas Pazar | Yazılı onayı yok; 08–16 planıyla çalıştı | 10 | FM100 0; süre havuzda `tatil_calismasi`, karar İK'da |
+| S31 | Onur Baysal (6002), İrem Toprak (6202) | Esnek mesai | — | Ay sonu fark: Onur −152 dk, İrem +29 dk |
+| S32 | İrem Toprak (6202), 18 Kas | Esnek; PDKS girişi yok, kapı girişi 09:12 | 1 | Giriş 09:17 (kanıt + yürüme payı), amire soru yok |
 
 Ayrıca Derya Özkan (4005) 16 Kasım'da mazeret izinlidir.
 
-"Beklenen sonuç" sütunu gece işinin hedefidir. Gece işi yazıldığında bu tablo, testlerinin kontrol listesi olarak kullanılır.
+"Beklenen sonuç" sütunu, Kasım gece işinden geçtikten sonra ekranda görülecek sonuçtur; S24–S32 ve açık soruların yalnızca S2, S4, S19, S22 olduğu `ornek_veri_testi.sql`'de denetlenir. Seed'de ileri tarihli geçici kart zimmeti yoktur (en geç 19 Kasım): ileri tarihli bir zimmet canlıda o kartın ya da kişinin bugün kart almasını engeller.

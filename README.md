@@ -176,7 +176,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 |---|---|
 | Veritabanı şeması ve kurallar (27 test) | ✅ |
 | Fazla mesai (34 test) | ✅ |
-| Geçici kart ve zimmet (35 test, kart paylaşımıyla birlikte) | ✅ |
+| Geçici kart ve zimmet (39 test, kart paylaşımıyla birlikte) | ✅ |
 | Kart paylaşımı şüphe kuralı (testli) | ✅ |
 | Giriş ve yetki: Supabase Auth bağlantısı, RLS politikaları (29 test) | ✅ |
 | Görevler ayrılığı: kimse kendi kaydında işlem yapamaz (20 test) | ✅ |
@@ -195,9 +195,9 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | İSG: bölge yetkisi (verilme / kaldırılma izi dahil), eğitim / muayene geçerliliği, yalnızca uyarı (30 test) | ✅ |
 | CSV içe aktarma (Papa Parse): ekranda denetim ve Yükle düğmesi `dosya_yukle`'ye bağlı (24 test) | ✅ |
 | Gece işi fonksiyonu (işaretleme → günlük kayıt → kanıtla düzeltme → amire soru → uyarı) ve pg_cron zamanlaması | ✅ |
-| Amir ekranı (sorular, itiraz girişi) | ⬜ Yapılacak |
-| İK ekranı (uyarılar, kararlar, ay kilidi) | ⬜ Yapılacak |
-| Güvenlik ekranı (geçici kart ver / iade al) | ⬜ Yapılacak |
+| Amir ekranı (sorular, itiraz girişi) | ✅ |
+| İK ekranı (uyarılar, kararlar, ay kilidi) | ✅ |
+| Güvenlik ekranı (geçici kart ver / iade al) | ✅ |
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
