@@ -36,7 +36,8 @@ with beklenen(surum, ad, nesne) as (values
                                                                  and pg_get_function_identity_arguments(oid) like '%p_dosya_ozeti%')),
     ('20261129010000', 'esnek_kanit',                    exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_kanitla_duzelt'
                                                                  and prosrc like '%Esnek mesai%')),
-    ('20261129020000', 'zimmet_cakisma_mesaji',          exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'yonelme_eki'))
+    ('20261129020000', 'zimmet_cakisma_mesaji',          exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'yonelme_eki')),
+    ('20261130010000', 'ise_giris_cikis',                exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'isten_cikis_gir'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

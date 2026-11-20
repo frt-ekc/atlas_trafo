@@ -48,6 +48,7 @@ olarak veritabanının içinde çalışır.
 | `supabase/migrations/20261128010000_dosya_yukle_duzeltmesi.sql` | `dosya_yukle` düzeltmesi: dosyanın SHA-256 özeti (`p_dosya_ozeti`), yalnızca yazılan okutmaları sayan `satir_sayisi`, satır numaralı sunucu denetimi |
 | `supabase/migrations/20261129010000_esnek_kanit.sql` | Esnek mesaide PDKS girişi eksikse giriş = kanıt + yürüme payı (amire soru gitmez) |
 | `supabase/migrations/20261129020000_zimmet_cakisma_mesaji.sql` | Zimmet çakışma hatası çakışan zimmeti söyler; Türkçe ek yardımcıları `yonelme_eki`, `saat_eki` |
+| `supabase/migrations/20261130010000_ise_giris_cikis.sql` | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`; yalnızca İK). Gece işi çalışanı `aktif` alanıyla değil işe giriş / işten çıkış tarihiyle süzer |
 | `supabase/migrations/20261124010000_vardiya_kurallari.sql` | Yeni vardiyalar (08-16, 16-24, 00-08, 08:30-18:00, esnek), esnek mesai ve `v_esnek_mesai`, otomatik vardiya tanıma (öneri amir onayıyla uygulanır), mola (m.68); vardiya düzeltmesi planlı saatleri de günceller |
 | `supabase/tests/kurallar_testi.sql` | 27 kural testi (her şeyi geri alır, iz bırakmaz) |
 | `supabase/tests/izin_ve_ozet_testi.sql` | İzin iptali ve departman özeti için 15 test |
@@ -363,7 +364,7 @@ dakikaları her zaman `calisma_dk`'ya eşittir.
 Dosyalar ekrandan yüklenir (`dosya_yukle`; aynı dosya ikinci kez reddedilir). Ardından `pdks.gece_isi_calistir(gün)` sırasıyla:
 
 1. **İşaretleme:** mükerrer, iptal kart (+ `iptal_kart_okutma` uyarısı) ve okutma anında kimseye ait olmayan kart okutmalarını `okutma_isareti` ile işaretler. İşaretli okutmalar hesaba girmez.
-2. **Gün kaydı:** vardiya planı olan herkese, vardiya penceresindeki ilk giriş ve son çıkışla `gun_kaydi` açar (saatler yalnızca PDKS'den; geçici kart okutmaları `okutma_sahibi()` ile doğru kişiye). İzin → `izinli` / `raporlu`, resmi tatil → `tatil`.
+2. **Gün kaydı:** o gün işte olan (işe giriş tarihi ≤ gün ≤ işten çıkış tarihi) ve vardiya planı olan herkese, vardiya penceresindeki ilk giriş ve son çıkışla `gun_kaydi` açar (saatler yalnızca PDKS'den; geçici kart okutmaları `okutma_sahibi()` ile doğru kişiye). İzin → `izinli` / `raporlu`, resmi tatil → `tatil`.
 3. **Arıza şüphesi:** aynı gün bir PDKS okuyucusunda "PDKS okutması yok ama kapı kaydı var" durumundaki kişi sayısı `ayar.ariza_suphe_kisi`'ye ulaşırsa ve okuyucu o aralıkta sessizse `ariza` (`otomatik_suphe`) ve `ariza_suphesi` uyarısı.
 4. **Kanıtla düzeltme:** giriş kanıtı (kapı, yoksa servis) + yürüme payı vardiya başından önceyse giriş = vardiya başı; esnek mesaide vardiya başı olmadığı için giriş = kanıt + yürüme payı (PDKS çıkışından önceyse). Çıkışta kanıttaki saat. Her düzeltme `duzeltme_uygula()` ile, kanıt ve varsa arıza dayanağıyla.
 5. **Amire soru:** okutmalar planlı vardiyaya uymuyor ama başka bir vardiyanın başına ve sonuna `ayar.oto_vardiya_esik_dk` (60) içinde uyuyorsa önce `vardiya_uyusmazligi` sorusu (öneri: vardiya, giriş, çıkış) açılır ve başka soru sorulmaz. Yoksa: kanıt yoksa `giris_yok` / `cikis_yok`, hiçbir iz yoksa `hic_kayit_yok`, giriş kanıtı vardiya başından sonraysa `kanit_vardiya_sonrasi` (öneri: kanıt + yürüme payı). Soru departman amirine (izinliyse vekiline) gider; amirin kendi kaydıysa üst amirine, üst amiri yoksa İK'ya.
@@ -415,5 +416,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 - Değerler için enum yerine `text + check` kullandık: okunması ve yeni değer eklemesi daha kolay.
 - `vardiya_plani` ve `izin` değiştirilebilir; bunların etkisi `gun_kaydi`'na yine `duzeltme` üzerinden yansır.
+- Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
+- İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.
 - Fark satırındaki dakika farkını hesaplamak ve puantajı yazmak veritabanı fonksiyonlarının işidir; ekran yalnızca sonucu gösterir ve dışa aktarır.
