@@ -167,12 +167,12 @@ select test.dogrula('saatlik izin sonrası yeniden hesap gun_hesabi ile aynı (g
 
 -- ---------------------------------------------------------------------
 -- 5) Eylül: onay bekleyen geriye dönük plan kilidi durdurur; zorla kilit özeti
---    AK02 7 Eylül: hiç kayıt yok (açık soru) · AK03 8 Eylül: geriye dönük plan İK onayı bekliyor,
---    gün normal; aynı güne açık itiraz
+--    AK02 7 Eylül: hiç kayıt yok (açık soru) · AK03 8 Eylül: gün normal işlendi, sonra amir aynı güne
+--    geriye dönük plan girdi (İK onayı bekliyor); aynı güne açık itiraz
 -- ---------------------------------------------------------------------
 insert into pdks.vardiya_plani (calisan_id, tarih, vardiya_id, giren_id, geriye_donuk, ik_onay_durumu)
 values (test.c('AK02'), '2026-09-07', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ_8'), test.k('ak_ik2@ornek.test'), false, 'gerekmez'),
-       (test.c('AK03'), '2026-09-08', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ_8'), test.k('ak_ik2@ornek.test'), true, 'bekliyor');
+       (test.c('AK03'), '2026-09-08', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ_8'), test.k('ak_ik2@ornek.test'), false, 'gerekmez');
 insert into pdks.aktarim (kaynak, dosya_adi, dosya_ozeti, veri_tarihi)
 select 'pdks', 'ak_' || g || '.csv', 'ak-pdks-' || g, g::date from unnest(array['2026-09-07', '2026-09-08']) g;
 insert into pdks.ham_okutma (aktarim_id, okuyucu_id, kart_no, okutma_zamani, yon)
@@ -183,6 +183,10 @@ select pdks.gece_isi_calistir('2026-09-07');
 select pdks.gece_isi_calistir('2026-09-08');
 insert into pdks.itiraz (calisan_id, gun_kaydi_id, metin)
 values (test.c('AK03'), (test.gk('AK03', '2026-09-08')).id, 'Vardiya değişikliği bana sorulmadı');
+set local role authenticated;
+select test.oturum('ak_amir@ornek.test');
+select pdks.vardiya_plani_gir(test.c('AK03'), '2026-09-08', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ_8'), 'Geriye dönük düzeltme');
+reset role;
 set local role authenticated;
 select test.oturum('ak_ik1@ornek.test');
 select test.hata('onay bekleyen geriye dönük plan varken zorlamadan kilit reddedilir',
@@ -284,9 +288,9 @@ select pdks.soru_ik_karari((test.soru('2009', '2026-11-25')).id, true, 'Haber ve
 select pdks.soru_ik_karari((test.soru('1001', '2026-11-26')).id, false, 'Üretim müdürü teyit etti', '2026-11-26 08:00+03'); -- S22 (İK'ya eskale)
 select pdks.fazla_mesai_inceleme_karar(f.id, f.calisan_id = test.c('3004'), 'Yazılı onay ya da plan yok')
 from pdks.fazla_mesai_inceleme f where f.durum = 'inceleme_bekliyor' order by f.id;
-select test.hata('uçtan uca: Okan''ın (S13) onay bekleyen geriye dönük planı kilidi durdurur',
-    '11/2026 döneminde İK onayı bekleyen 1 geriye dönük vardiya planı var',
-    $$select pdks.ay_kilitle(2026::smallint, 11::smallint)$$);
+select test.hata('uçtan uca: Okan''ın (S13) onay bekleyen planının günü işlenmedi; kilit zorla da reddeder',
+    '11/2026 döneminde gece işinden geçmemiş 1 planlı gün var (1 çalışan; ilk gün 13.11.2026); 1 günün geriye dönük planı İK onayı bekliyor',
+    $$select pdks.ay_kilitle(2026::smallint, 11::smallint, true)$$);
 -- Planı İK uzmanı girdi; görevler ayrılığı gereği İK müdürü onaylar
 select test.oturum('ik.muduru@example.com');
 select pdks.vardiya_plani_onayla((select id from pdks.vardiya_plani where calisan_id = test.c('2005') and tarih = '2026-11-13'), true);

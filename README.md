@@ -190,7 +190,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Yeni vardiyalar (08-16, 16-24, 00-08, 08:30-18:00), esnek mesai, otomatik vardiya tanıma, mola (28 test) | ✅ |
 | Esnek mesaide PDKS girişi eksikse amire soru yerine kanıt saatini (kapı / servis + yürüme payı) doğrudan yazmak | ✅ |
 | Geçici kart zimmeti çakışma hatasında çakışan zimmeti göstermek | ✅ |
-| Örnek veri: Kasım 2026, 19 departman, 76 çalışan, 32 senaryo; 1 Aralık sabah dosyaları ve 7 Aralık demo planı (58 kontrol) | ✅ |
+| Örnek veri: Kasım 2026, 19 departman, 76 çalışan, 32 senaryo; 1 Aralık sabah dosyaları ve 7 Aralık demo planı (59 kontrol) | ✅ |
 | Mavi / beyaz yaka, İSG uzmanı ve sistem yöneticisi rolleri, kullanıcı ve ayar yönetimi (35 test) | ✅ |
 | İSG: bölge yetkisi (verilme / kaldırılma izi dahil), eğitim / muayene geçerliliği, yalnızca uyarı (30 test) | ✅ |
 | CSV içe aktarma (Papa Parse): ekranda denetim ve Yükle düğmesi `dosya_yukle`'ye bağlı (24 test) | ✅ |
@@ -201,6 +201,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
 | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (35 test) | ✅ |
+| Geriye dönük plan onayı: bekleyen plan kullanılmaz, onay günü düzeltir / işletir, ret ya da onay bekleyen + işlenmemiş gün kilidi durdurur, kendi planını onaylama yok (20 test) | ✅ |
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
 | Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |

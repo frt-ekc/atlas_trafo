@@ -255,9 +255,10 @@ begin
         (select durum = 'tamam' and (giris_zamani at time zone 'Europe/Istanbul')::date = '2026-11-16'
                 and (cikis_zamani at time zone 'Europe/Istanbul')::date = '2026-11-17'
          from test.gk('2004', '2026-11-16')));
-    perform test.dogrula('S13 değişen plan (V2) üzerinden hesaplandı',
-        (select v.kod = 'V2' and g.durum = 'tamam' from test.gk('2005', '2026-11-13') g
-         join pdks.vardiya_tanim v on v.id = g.vardiya_id));
+    perform test.dogrula('S13 İK onayı bekleyen plan (V2) kullanılmadı: gün onaya kadar işlenmedi (20261203010000)',
+        (test.gk('2005', '2026-11-13')).id is null
+        and (select ik_onay_durumu = 'bekliyor' from pdks.vardiya_plani
+             where calisan_id = test.c('2005') and tarih = '2026-11-13'));
     perform test.dogrula('S14 geç kalma 35 dk, erken çıkış 40 dk',
         (select gec_kalma_dk = 35 from test.gk('3002', '2026-11-09'))
         and (select erken_cikis_dk = 40 from test.gk('3002', '2026-11-13')));

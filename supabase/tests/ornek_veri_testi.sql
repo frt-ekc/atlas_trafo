@@ -191,10 +191,13 @@ create function test.uyari(p_tur text, p_sicil text) returns bigint language sql
 select test.dogrula('gece işi Kasım''ın 30 gününü hatasız işledi',
     (select count(*) from pdks.gece_isi where durum = 'basarili') >= 30
     and not exists (select 1 from pdks.gece_isi where durum = 'hatali'));
-select test.dogrula('Kasım''da planı olup gün kaydı olmayan çalışan yok (30 Kasım gece vardiyaları dahil)',
+select test.dogrula('Kasım''da planı olup gün kaydı olmayan çalışan yok (30 Kasım gece vardiyaları dahil; onay bekleyen plan hariç)',
     not exists (select 1 from pdks.vardiya_plani p
-                where p.tarih between '2026-11-01' and '2026-11-30'
+                where p.tarih between '2026-11-01' and '2026-11-30' and p.ik_onay_durumu <> 'bekliyor'
                   and not exists (select 1 from pdks.gun_kaydi g where g.calisan_id = p.calisan_id and g.is_gunu = p.tarih)));
+select test.dogrula('S13 Okan 13 Kasım: plan İK onayı beklediği için gün işlenmedi; Kasım''da 1597 gün kaydı',
+    (select count(*) from pdks.gun_kaydi g where g.calisan_id = test.c('2005') and g.is_gunu = '2026-11-13') = 0
+    and (select count(*) from pdks.gun_kaydi where is_gunu between '2026-11-01' and '2026-11-30') = 1597);
 select test.dogrula('açık soru yalnızca bilerek açık bırakılan 4 gün (S2, S4, S19, S22)',
     (select array_agg(c.sicil_no order by c.sicil_no) from pdks.amir_sorusu q
      join pdks.gun_kaydi g on g.id = q.gun_kaydi_id join pdks.calisan c on c.id = g.calisan_id

@@ -105,7 +105,7 @@ Canlıda kilit yapılmaz. Yerelde alınmış görüntülerle anlatılır:
 5. Kilitten sonra gelen bir düzeltmenin sonraki aya fark satırı olarak yazılması.
 
 **Görüntüler nasıl alınır (yerelde, Fırat):**
-- Kasım'ı zorlamadan kilitlemek için önce bekleyenler kapatılır: 4 soru (S2, S4, S19, S22), havuzdaki 3 fazla mesai ve Okan'ın (S13) onay bekleyen geriye dönük planı. Bu planı İK uzmanı girdiği için İK müdürü onaylar. Zorla kilitlenirse kilit sonucu, geçilen kalemleri ve puantaja kodsuz giren gün sayısını gösterir.
+- Kasım'ı zorlamadan kilitlemek için önce bekleyenler kapatılır: 4 soru (S2, S4, S19, S22), havuzdaki 3 fazla mesai ve Okan'ın (S13) onay bekleyen geriye dönük planı. Bu planı İK uzmanı girdiği için İK müdürü onaylar. Zorla kilitlenirse kilit sonucu, geçilen kalemleri ve puantaja kodsuz giren gün sayısını gösterir. S13 (Okan) planı zorla da geçilmez; kilitten önce İK müdürü planı onaylamalı ya da reddetmeli.
 1. `supabase db reset` (örnek veriyle).
 2. Kasım'ı gece işinden geçir.
 3. Ekranları yerel Supabase'e bağlayıp aç.

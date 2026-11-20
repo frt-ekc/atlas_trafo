@@ -10,7 +10,7 @@ Veri her çalıştırmada aynı çıkar: saatler rastgele değil, sicil ve tarih
 
 ```bash
 psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/seed.sql
-psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/ornek_veri_testi.sql   # 58 kontrol (Kasım'ı gece işinden de geçirir, sonda geri alır)
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/ornek_veri_testi.sql   # 59 kontrol (Kasım'ı gece işinden de geçirir, sonda geri alır)
 ```
 
 Seed ikinci kez çalıştırılırsa hiçbir şey yazmadan durur. Yerelde `supabase db reset` seed'i kendisi yükler.
@@ -80,7 +80,7 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S10 | Atölye PDKS (PDKS-2), 19 Kas 05:30–09:30 | Okuyucu çalışmadı; kapı kayıtları var | 5 | Arıza şüphesi; girişler kapı kaydıyla düzeltilir |
 | S11 | Kemal Aslan (2002) ve Murat Polat (2003), 2–6 Kas | İki kart aynı okuyucuda 3 sn arayla; Murat kapıdan 35 dk geç girdi | 6 | `kart_paylasim_suphesi` (karar İK'da) |
 | S12 | Cem Erdoğan (2004), 16 Kas | V3: giriş 16 Kas 21:50 civarı, çıkış 17 Kas 06:00 sonrası | 7 | Tek iş günü (16 Kas) olarak hesaplanır |
-| S13 | Okan Yıldız (2005), 13 Kas | V3 yerine V2'de çalıştı; plan ertesi gün geriye dönük düzeltildi | 8 | Plan İK onayı bekliyor |
+| S13 | Okan Yıldız (2005), 13 Kas | V3 yerine V2'de çalıştı; plan ertesi gün geriye dönük düzeltildi | 8 | Plan İK onayı bekliyor; gün onaya kadar işlenmez (Kasım gece işinden sonra 1597 gün kaydı). Onaylanınca gün hemen V2'ye göre oluşur |
 | S14 | Selin Uçar (3002), 9 ve 13 Kas | 9 Kas 08:35'te girdi; 13 Kas 16:20'de çıktı | 9 | Geç kalma 35 dk, erken çıkış 40 dk |
 | S15 | Gizem Korkmaz (3003), 20 Kas | Onaylı 120 dk fazla mesai, 19:05'te çıktı | 10 | Planlı fazla mesai |
 | S16 | Ece Ateş (3004), 23 Kas | Plansız, 19:30'a kadar kaldı | 10 | `fm_plansiz_calisma` uyarısı, karar İK'da |
