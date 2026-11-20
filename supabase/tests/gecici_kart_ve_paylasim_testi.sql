@@ -28,7 +28,15 @@ end $$;
 create function test.k(p text) returns bigint language sql as $$ select id from pdks.kullanici where eposta = p $$;
 create function test.c(p text) returns bigint language sql as $$ select id from pdks.calisan where sicil_no = p $$;
 create function test.g(p text) returns bigint language sql as $$ select id from pdks.gecici_kart where kart_no = p $$;
-create function test.uyari_sayisi(p_tur text) returns bigint language sql as $$ select count(*) from pdks.uyari where tur = p_tur $$;
+-- Yalnızca bu testin verisine ait uyarıları sayar (T Montaj çalışanları ya da T- okuyucuları).
+-- Örnek veride (seed) Eylül okutmaları da olduğu için tüm uyarıları saymak testi şansa bağlardı.
+create function test.uyari_sayisi(p_tur text) returns bigint language sql as $$
+    select count(*) from pdks.uyari u
+    where u.tur = p_tur
+      and (u.calisan_id in (select c.id from pdks.calisan c join pdks.departman d on d.id = c.departman_id
+                            where d.ad = 'T Montaj')
+           or u.okuyucu_id in (select o.id from pdks.okuyucu o where o.kod in ('T-PDKS', 'T-KAPI')))
+$$;
 -- Komutun verdiği hata mesajı (hata vermezse null)
 create function test.hata_mesaji(p_sql text) returns text language plpgsql as $$
 begin
@@ -204,8 +212,9 @@ from (
     select '2026-09-16', k, s from (values ('TK1003', '07:55:00+03'), ('TK1004', '07:55:01+03')) v(k, s)
 ) x;
 
+select pdks.kart_paylasim_kontrol('2026-09-30');
 select test.dogrula('kart paylaşımı şüphesi: tek çift için tek uyarı',
-    pdks.kart_paylasim_kontrol('2026-09-30') = 1);
+    test.uyari_sayisi('kart_paylasim_suphesi') = 1);
 select test.dogrula('şüpheli çift T1005–T1006',
     exists (select 1 from pdks.uyari where tur = 'kart_paylasim_suphesi'
             and calisan_id = test.c('T1005') and mesaj like '%T1006%'));
