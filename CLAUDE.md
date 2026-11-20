@@ -18,7 +18,7 @@ Claude Code bu dosyayı her oturumda okur. Buradaki kurallar her istekte geçerl
 - Frontend: Next.js + TypeScript, Tailwind CSS + shadcn/ui. Veri bağlantısı: supabase-js; fonksiyonlar RPC ile çağrılır.
 - CSV okuma: Papa Parse · PDF döküm: @react-pdf/renderer · Excel çıktısı: SheetJS.
 - Gece işi pg_cron ile her gece çalışır; demoda ekrandaki butonla da tetiklenir. Yayın: Vercel.
-- Raporlama: Power BI ya da Streamlit (karar bekliyor).
+- Raporlama: ayrı araç yok; yönetici paneli (departman özeti), puantaj Excel'i, ERP aktarımı ve PDF döküm.
 
 ## 2. Değişmez veritabanı kuralları
 - `ham_okutma`, `kanit_kaydi`, `aktarim`, `okutma_isareti` değiştirilemez ve silinemez.

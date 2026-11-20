@@ -46,7 +46,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 | Excel çıktısı | SheetJS | Bordroya hazır puantaj |
 | Gece işi zamanlama | pg_cron | Her gece kendiliğinden çalışır; demoda ekrandaki butonla da tetiklenir |
 | Test | SQL testleri (`supabase/tests`) | Testler sonda ROLLBACK ile iz bırakmaz |
-| Raporlama | Power BI — **karar bekliyor** | Power BI Desktop yalnızca Windows'ta çalışır; zorunlu değilse grafikler Streamlit'te |
+| Raporlama | Yönetici paneli + Excel / CSV / PDF çıktıları | Ayrı raporlama aracı kullanılmaz |
 | Yayın | Vercel | |
 | Kod | GitHub | |
 
@@ -103,7 +103,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 |---|---|
 | `20261114000100_tablolar.sql` | Şema ve 24 tablo |
 | `20261114000200_kurallar.sql` | Trigger'lar, fonksiyonlar, görünümler |
-| `20261114000300_roller_ve_yetkiler.sql` | `pdks_uygulama` ve `pdks_gece_isi` rolleri |
+| `20261114000300_roller_ve_yetkiler.sql` | `pdks_uygulama` ve `pdks_gece_isi` rolleri (20261118030000'de kaldırıldı) |
 | `20261114000400_varsayilan_ayarlar.sql` | Varsayılan ayarlar ve 4 vardiya |
 | `20261115000500_fazla_mesai.sql` | Yazılı onay, plan, 11 / 270 saat sınırı |
 | `20261117010000_kiosk_kaldir.sql` | Şema düzenlemesi: PIN alanları ve ilgili fonksiyonlar |
@@ -176,7 +176,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 |---|---|
 | Veritabanı şeması ve kurallar (27 test) | ✅ |
 | Fazla mesai (34 test) | ✅ |
-| Geçici kart ve zimmet (35 test, kart paylaşımıyla birlikte) | ✅ |
+| Geçici kart ve zimmet (39 test, kart paylaşımıyla birlikte) | ✅ |
 | Kart paylaşımı şüphe kuralı (testli) | ✅ |
 | Giriş ve yetki: Supabase Auth bağlantısı, RLS politikaları (29 test) | ✅ |
 | Görevler ayrılığı: kimse kendi kaydında işlem yapamaz (20 test) | ✅ |
@@ -195,16 +195,13 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | İSG: bölge yetkisi (verilme / kaldırılma izi dahil), eğitim / muayene geçerliliği, yalnızca uyarı (30 test) | ✅ |
 | CSV içe aktarma (Papa Parse): ekranda denetim ve Yükle düğmesi `dosya_yukle`'ye bağlı (24 test) | ✅ |
 | Gece işi fonksiyonu (işaretleme → günlük kayıt → kanıtla düzeltme → amire soru → uyarı) ve pg_cron zamanlaması | ✅ |
-| Amir ekranı (sorular, itiraz girişi) | ⬜ Yapılacak |
-| İK ekranı (uyarılar, kararlar, ay kilidi) | ⬜ Yapılacak |
-| Güvenlik ekranı (geçici kart ver / iade al) | ⬜ Yapılacak |
+| Amir ekranı (sorular, itiraz girişi) | ✅ |
+| İK ekranı (uyarılar, kararlar, ay kilidi) | ✅ |
+| Güvenlik ekranı (geçici kart ver / iade al) | ✅ |
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
-| Raporlama (Power BI veya Streamlit) | ⬜ Karar bekliyor |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
-
-**Karar bekleyenler:** Power BI zorunlu mu.
 
 ---
 
