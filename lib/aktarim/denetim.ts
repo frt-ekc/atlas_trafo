@@ -110,7 +110,9 @@ export function dosyaAdindanTarih(dosyaAdi: string): string | null {
   const m = /(\d{4})(\d{2})(\d{2})/.exec(dosyaAdi);
   if (!m) return null;
   const t = `${m[1]}-${m[2]}-${m[3]}`;
-  return Number.isNaN(new Date(`${t}T00:00:00Z`).getTime()) ? null : t;
+  // JavaScript olmayan tarihi hata vermeden kaydırır (31.11 → 01.12); geri çevirince aynı gün çıkmalı.
+  const d = new Date(`${t}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === t ? t : null;
 }
 
 const KART_NO = /^[A-Za-z0-9-]{1,32}$/;

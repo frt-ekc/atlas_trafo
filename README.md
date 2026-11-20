@@ -202,6 +202,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
 | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (35 test) | ✅ |
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
+| Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

@@ -48,10 +48,12 @@ olarak veritabanının içinde çalışır.
 | `supabase/migrations/20261128010000_dosya_yukle_duzeltmesi.sql` | `dosya_yukle` düzeltmesi: dosyanın SHA-256 özeti (`p_dosya_ozeti`), yalnızca yazılan okutmaları sayan `satir_sayisi`, satır numaralı sunucu denetimi |
 | `supabase/migrations/20261129010000_esnek_kanit.sql` | Esnek mesaide PDKS girişi eksikse giriş = kanıt + yürüme payı (amire soru gitmez) |
 | `supabase/migrations/20261129020000_zimmet_cakisma_mesaji.sql` | Zimmet çakışma hatası çakışan zimmeti söyler; Türkçe ek yardımcıları `yonelme_eki`, `saat_eki` |
+| `supabase/migrations/20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu / tatil / vardiya yok yapılınca eski dakikalar temizlenir ve hesap kapanır (puantaja dakika gelmez, gün "bekleyen" sayılmaz) |
 | `supabase/migrations/20261201020000_kilit_ozeti.sql` | Onay bekleyen geriye dönük plan kilidi durdurur (zorla geçilir); `ay_kilitle` sonuç döner: zorla geçilen kalemler ve puantaja kodsuz giren gün sayısı |
 | `supabase/migrations/20261201010000_ay_kilidi_ve_aninda_hesap.sql` | Gün hesabı tek yerde (`gun_hesapla`); soru cevabı, İK kararı ve kayıt düzeltmesi günü hemen hesaplar; ay kilidi önce hesaplar, işlenmemiş planlı gün varken kilitlemez; İK, İK'ya eskale edilen soruyu kapatabilir |
 | `supabase/migrations/20261130010000_ise_giris_cikis.sql` | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`; yalnızca İK). Gece işi çalışanı `aktif` alanıyla değil işe giriş / işten çıkış tarihiyle süzer |
 | `supabase/migrations/20261124010000_vardiya_kurallari.sql` | Yeni vardiyalar (08-16, 16-24, 00-08, 08:30-18:00, esnek), esnek mesai ve `v_esnek_mesai`, otomatik vardiya tanıma (öneri amir onayıyla uygulanır), mola (m.68); vardiya düzeltmesi planlı saatleri de günceller |
+| `supabase/tests/durum_duzeltmesi_testi.sql` | Durum düzeltmesi: dakika temizliği, bekleyen gün, tekrar "tamam", kilitli puantaj için 11 test |
 | `supabase/tests/kurallar_testi.sql` | 27 kural testi (her şeyi geri alır, iz bırakmaz) |
 | `supabase/tests/izin_ve_ozet_testi.sql` | İzin iptali ve departman özeti için 15 test |
 | `supabase/tests/puantaj_testi.sql` | Puantaj: kilit, normal ve fark satırları için 16 test |
