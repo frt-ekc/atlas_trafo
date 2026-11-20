@@ -52,7 +52,7 @@ delete from supabase_migrations.schema_migrations;
 supabase db push --remote --dry-run
 ```
 
-Liste `supabase/migrations/` altındaki dosyaların hepsini (şu an 29) göstermeli. Sonra gerçek uygulama:
+Liste `supabase/migrations/` altındaki dosyaların hepsini (şu an 30) göstermeli. Sonra gerçek uygulama:
 
 ```bash
 supabase db push --remote
@@ -99,7 +99,7 @@ select durum, count(*) from pdks.gece_isi group by durum;   -- yalnızca "basari
 select (select count(*) from pdks.calisan)                                       as calisan,      -- 76
        (select count(*) from pdks.kullanici)                                     as kullanici,    -- 25
        (select count(*) from pdks.kullanici where auth_kullanici_id is not null) as bagli_hesap,  -- 25
-       (select count(*) from pdks.gun_kaydi)                                     as gun_kaydi,    -- 1590
+       (select count(*) from pdks.gun_kaydi)                                     as gun_kaydi,    -- 1597 (S13 Okan'ın 13 Kasım günü plan onayı beklediği için işlenmez)
        (select count(*) from pdks.amir_sorusu where durum in ('acik', 'eskale')) as acik_soru,    -- 4 (S2, S4, S19, S22)
        (select count(*) from pdks.donem where durum = 'kilitli')                 as kilitli_ay;   -- 0
 ```
