@@ -64,13 +64,12 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 **İK, Çalışanlar → Veli Çelik:** 7 Aralık girişinin yanında kaynak "kanıt", düzeltme izinde gerekçe görünür: "Kapı kaydı 07:46, vardiya başından önce; giriş vardiya başı olarak yazıldı". Düzeltme silinemez.
 
 ### 4. Amire soru (Montaj amiri, Sorularım)
-1. **Ali:** "Geldi, saat doğru" → giriş 08:29 yazılır.
+1. **Ali:** "Geldi, saat doğru" → giriş 08:29 yazılır ve gün hemen hesaplanır.
 2. **Mustafa:** "Bilmiyorum" → soru İK kararına gider. Amir devamsızlık kararı veremez.
 
 ### 5. İK kararı (İK, Sorular)
 1. Mustafa'nın sorusu: "devamsız değil", çıkış 17:00, gerekçe yazılır.
-2. **Veri aktarımı → Gece işini çalıştır (07.12.2026) bir kez daha.** Cevaplanan günlerin dakikaları gece işinin hesap adımında hesaplanır.
-3. **Sonuç:**
+2. **Sonuç** (cevap ve karar verilir verilmez hesaplanır; gece işini yeniden çalıştırmak gerekmez):
    - Ali: geç kalma 29 dk, çalışma 451 dk.
    - Mustafa: çalışma 480 dk.
 
@@ -106,6 +105,7 @@ Canlıda kilit yapılmaz. Yerelde alınmış görüntülerle anlatılır:
 5. Kilitten sonra gelen bir düzeltmenin sonraki aya fark satırı olarak yazılması.
 
 **Görüntüler nasıl alınır (yerelde, Fırat):**
+- Kasım'ı zorlamadan kilitlemek için önce bekleyenler kapatılır: 4 soru (S2, S4, S19, S22), havuzdaki 3 fazla mesai ve Okan'ın (S13) onay bekleyen geriye dönük planı. Bu planı İK uzmanı girdiği için İK müdürü onaylar. Zorla kilitlenirse kilit sonucu, geçilen kalemleri ve puantaja kodsuz giren gün sayısını gösterir.
 1. `supabase db reset` (örnek veriyle).
 2. Kasım'ı gece işinden geçir.
 3. Ekranları yerel Supabase'e bağlayıp aç.
