@@ -392,6 +392,9 @@ select test.dogrula('kilitli aya ait havuz onayı Kasım''a fark olarak yönlend
     (select h.fark_satiri and h.fm50_etki_dk = 60 and d.yil = 2026 and d.ay = 11
      from test.hv('PKI2', '2026-10-05') h join pdks.donem d on d.id = h.hedef_donem_id));
 
+-- Örnek veri yüklüyse onun Kasım planları bu testte gece işinden geçmez; ay kilidi (20261201010000)
+-- işlenmemiş planlı günü zorla bile kabul etmez. Test yalnızca kendi verisine bakar (ROLLBACK geri alır).
+delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('pk_ik1@ornek.test');
 select pdks.ay_kilitle(2026::smallint, 11::smallint, true);

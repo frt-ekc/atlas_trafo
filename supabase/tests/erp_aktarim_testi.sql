@@ -90,6 +90,9 @@ select test.dogrula('ayın her günü için tam bir gün kodu (31 gün)',
     (select sum(gun) = 31 from pdks.v_puantaj_aktarim where donem = '2026-10' and sicil = 'EA02' and kod <> 'FM50'));
 
 -- 3) Fark satırı: kaynak dönem dolu ---------------------------------------------------
+-- Örnek veri yüklüyse onun Kasım planları bu testte gece işinden geçmez; ay kilidi (20261201010000)
+-- işlenmemiş planlı günü zorla bile kabul etmez. Test yalnızca kendi verisine bakar (ROLLBACK geri alır).
+delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('ea_ik@ornek.test');
 select pdks.kayit_duzelt((test.gk('EA02', '2026-10-06')).id, 'giris_zamani', '2026-10-06 08:00+03',
