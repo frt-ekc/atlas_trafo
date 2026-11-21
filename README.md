@@ -126,6 +126,12 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261128010000_dosya_yukle_duzeltmesi.sql` | `dosya_yukle`: dosyanın SHA-256 özeti, doğru satır sayısı, satır satır sunucu denetimi |
 | `20261129010000_esnek_kanit.sql` | Esnek mesaide PDKS girişi eksikse kanıt saati (kapı / servis + yürüme payı) doğrudan yazılır |
 | `20261129020000_zimmet_cakisma_mesaji.sql` | Geçici kart zimmeti çakışınca hata, çakışan zimmeti söyler (kart, kişi, tarih, saat) |
+| `20261130010000_ise_giris_cikis.sql` | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`; yalnızca İK); gece işi çalışanı tarihe göre süzer |
+| `20261201010000_ay_kilidi_ve_aninda_hesap.sql` | Gün hesabı tek yerde (`gun_hesapla`); soru cevabı, İK kararı ve düzeltme günü hemen hesaplar; işlenmemiş planlı gün varken ay kilitlenmez |
+| `20261201020000_kilit_ozeti.sql` | Onay bekleyen geriye dönük plan kilidi durdurur (zorla geçilir); `ay_kilitle` kilit özeti döner |
+| `20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu yapılınca eski dakikalar temizlenir, gün "bekleyen" sayılmaz |
+| `20261203010000_plan_onayi.sql` | Geriye dönük plan onayı: bekleyen / reddedilmiş plan kullanılmaz, onay günü düzeltir ya da işletir, kendi planını onaylama yok |
+| `20261204010000_dosya_yukle_where.sql` | `dosya_yukle` ekrandan (HTTP) çalışır: WHERE'siz `UPDATE`'e koşul eklendi (T-31) |
 
 ---
 
@@ -152,6 +158,8 @@ npm run dev                         # http://localhost:3000
 ```
 
 **Testler:** `supabase/tests` altındaki her dosya `psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f <dosya>` ile çalıştırılır; sonda "... GEÇTİ" yazmalı. Testler veritabanında iz bırakmaz ve örnek veri yüklü olsa da olmasa da çalışır. `ornek_veri_testi.sql` örnek verinin yüklü olmasını bekler.
+
+> **Dikkat:** Testler psql ile doğrudan bağlanır. Ekrandan gelen (HTTP) isteklerde Supabase `safeupdate` eklentisini yükler ve WHERE'siz `UPDATE` / `DELETE`'i reddeder; psql'de bu kural yoktur. Bu yüzden bir fonksiyon testlerde geçip ekranda düşebilir. `where_siz_guncelleme_testi.sql` bütün `pdks` fonksiyonlarını bu açıdan tarar.
 
 ---
 
@@ -204,6 +212,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Geriye dönük plan onayı: bekleyen plan kullanılmaz, onay günü düzeltir / işletir, ret ya da onay bekleyen + işlenmemiş gün kilidi durdurur, kendi planını onaylama yok (20 test) | ✅ |
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
 | Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
+| Ekrandan dosya yükleme (T-31): dört kaynak HTTP'den yazılıyor; fonksiyonlarda WHERE'siz `UPDATE` / `DELETE` taraması (9 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
@@ -216,6 +225,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 - Her PR en az 1 onay alır.
 - Commit mesajları Türkçe ve kısa: `feat(db): ...`, `fix: ...`, `docs: ...`, `test: ...`.
 - `supabase/migrations` altındaki mevcut dosyalar **asla değiştirilmez**; her değişiklik yeni numaralı dosyadır ve testiyle gelir.
+- Fonksiyonlarda her `UPDATE` / `DELETE` bir `WHERE` koşulu taşır (geçici tablolarda da). Ekrandan gelen isteklerde Supabase WHERE'siz olanları reddeder.
 - Gizli bilgiler (şifre, anahtar, bağlantı adresi) koda, loglara, ekran görüntülerine yazılmaz; yalnızca `.env.local` dosyasında ve Vercel ortam değişkenlerinde tutulur.
 - `SUPABASE_SECRET_KEY` yalnızca sunucu tarafı kodda kullanılır, tarayıcıya gönderilmez.
 - Her tabloda RLS açıktır; yetki kontrolü veritabanında yapılır.
