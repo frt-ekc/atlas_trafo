@@ -44,7 +44,9 @@ with beklenen(surum, ad, nesne) as (values
     ('20261202010000', 'durum_duzeltmesi',               exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'duzeltme_uygula'
                                                                  and prosrc like '%''vardiya_yok'') then%')),
     ('20261203010000', 'plan_onayi',                     exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_gun_kayitlari'
-                                                                 and prosrc like '%ik_onay_durumu%'))
+                                                                 and prosrc like '%ik_onay_durumu%')),
+    ('20261204010000', 'dosya_yukle_where',              exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'dosya_yukle'
+                                                                 and prosrc like '%where zaman_metni is not null%'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
