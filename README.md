@@ -126,6 +126,11 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261128010000_dosya_yukle_duzeltmesi.sql` | `dosya_yukle`: dosyanın SHA-256 özeti, doğru satır sayısı, satır satır sunucu denetimi |
 | `20261129010000_esnek_kanit.sql` | Esnek mesaide PDKS girişi eksikse kanıt saati (kapı / servis + yürüme payı) doğrudan yazılır |
 | `20261129020000_zimmet_cakisma_mesaji.sql` | Geçici kart zimmeti çakışınca hata, çakışan zimmeti söyler (kart, kişi, tarih, saat) |
+| `20261130010000_ise_giris_cikis.sql` | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`; yalnızca İK); gece işi çalışanı tarihe göre süzer |
+| `20261201010000_ay_kilidi_ve_aninda_hesap.sql` | Gün hesabı tek yerde (`gun_hesapla`); soru cevabı, İK kararı ve düzeltme günü hemen hesaplar; işlenmemiş planlı gün varken ay kilitlenmez |
+| `20261201020000_kilit_ozeti.sql` | Onay bekleyen geriye dönük plan kilidi durdurur (zorla geçilir); `ay_kilitle` kilit özeti döner |
+| `20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu yapılınca eski dakikalar temizlenir, gün "bekleyen" sayılmaz |
+| `20261203010000_plan_onayi.sql` | Geriye dönük plan onayı: bekleyen / reddedilmiş plan kullanılmaz, onay günü düzeltir ya da işletir, kendi planını onaylama yok |
 | `20261204010000_dosya_yukle_where.sql` | `dosya_yukle` ekrandan (HTTP) çalışır: WHERE'siz `UPDATE`'e koşul eklendi (T-31) |
 
 ---
