@@ -88,12 +88,13 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
   } | null;
   const kilitli = donem?.durum === "kilitli";
 
-  // Kilidi engelleyen açık işler: soru, itiraz, kararı bekleyen onaysız fazla mesai
+  // Kilidi engelleyen açık işler: soru, itiraz, kararı bekleyen onaysız fazla mesai,
+  // İK onayı bekleyen geriye dönük vardiya planı
   const ayBasi = `${ay}-01`;
   const sonrakiAyBasi = `${ayKaydir(ay, 1)}-01`;
   const SAYIM = { count: "exact", head: true } as const;
-  const [acikSoru, acikItiraz, bekleyenHavuz] = kilitli
-    ? [null, null, null]
+  const [acikSoru, acikItiraz, bekleyenHavuz, bekleyenPlan] = kilitli
+    ? [null, null, null, null]
     : await Promise.all([
         supabase
           .from("amir_sorusu")
@@ -113,11 +114,19 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
           .eq("durum", "inceleme_bekliyor")
           .gte("is_gunu", ayBasi)
           .lt("is_gunu", sonrakiAyBasi),
+        supabase
+          .from("vardiya_plani")
+          .select("id", SAYIM)
+          .eq("geriye_donuk", true)
+          .eq("ik_onay_durumu", "bekliyor")
+          .gte("tarih", ayBasi)
+          .lt("tarih", sonrakiAyBasi),
       ]);
   const acikIsler = [
     acikSoru?.count ? `${acikSoru.count} açık soru` : null,
     acikItiraz?.count ? `${acikItiraz.count} açık itiraz` : null,
     bekleyenHavuz?.count ? `${bekleyenHavuz.count} kararı bekleyen onaysız fazla mesai` : null,
+    bekleyenPlan?.count ? `${bekleyenPlan.count} İK onayı bekleyen geriye dönük plan` : null,
   ].filter(Boolean) as string[];
 
   // Kilitli ay: değişmez puantaj satırları. Açık ay: gün kayıtlarından canlı hesap.
@@ -281,17 +290,23 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
                 <div className="flex flex-col gap-2 rounded-lg bg-destructive/10 p-3 text-sm">
                   <p className="font-medium text-destructive">Bu ayda {acikIsler.join(", ")} var.</p>
                   <p>Bunlar kapanmadan kilitlenirse sonuçları sonraki aya fark satırı olarak geçer.</p>
+                  {(bekleyenPlan?.count ?? 0) > 0 && (
+                    <p>Onay bekleyen planın günü gece işinden hiç geçmediyse ay zorla da kilitlenmez; planı önce onaylayın ya da reddedin.</p>
+                  )}
                   <label className="flex items-center gap-2">
                     <input type="checkbox" name="zorla" value="evet" />
                     Yine de kilitle
                   </label>
                 </div>
               ) : (
-                <p className="rounded-lg bg-muted p-3 text-sm">Bu ayda açık soru, itiraz ya da kararı bekleyen fazla mesai yok.</p>
+                <p className="rounded-lg bg-muted p-3 text-sm">Bu ayda açık soru, itiraz, kararı bekleyen fazla mesai ya da onay bekleyen plan yok.</p>
               )}
               {bekleyenGun > 0 && (
                 <p className="text-sm text-muted-foreground">{bekleyenGun} gün henüz kesinleşmemiş (eksik kayıt ya da hesap bekliyor).</p>
               )}
+              <p className="text-sm text-muted-foreground">
+                Gece işinden geçmemiş planlı gün varsa (ör. o günün dosyası yüklenmediyse) ay kilitlenmez; veritabanı hangi günler olduğunu söyler.
+              </p>
               <label className="flex items-start gap-2 text-sm">
                 <input type="checkbox" name="onay" value="evet" required className="mt-0.5" />
                 Kilidin geri açılamayacağını biliyorum.

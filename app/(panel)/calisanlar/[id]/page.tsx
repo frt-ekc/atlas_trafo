@@ -18,7 +18,7 @@ import { rolGerekli } from "@/lib/oturum";
 import { ayAdi, ayKaydir, saatDakika } from "@/lib/puantaj";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-import { itirazGir, kartIptalEt, kartTanimla, kayitDuzelt } from "./actions";
+import { istenCikis, itirazGir, kartIptalEt, kartTanimla, kayitDuzelt } from "./actions";
 import { DuzeltmeAlanlari, type DuzeltmeItirazi } from "./duzeltme-alanlari";
 import { PdfIndir } from "./pdf-indir";
 
@@ -79,10 +79,12 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
         <Link href="/calisanlar" className="self-start text-sm text-muted-foreground hover:text-foreground">← Çalışanlar</Link>
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h1 className="text-2xl font-semibold">{calisan.adSoyad}</h1>
-          {!calisan.aktif && <Badge variant="outline">Ayrıldı</Badge>}
+          {!calisan.aktif && <Badge variant="outline">Ayrıldı{calisan.cikis ? ` · ${calisan.cikis}` : ""}</Badge>}
+          {calisan.aktif && calisan.iseGirisTarihi > bugunTarih && <Badge>Başlayacak · {calisan.iseGiris}</Badge>}
         </div>
         <p className="text-sm text-muted-foreground">
           Sicil <span className="font-mono">{calisan.sicil}</span> · {calisan.bolum} · İşe giriş {calisan.iseGiris}
+          {calisan.cikis && <> · Son çalışma günü {calisan.cikis}</>}
           {calisan.kart && <> · Kart <span className="font-mono">{calisan.kart}</span></>}
         </p>
       </div>
@@ -126,6 +128,23 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                 <option value="isten_cikis">İşten çıkış</option>
                 <option value="diger">Diğer</option>
               </Secim>
+            </IslemPenceresi>
+          )}
+          {duzeltebilir && calisan.aktif && (
+            <IslemPenceresi
+              dugme="İşten çıkış"
+              dugmeTuru="ghost"
+              baslik={`${calisan.adSoyad} · işten çıkış`}
+              aciklama="Son çalışma günü girilir; ileri tarih olamaz. Kartı iptal edilir, sonraki planları silinir, sonraki izinleri ve bekleyen fazla mesai talepleri iptal edilir, kullanıcı hesabı varsa pasif olur. Son günler yarın sabah gece işinde yine işlenir. Geri alınamaz."
+              onay="Çıkışı kaydet"
+              onayTuru="destructive"
+              islem={istenCikis}
+              gizli={{ calisan_id: calisanId, ad_soyad: calisan.adSoyad }}
+            >
+              <label htmlFor="cikis_tarihi" className="text-sm font-medium">Son çalışma günü</label>
+              <Input id="cikis_tarihi" name="cikis_tarihi" type="date" required max={bugunTarih} defaultValue={bugunTarih} />
+              <label htmlFor="cikis_aciklama" className="text-sm font-medium">Açıklama (isteğe bağlı)</label>
+              <Textarea id="cikis_aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. İstifa" />
             </IslemPenceresi>
           )}
           {kullanici.rol === "ik" && <PdfIndir dokum={dokum} hazirlayan={kullanici.adSoyad} />}

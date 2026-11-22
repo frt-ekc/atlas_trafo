@@ -3,12 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { aramaTemizle, tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
 import { bolumNumarasi, gorunurBolumler } from "@/lib/bolumler";
+import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
+import { calisanEkle } from "./actions";
 
 export const metadata = { title: "Çalışanlar" };
 
@@ -55,16 +58,52 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
 
   const calisanlar = (calisanSonucu.data ?? []) as unknown as CalisanSatiri[];
   const suzgecVar = Boolean(araMetni || departmanId || tumu);
+  const bugunTarih = bugun();
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">Çalışanlar</h1>
-        <p className="text-sm text-muted-foreground">
-          {kullanici.rol === "amir"
-            ? "Yalnızca sorumlu olduğunuz bölümlerin çalışanları listelenir."
-            : "Fabrikadaki çalışanlar."}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold">Çalışanlar</h1>
+          <p className="text-sm text-muted-foreground">
+            {kullanici.rol === "amir"
+              ? "Yalnızca sorumlu olduğunuz bölümlerin çalışanları listelenir."
+              : "Fabrikadaki çalışanlar."}
+          </p>
+        </div>
+        {kullanici.rol === "ik" && (
+          <IslemPenceresi
+            dugme="Çalışan ekle"
+            dugmeTuru="default"
+            baslik="Yeni çalışan"
+            aciklama="İşe giriş ileri tarihli olabilir; o güne kadar gece işi gün kaydı açmaz. Kart ve vardiya planı ayrıca girilir. Departman sonradan değiştirilemez."
+            onay="Ekle"
+            islem={calisanEkle}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <Alan etiket="Sicil no" htmlFor="sicil_no">
+                <Input id="sicil_no" name="sicil_no" required maxLength={20} autoComplete="off" className="font-mono uppercase" />
+              </Alan>
+              <Alan etiket="İşe giriş" htmlFor="ise_giris_tarihi">
+                <Input id="ise_giris_tarihi" name="ise_giris_tarihi" type="date" required defaultValue={bugunTarih} />
+              </Alan>
+              <Alan etiket="Ad" htmlFor="ad">
+                <Input id="ad" name="ad" required maxLength={50} />
+              </Alan>
+              <Alan etiket="Soyad" htmlFor="soyad">
+                <Input id="soyad" name="soyad" required maxLength={50} />
+              </Alan>
+            </div>
+            <Alan etiket="Departman" htmlFor="departman_id">
+              <Secim id="departman_id" name="departman_id" required defaultValue="" className="h-9">
+                <option value="" disabled>Seçin</option>
+                {departmanlar.map((d) => (
+                  <option key={d.id} value={d.id}>{d.ad}</option>
+                ))}
+              </Secim>
+            </Alan>
+          </IslemPenceresi>
+        )}
       </div>
 
       <form method="get" className="flex flex-wrap items-end gap-3">
@@ -126,7 +165,9 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                   <TableCell>{c.departman?.ad ?? "—"}</TableCell>
                   <TableCell className="tabular-nums">{tarih(c.ise_giris_tarihi)}</TableCell>
                   <TableCell>
-                    {c.aktif ? (
+                    {c.aktif && c.ise_giris_tarihi > bugunTarih ? (
+                      <Badge variant="default">Başlayacak · {tarih(c.ise_giris_tarihi)}</Badge>
+                    ) : c.aktif ? (
                       <Badge variant="secondary">Çalışıyor</Badge>
                     ) : (
                       <Badge variant="outline">Ayrıldı{c.isten_cikis_tarihi ? ` · ${tarih(c.isten_cikis_tarihi)}` : ""}</Badge>

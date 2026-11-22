@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
-import { metinAl, rpcCagir, sayiAl, zamanAl } from "@/lib/supabase/rpc";
+import { metinAl, rpcCagir, sayiAl, tarihAl, zamanAl } from "@/lib/supabase/rpc";
 
 const ALANLAR = ["giris_zamani", "cikis_zamani", "durum"] as const;
 const DURUMLAR = ["tamam", "devamsiz", "izinli", "raporlu", "tatil", "vardiya_yok"];
@@ -34,7 +34,10 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
   revalidatePath("/calisanlar", "layout");
   revalidatePath("/puantaj");
   revalidatePath("/");
-  return { durum: "tamam", mesaj: `Düzeltme kaydedildi (no ${sonuc.veri}).` };
+  return {
+    durum: "tamam",
+    mesaj: `Düzeltme kaydedildi (no ${sonuc.veri}), gün yeniden hesaplandı. Ay kilitliyse fark satırı olarak sonraki aya geçer.`,
+  };
 }
 
 // Çalışan itirazını sözlü ya da yazılı olarak amire veya İK'ya iletir; onlar sisteme girer.
@@ -83,4 +86,43 @@ export async function kartIptalEt(_onceki: IslemSonucu, form: FormData): Promise
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/calisanlar", "layout");
   return { durum: "tamam", mesaj: "Kart iptal edildi." };
+}
+
+type CikisOzeti = {
+  iptal_edilen_kart: number;
+  vardiya_yok_yapilan_gun: number;
+  silinen_plan: number;
+  iptal_edilen_izin: number;
+  iptal_edilen_fm_talebi: number;
+  pasif_yapilan_hesap: number;
+};
+
+// İK işten çıkışı girer (isten_cikis_gir). Veritabanı denetler: iade edilmemiş geçici kart,
+// çıkıştan sonra çalışılmış gün, ileri tarih, kendi çıkışı. Dönen özet bildirimde gösterilir.
+export async function istenCikis(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
+  const calisanId = sayiAl(form, "calisan_id");
+  const adSoyad = metinAl(form, "ad_soyad") ?? "Çalışan";
+  const cikisTarihi = tarihAl(form, "cikis_tarihi");
+  if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmedi." };
+  if (!cikisTarihi) return { durum: "hata", mesaj: "Son çalışma gününü girin." };
+
+  const sonuc = await rpcCagir<CikisOzeti>("isten_cikis_gir", {
+    p_calisan_id: calisanId,
+    p_cikis_tarihi: cikisTarihi,
+    p_aciklama: metinAl(form, "aciklama"),
+  });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
+
+  const o = sonuc.veri;
+  const parcalar = [
+    o?.iptal_edilen_kart ? `${o.iptal_edilen_kart} kart iptal` : null,
+    o?.silinen_plan ? `${o.silinen_plan} plan silindi` : null,
+    o?.iptal_edilen_izin ? `${o.iptal_edilen_izin} izin iptal` : null,
+    o?.iptal_edilen_fm_talebi ? `${o.iptal_edilen_fm_talebi} fazla mesai talebi iptal` : null,
+    o?.vardiya_yok_yapilan_gun ? `${o.vardiya_yok_yapilan_gun} gün "vardiya yok"` : null,
+    o?.pasif_yapilan_hesap ? "kullanıcı hesabı pasif" : null,
+  ].filter(Boolean);
+
+  revalidatePath("/", "layout");
+  return { durum: "tamam", mesaj: `${adSoyad} için işten çıkış kaydedildi${parcalar.length ? `: ${parcalar.join(", ")}` : ""}.` };
 }

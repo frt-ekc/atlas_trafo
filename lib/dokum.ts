@@ -51,7 +51,11 @@ export type DokumDuzeltmesi = {
 };
 
 export type Dokum = {
-  calisan: { id: number; sicil: string; adSoyad: string; bolum: string; iseGiris: string; aktif: boolean; kart: string | null };
+  calisan: {
+    id: number; sicil: string; adSoyad: string; bolum: string; iseGiris: string; aktif: boolean; kart: string | null;
+    iseGirisTarihi: string; // "2026-12-01" (karşılaştırma için)
+    cikis: string | null; // "25.11.2026"
+  };
   ay: string;
   ayMetni: string;
   gunler: DokumGunu[];
@@ -105,12 +109,12 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
 
   const calisanSonucu = await supabase
     .from("calisan")
-    .select("id, sicil_no, ad, soyad, ise_giris_tarihi, aktif, departman:departman_id(ad)")
+    .select("id, sicil_no, ad, soyad, ise_giris_tarihi, isten_cikis_tarihi, aktif, departman:departman_id(ad)")
     .eq("id", calisanId)
     .maybeSingle();
   if (calisanSonucu.error) throw new Error(`Çalışan okunamadı: ${calisanSonucu.error.message}`);
   const c = calisanSonucu.data as unknown as {
-    id: number; sicil_no: string; ad: string; soyad: string; ise_giris_tarihi: string; aktif: boolean; departman: { ad: string } | null;
+    id: number; sicil_no: string; ad: string; soyad: string; ise_giris_tarihi: string; isten_cikis_tarihi: string | null; aktif: boolean; departman: { ad: string } | null;
   } | null;
   if (!c) return null;
 
@@ -235,6 +239,8 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
       adSoyad: `${c.ad} ${c.soyad}`,
       bolum: c.departman?.ad ?? "—",
       iseGiris: tarih(c.ise_giris_tarihi),
+      iseGirisTarihi: c.ise_giris_tarihi,
+      cikis: c.isten_cikis_tarihi ? tarih(c.isten_cikis_tarihi) : null,
       aktif: c.aktif,
       kart: (kartSonucu?.data as { kart_no: string } | null)?.kart_no ?? null,
     },

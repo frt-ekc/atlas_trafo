@@ -30,13 +30,14 @@ export async function vardiyaPlaniGir(_onceki: IslemSonucu, form: FormData): Pro
   return {
     durum: "tamam",
     mesaj: geriye
-      ? `${bulunan.calisan.adSoyad} için geçmiş güne plan girildi; İK onayı bekliyor.`
+      ? `${bulunan.calisan.adSoyad} için geçmiş güne plan girildi; İK onayı bekliyor. Onaylanana kadar gün eski haliyle kalır.`
       : `${bulunan.calisan.adSoyad} için vardiya planı kaydedildi.`,
   };
 }
 
 // İK, geçmiş güne girilmiş (geriye dönük) vardiya planını onaylar ya da reddeder.
-// Planı giren kişi onaylayamaz (görevler ayrılığı; veritabanı denetler).
+// Planı giren kişi ve planın sahibi onaylayamaz (görevler ayrılığı; veritabanı denetler).
+// Onay günü hemen düzeltir ya da işletir; ret hiçbir şeyi değiştirmez.
 export async function vardiyaPlaniOnayla(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const planId = sayiAl(form, "plan_id");
   const karar = metinAl(form, "karar");
@@ -44,7 +45,13 @@ export async function vardiyaPlaniOnayla(_onceki: IslemSonucu, form: FormData): 
 
   const sonuc = await rpcCagir("vardiya_plani_onayla", { p_plan_id: planId, p_onay: karar === "onay" });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
-  revalidatePath("/vardiya-plani");
-  revalidatePath("/");
-  return { durum: "tamam", mesaj: karar === "onay" ? "Geriye dönük plan onaylandı." : "Geriye dönük plan reddedildi." };
+  // Onay gün kaydını ve puantajı değiştirebilir; bütün panel yenilenir.
+  revalidatePath("/", "layout");
+  return {
+    durum: "tamam",
+    mesaj:
+      karar === "onay"
+        ? "Geriye dönük plan onaylandı; gün yeni plana göre hemen hesaplandı."
+        : "Geriye dönük plan reddedildi; gün değişmedi. Doğru plan gerekiyorsa yeniden girilmeli.",
+  };
 }

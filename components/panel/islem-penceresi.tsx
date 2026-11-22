@@ -58,7 +58,8 @@ function IcForm({ baslik, aciklama, onay, onayTuru, islem, gizli, children, kapa
     const yeni = await islem(onceki, form);
     if (yeni.durum === "tamam") {
       kapat();
-      toast.success(yeni.mesaj);
+      if (yeni.uyari) toast.warning(yeni.mesaj, { duration: 15000 });
+      else toast.success(yeni.mesaj);
     }
     return yeni;
   }, BOS_SONUC);

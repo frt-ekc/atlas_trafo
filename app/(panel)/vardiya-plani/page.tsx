@@ -21,7 +21,15 @@ import { vardiyaPlaniGir, vardiyaPlaniOnayla } from "./actions";
 
 export const metadata = { title: "Vardiya planı" };
 
-type Calisan = { id: number; sicil_no: string; ad: string; soyad: string; departman: { ad: string } | null };
+type Calisan = {
+  id: number;
+  sicil_no: string;
+  ad: string;
+  soyad: string;
+  ise_giris_tarihi: string;
+  isten_cikis_tarihi: string | null;
+  departman: { ad: string } | null;
+};
 type Plan = { calisan_id: number; tarih: string; vardiya_id: number; geriye_donuk: boolean; ik_onay_durumu: string; aciklama: string | null };
 type Izin = { calisan_id: number; tur: string; baslangic: string; bitis: string };
 type FazlaMesai = { calisan_id: number; is_gunu: string; planli_dk: number; durum: string };
@@ -69,8 +77,11 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
     tumSatirlar<Calisan>((bas, son) => {
       let q = supabase
         .from("calisan")
-        .select("id, sicil_no, ad, soyad, departman:departman_id(ad)")
-        .eq("aktif", true)
+        .select("id, sicil_no, ad, soyad, ise_giris_tarihi, isten_cikis_tarihi, departman:departman_id(ad)")
+        // O hafta işte olanlar: haftanın son gününe kadar işe girmiş, ilk gününden önce ayrılmamış.
+        // ("aktif" alanına bakılmaz; yoksa ayrılan çalışan geçmiş haftalarda da kaybolurdu.)
+        .lte("ise_giris_tarihi", pazar)
+        .or(`isten_cikis_tarihi.is.null,isten_cikis_tarihi.gte.${pazartesi}`)
         .order("sicil_no")
         .range(bas, son);
       if (departmanId) q = q.eq("departman_id", departmanId);
@@ -300,6 +311,8 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
                     <div className="text-xs text-muted-foreground">
                       <span className="font-mono">{c.sicil_no}</span> · {c.departman?.ad ?? "—"}
                     </div>
+                    {c.isten_cikis_tarihi && <div className="text-xs text-muted-foreground">Ayrıldı · {tarih(c.isten_cikis_tarihi)}</div>}
+                    {c.ise_giris_tarihi > pazartesi && <div className="text-xs text-muted-foreground">İşe giriş · {tarih(c.ise_giris_tarihi)}</div>}
                   </TableCell>
                   {gunler.map((g) => (
                     <TableCell
