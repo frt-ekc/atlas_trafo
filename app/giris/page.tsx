@@ -1,10 +1,12 @@
+import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import fabrika from "@/public/gorsel/atlas_fabrika.jpg";
 import { supabaseAyarlari } from "@/lib/supabase/ayarlar";
 import { GirisFormu } from "./giris-formu";
 
 export const metadata = { title: "Giriş" };
 
-// Atlas işareti paletin şeftali rengine boyanır (beyaz PNG maske olarak kullanılır)
+// Atlas işareti temanın vurgu rengine boyanır (beyaz PNG maske olarak kullanılır)
 function AtlasIsareti({ className }: { className?: string }) {
   return (
     <span
@@ -12,7 +14,6 @@ function AtlasIsareti({ className }: { className?: string }) {
       aria-label="Atlas Trafo"
       className={className}
       style={{
-        backgroundColor: "#f4d6b0",
         maskImage: "url(/logo/atlas_isaret_beyaz.png)",
         maskSize: "contain",
         maskRepeat: "no-repeat",
@@ -24,78 +25,54 @@ function AtlasIsareti({ className }: { className?: string }) {
   );
 }
 
-// Sistemin üç adımı: hocanın ve kullanıcının ilk bakışta ne olduğunu anlaması için
-const ADIMLAR = [
-  { baslik: "Kanıt varsa sistem düzeltir", metin: "Kapı, yemekhane ve servis kaydıyla eksik okutma kendiliğinden tamamlanır." },
-  { baslik: "Kanıt yoksa amire sorar", metin: "Amir sabah sorusunu cevaplar; cevapsız soru üst amire gider." },
-  { baslik: "Karar İK'dadır", metin: "Çalışan aleyhine her karar gerekçesiyle İK'da verilir ve silinmez." },
-];
-
 export default function GirisSayfasi() {
   const ayarlarHazir = supabaseAyarlari() !== null;
 
   return (
-    <main className="flex flex-1 items-stretch gap-4 p-3">
-      {/* Sol tanıtım alanı: yalnızca geniş ekranda */}
-      <section
-        className="hidden flex-1 flex-col justify-between overflow-hidden rounded-2xl p-10 text-[#eadcc8] lg:flex"
-        style={{ background: "var(--kenar-zemin)" }}
-      >
-        <div className="flex flex-col gap-2">
-          <AtlasIsareti className="block h-10 w-[159px]" />
-          <span className="text-sm text-[#eadcc8]/60">Atlas Trafo · İzmir</span>
-        </div>
+    <main className="relative isolate flex min-h-svh flex-1 items-center justify-center bg-[#0a1c20] px-4 py-6">
+      {/* Arka plan: bulanık fabrika fotoğrafı, pencereye sabit (form kaysa da yerinde kalır).
+          Her yandan 8 px taşar ki bulanıklık kenarlarda soluk çerçeve bırakmasın; ayrıca büyütülmez.
+          Pencere fotoğraftan yayvansa alttaki asfalttan kırpılır, binanın tepesi ve tabelalar tam kalır. */}
+      <div className="fixed -inset-2 -z-20" aria-hidden>
+        <Image
+          src={fabrika}
+          alt=""
+          fill
+          priority
+          unoptimized // 185 KB'lık dosya olduğu gibi gider; büyük ekran için kopya üretmek ilk açılışı geciktiriyordu
+          placeholder="blur" // fotoğraf gelene kadar küçük bulanık ön izlemesi görünür
+          className="object-cover object-[34%_top] blur-[3px] lg:object-top"
+        />
+      </div>
+      {/* Hafif petrol tonu ve köşelere doğru koyulaşma: göz ortadaki karta gider */}
+      <div
+        className="fixed inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgb(10 28 32 / 0.18) 0%, rgb(10 28 32 / 0.62) 100%), linear-gradient(rgb(15 61 62 / 0.2), rgb(15 61 62 / 0.2))",
+        }}
+        aria-hidden
+      />
 
-        <div className="flex max-w-md flex-col gap-8">
-          <div className="flex flex-col gap-3">
-            <p className="text-xs font-semibold tracking-[0.14em] text-[#f4d6b0] uppercase">PDKS Kayıt Düzeltme</p>
-            <h1 className="text-4xl leading-tight font-semibold text-[#f7efe3]">
-              Hatalı kart kayıtları, tek bir düzende.
-            </h1>
+      <section className="flex w-full max-w-[19rem] flex-col gap-5 rounded-2xl border border-white/15 bg-card/90 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl dark:bg-card/75">
+        <div className="flex flex-col items-center gap-3.5 text-center">
+          <AtlasIsareti className="block h-7 w-[111px] bg-vurgu" />
+          <div className="flex flex-col gap-1">
+            <h1 className="text-lg font-semibold">PDKS Kayıt Düzeltme</h1>
+            <p className="text-[0.8125rem] text-muted-foreground">Kurum e-postanız ve şifrenizle giriş yapın.</p>
           </div>
-          <ol className="flex flex-col gap-5">
-            {ADIMLAR.map((a, i) => (
-              <li key={a.baslik} className="flex gap-4">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f4d6b0]/15 text-sm font-semibold text-[#f4d6b0]">
-                  {i + 1}
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium text-[#f7efe3]">{a.baslik}</span>
-                  <span className="text-sm text-[#eadcc8]/65">{a.metin}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
         </div>
-
-        <p className="text-xs text-[#eadcc8]/45">Bilişim Sistemleri Analizi ve Tasarımı · 2026</p>
-      </section>
-
-      {/* Giriş formu */}
-      <section className="flex flex-1 items-center justify-center px-4 py-10 lg:max-w-xl">
-        <div className="flex w-full max-w-sm flex-col gap-8">
-          {/* Dar ekranda logo formun üstünde */}
-          <div className="flex flex-col items-start gap-3 lg:hidden">
-            <span className="rounded-xl p-3" style={{ background: "var(--kenar-zemin)" }}>
-              <AtlasIsareti className="block h-7 w-[111px]" />
-            </span>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-2xl font-semibold">Giriş yap</h2>
-            <p className="text-sm text-muted-foreground">Kurum e-postanız ve şifrenizle giriş yapın.</p>
-          </div>
-          {ayarlarHazir ? (
-            <GirisFormu />
-          ) : (
-            <Alert>
-              <AlertTitle>Supabase ayarları eksik</AlertTitle>
-              <AlertDescription>
-                <code>.env.example</code> dosyasını <code>.env.local</code> olarak kopyalayın, değerleri
-                doldurun ve geliştirme sunucusunu yeniden başlatın.
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
+        {ayarlarHazir ? (
+          <GirisFormu />
+        ) : (
+          <Alert>
+            <AlertTitle>Supabase ayarları eksik</AlertTitle>
+            <AlertDescription>
+              <code>.env.example</code> dosyasını <code>.env.local</code> olarak kopyalayın, değerleri
+              doldurun ve geliştirme sunucusunu yeniden başlatın.
+            </AlertDescription>
+          </Alert>
+        )}
       </section>
     </main>
   );
