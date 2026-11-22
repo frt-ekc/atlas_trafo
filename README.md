@@ -132,6 +132,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu yapılınca eski dakikalar temizlenir, gün "bekleyen" sayılmaz |
 | `20261203010000_plan_onayi.sql` | Geriye dönük plan onayı: bekleyen / reddedilmiş plan kullanılmaz, onay günü düzeltir ya da işletir, kendi planını onaylama yok |
 | `20261204010000_dosya_yukle_where.sql` | `dosya_yukle` ekrandan (HTTP) çalışır: WHERE'siz `UPDATE`'e koşul eklendi (T-31) |
+| `20261205010000_istanbul_tarihi.sql` | "Bugün" İstanbul'a göre (`pdks.bugun()`; ekran ve pg_cron UTC oturumla çalışsa da) (T-45); yazılı onayın geri alınması her zaman kaydedilir (T-59) |
 
 ---
 
@@ -213,6 +214,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
 | Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
 | Ekrandan dosya yükleme (T-31): dört kaynak HTTP'den yazılıyor; fonksiyonlarda WHERE'siz `UPDATE` / `DELETE` taraması (9 test) | ✅ |
+| İstanbul tarihi (T-45, T-59, T-04): plan, fazla mesai iptali, gece işi, İSG durumu ve kart tarihi UTC−12 / UTC+14 oturumda da İstanbul'a göre; yazılı onayın geri alınması her zaman kaydedilir (24 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
