@@ -9,7 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-baslik);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +39,13 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-vurgu: var(--vurgu);
+  --color-iyi: var(--iyi);
+  --color-iyi-zemin: var(--iyi-zemin);
+  --color-dikkat: var(--dikkat);
+  --color-dikkat-zemin: var(--dikkat-zemin);
+  --color-kotu: var(--kotu);
+  --color-kotu-zemin: var(--kotu-zemin);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,73 +55,94 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+  Atlas paleti (6 renk):
+    gece      #0A0F14  en koyu zemin, açık temada yazı rengi
+    derin     #0F3D3E  kenar çubuğu, koyu yüzeyler
+    petrol    #2E6F73  açık temada ana renk (düğmeler, bağlantılar)
+    su        #7FB3B8  ikincil vurgu, odak halkası
+    kum       #EADCC8  koyu temada yazı, açık temada kenarlık / zemin tonu
+    şeftali   #F4D6B0  dikkat çeken tek vurgu (marka, seçili menü, koyu temada ana düğme)
+  Göz yormasın diye: geniş alanlar nötr (gece / kum tonları), renk yalnızca vurguda.
+*/
+
+/* Açık tema: kum tonlu sakin zemin, petrol düğmeler */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #f7f2ea;
+  --foreground: #0a0f14;
+  --card: #fffcf7;
+  --card-foreground: #0a0f14;
+  --popover: #fffcf7;
+  --popover-foreground: #0a0f14;
+  --primary: #2e6f73;
+  --primary-foreground: #fffcf7;
+  --secondary: #efe6d8;
+  --secondary-foreground: #0f3d3e;
+  --muted: #f0e8dc;
+  --muted-foreground: #55686b;
+  --accent: #e6efee;
+  --accent-foreground: #0f3d3e;
+  --destructive: #b4442f;
+  --border: #e4d8c6;
+  --input: #d9ccb8;
+  --ring: #2e6f73;
+  --vurgu: #2e6f73;
+  --chart-1: #2e6f73;
+  --chart-2: #7fb3b8;
+  --chart-3: #0f3d3e;
+  --chart-4: #f4d6b0;
+  --chart-5: #eadcc8;
+  --radius: 0.75rem;
+  --zemin:
+    radial-gradient(1100px 600px at 0% 0%, rgb(127 179 184 / 0.18), transparent 60%),
+    radial-gradient(900px 520px at 100% 100%, rgb(244 214 176 / 0.35), transparent 60%), #f7f2ea;
+  --ust-bar: rgb(255 252 247 / 0.75);
 }
 
+/* Koyu tema: gece zemin, derin petrol ışıması, şeftali vurgu */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0a0f14;
+  --foreground: #efe6d8;
+  --card: #0e1a1f;
+  --card-foreground: #efe6d8;
+  --popover: #101e23;
+  --popover-foreground: #efe6d8;
+  --primary: #f4d6b0;
+  --primary-foreground: #0a0f14;
+  --secondary: #14282c;
+  --secondary-foreground: #eadcc8;
+  --muted: #122327;
+  --muted-foreground: #93a9aa;
+  --accent: #153134;
+  --accent-foreground: #eadcc8;
+  --destructive: #e5867a;
+  --border: rgb(127 179 184 / 0.14);
+  --input: rgb(127 179 184 / 0.22);
+  --ring: #7fb3b8;
+  --vurgu: #f4d6b0;
+  --chart-1: #7fb3b8;
+  --chart-2: #f4d6b0;
+  --chart-3: #2e6f73;
+  --chart-4: #eadcc8;
+  --chart-5: #0f3d3e;
+  --zemin:
+    radial-gradient(1200px 650px at 0% 0%, rgb(15 61 62 / 0.55), transparent 60%),
+    radial-gradient(900px 520px at 100% 100%, rgb(244 214 176 / 0.07), transparent 60%), #0a0f14;
+  --ust-bar: rgb(14 26 31 / 0.7);
+}
+
+/* Kenar çubuğu iki temada da derin petrol: uygulamanın kimliği burada */
+:root,
+.dark {
+  --sidebar: #0f3d3e;
+  --sidebar-foreground: #eadcc8;
+  --sidebar-primary: #f4d6b0;
+  --sidebar-primary-foreground: #0a0f14;
+  --sidebar-accent: rgb(234 220 200 / 0.12);
+  --sidebar-accent-foreground: #f4d6b0;
+  --sidebar-border: rgb(234 220 200 / 0.1);
+  --sidebar-ring: #7fb3b8;
+  --kenar-zemin: linear-gradient(180deg, #0f3d3e 0%, #0c2f31 55%, #0a1c20 100%);
 }
 
 @layer base {
@@ -123,8 +151,87 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: var(--zemin);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
   }
+  h1,
+  h2 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+  /* Tarayıcının kendi denetimleri (açılır liste, takvim, kaydırma çubuğu) temaya uysun */
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+  /* Açılır listenin seçenekleri: koyu temada açık zemin üstünde açık yazı kalmasın */
+  select option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
+  /* Tablolarda kişi adı (bağlantı) öne çıkar */
+  [data-slot="table-cell"] a {
+    font-weight: 500;
+  }
+}
+
+/* Tablolarda tarih hücresi: adlardan kolay ayrılsın diye sakin renk, sabit genişlikli rakamlar */
+@layer components {
+  .tarih-hucre {
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  /* Grafikte "bekleyen" dilimi: düz renk yerine çizgili, tamamlanmamış olduğu belli olsun */
+  .desenli {
+    background-image: repeating-linear-gradient(135deg, rgb(127 179 184 / 0.45) 0 3px, transparent 3px 7px);
+  }
+}
+
+/* Durum renkleri (iyi / dikkat / kötü): paletten türetildi, iki temada da okunur.
+   Etiketlerde renk tek başına anlam taşımaz; yanında her zaman yazı vardır. */
+:root {
+  --iyi: #24595c;
+  --iyi-zemin: #e1eeed;
+  --dikkat: #8f5320;
+  --dikkat-zemin: #f7e4cb;
+  --kotu: #a63d2a;
+  --kotu-zemin: #f5dfd9;
+}
+.dark {
+  --iyi: #a6d0d4;
+  --iyi-zemin: rgb(127 179 184 / 0.15);
+  --dikkat: #f4d6b0;
+  --dikkat-zemin: rgb(244 214 176 / 0.14);
+  --kotu: #f0a598;
+  --kotu-zemin: rgb(229 134 122 / 0.15);
+}
+
+/* Vardiya etiketleri: her vardiya paletin bir tonu */
+.vardiya-gunduz { background: #e1eeed; color: #0f3d3e; }
+.vardiya-v1 { background: #f7e4cb; color: #6b3f17; }
+.vardiya-v2 { background: #efe6d8; color: #4f4130; }
+.vardiya-v3 { background: #0f3d3e; color: #eadcc8; }
+.dark .vardiya-gunduz { background: rgb(127 179 184 / 0.18); color: #c3e0e3; }
+.dark .vardiya-v1 { background: rgb(244 214 176 / 0.16); color: #f4d6b0; }
+.dark .vardiya-v2 { background: rgb(234 220 200 / 0.1); color: #eadcc8; }
+.dark .vardiya-v3 { background: #0f3d3e; color: #eadcc8; box-shadow: inset 0 0 0 1px rgb(127 179 184 / 0.35); }
+
+/* Grafik renkleri: iki temada da okunur ton */
+:root {
+  --grafik-sistem: #7fb3b8;
+  --grafik-amir: #2e6f73;
+  --grafik-ik: #e2b88a;
+}
+.dark {
+  --grafik-sistem: #7fb3b8;
+  --grafik-amir: #2e6f73;
+  --grafik-ik: #f4d6b0;
 }

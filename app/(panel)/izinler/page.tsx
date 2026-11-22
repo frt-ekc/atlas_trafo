@@ -215,7 +215,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                     <TableCell className="tabular-nums whitespace-nowrap">
                       {tarih(i.baslangic)}{i.bitis !== i.baslangic && ` – ${tarih(i.bitis)}`}
                     </TableCell>
-                    <TableCell className="max-w-64 whitespace-normal text-sm">
+                    <TableCell className="min-w-56 max-w-80 whitespace-normal text-sm">
                       {i.iptal_zamani ? `İptal nedeni: ${i.iptal_nedeni ?? "—"}` : (i.aciklama ?? "—")}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -271,10 +271,10 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                 {saatlikler.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell><KisiBaglantisi kisi={s.calisan} ay={ay} /></TableCell>
-                    <TableCell className="tabular-nums">{tarih(s.tarih)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarih(s.tarih)}</TableCell>
                     <TableCell className="tabular-nums">{saat(s.baslangic)}–{saat(s.bitis)}</TableCell>
                     <TableCell><Badge variant="secondary">{SAATLIK_TUR[s.tur] ?? s.tur}</Badge></TableCell>
-                    <TableCell className="max-w-64 whitespace-normal text-sm">{s.aciklama ?? "—"}</TableCell>
+                    <TableCell className="min-w-56 max-w-80 whitespace-normal text-sm">{s.aciklama ?? "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{s.giren?.ad_soyad ?? "—"}</TableCell>
                   </TableRow>
                 ))}

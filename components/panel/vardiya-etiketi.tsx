@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
-// Vardiyalar renkle ayrılır; renk tek başına anlam taşımasın diye etikette kod da yazar.
+// Vardiyalar paletin tonlarıyla ayrılır (globals.css: .vardiya-*); renk tek başına anlam taşımasın diye etikette kod da yazar.
 const VARDIYA_RENGI: Record<string, string> = {
-  GUNDUZ: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200",
-  V1: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-  V2: "bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200",
-  V3: "bg-slate-800 text-slate-50 dark:bg-slate-700",
+  GUNDUZ: "vardiya-gunduz",
+  V1: "vardiya-v1",
+  V2: "vardiya-v2",
+  V3: "vardiya-v3",
 };
 const VARDIYA_KISA: Record<string, string> = { GUNDUZ: "Gündüz" };
 

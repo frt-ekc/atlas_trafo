@@ -86,7 +86,6 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
   const devamsiz = top("devamsiz_gun");
   const devamOrani = calisilan + devamsiz > 0 ? (calisilan / (calisilan + devamsiz)) * 100 : null;
   const acikIs = top("acik_soru") + top("acik_itiraz");
-  const enYuksekGecKalma = Math.max(1, ...departmanlar.map((d) => d.gec_kalma_dk));
 
   const adres = (a: string) => `/departmanlar?ay=${a}`;
 
@@ -140,7 +139,7 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                   <TableHead className="text-right">Çalışan</TableHead>
                   <TableHead className="text-right">Çalışılan gün</TableHead>
                   <TableHead className="text-right">Devamsız</TableHead>
-                  <TableHead>Geç kalma</TableHead>
+                  <TableHead className="text-right">Geç kalma</TableHead>
                   <TableHead className="text-right">Erken çıkış</TableHead>
                   <TableHead className="text-right">Fazla mesai</TableHead>
                   <TableHead className="text-right">Açık iş</TableHead>
@@ -149,21 +148,15 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
               <TableBody>
                 {departmanlar.map((d) => (
                   <TableRow key={d.departman_id}>
-                    <TableCell className="max-w-56 whitespace-normal">
+                    <TableCell className="min-w-52 max-w-72 whitespace-normal">
                       <Link href={`/calisanlar?departman=${d.departman_id}`} className="underline-offset-4 hover:underline">{d.departman}</Link>
                       {yaka.get(d.departman_id) && <div className="text-xs text-muted-foreground">{yaka.get(d.departman_id)} yaka</div>}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{d.calisan_sayisi}</TableCell>
                     <TableCell className="text-right tabular-nums">{d.calisilan_gun}</TableCell>
                     <TableCell className={cn("text-right tabular-nums", d.devamsiz_gun > 0 && "font-medium text-destructive")}>{d.devamsiz_gun || "—"}</TableCell>
-                    <TableCell>
-                      {/* Departmanlar arasında karşılaştırma için basit çubuk: en yüksek geç kalma tam boy */}
-                      <div className="flex items-center gap-2">
-                        <span className="w-10 text-right tabular-nums">{d.gec_kalma_dk ? saatDakika(d.gec_kalma_dk) : "—"}</span>
-                        <div className="h-2 w-16 rounded-full bg-muted" aria-hidden>
-                          <div className="h-2 rounded-full bg-amber-500" style={{ width: `${(d.gec_kalma_dk / enYuksekGecKalma) * 100}%` }} />
-                        </div>
-                      </div>
+                    <TableCell className="text-right tabular-nums">
+                      {d.gec_kalma_dk ? saatDakika(d.gec_kalma_dk) : "—"}
                       {d.gec_kalinan_gun > 0 && <div className="text-xs text-muted-foreground">{d.gec_kalinan_gun} gün</div>}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{d.erken_cikis_dk ? saatDakika(d.erken_cikis_dk) : "—"}</TableCell>
@@ -220,7 +213,7 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                       <TableCell className="text-right tabular-nums">{e.hedef_gun}</TableCell>
                       <TableCell className="text-right tabular-nums">{saatDakika(e.hedef_dk)}</TableCell>
                       <TableCell className="text-right tabular-nums">{saatDakika(e.gerceklesen_dk)}</TableCell>
-                      <TableCell className={cn("text-right font-medium tabular-nums", e.fark_dk < 0 ? "text-destructive" : "text-emerald-700 dark:text-emerald-400")}>
+                      <TableCell className={cn("text-right font-medium tabular-nums", e.fark_dk < 0 ? "text-destructive" : "text-iyi")}>
                         {isaretliSure(e.fark_dk)}
                         {e.bekleyen_gun > 0 && <div className="text-xs font-normal text-muted-foreground">{e.bekleyen_gun} gün bekliyor</div>}
                       </TableCell>

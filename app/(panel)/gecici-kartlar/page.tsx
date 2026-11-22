@@ -166,7 +166,7 @@ export default async function GeciciKartlarSayfasi() {
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{kartNo.get(z.gecici_kart_id) ?? "—"}</TableCell>
                     <TableCell><KisiAdi kisi={z.calisan} /></TableCell>
-                    <TableCell className="tabular-nums">{tarihSaat(z.verilis_zamani)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(z.verilis_zamani)}</TableCell>
                     <TableCell className="tabular-nums">
                       {z.iade_zamani ? (
                         tarihSaat(z.iade_zamani)

@@ -1,7 +1,9 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { TriangleAlertIcon } from "lucide-react";
+import { BilgiEkrani } from "@/components/panel/bilgi-ekrani";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 // Beklenmeyen bir hata olursa (ör. veritabanına ulaşılamadı) bu ekran görünür.
 // Kökte duruyor ki (panel)/layout.tsx içindeki hataları da yakalasın.
@@ -10,16 +12,21 @@ export default function Hata({ error, retry }: { error: unknown; retry: () => vo
   const mesaj = error instanceof Error && error.message ? error.message : "Sayfa yüklenemedi.";
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4">
-      <div className="flex w-full max-w-xl flex-col gap-4">
-        <Alert variant="destructive">
-          <AlertTitle>Bir sorun oluştu</AlertTitle>
-          <AlertDescription>{mesaj}</AlertDescription>
-        </Alert>
-        <Button variant="outline" onClick={() => retry()} className="self-start">
-          Tekrar dene
-        </Button>
-      </div>
-    </main>
+    <BilgiEkrani
+      simge={<TriangleAlertIcon className="size-6" />}
+      ust="Bir sorun oluştu"
+      baslik="Sayfa açılamadı"
+      aciklama={
+        <>
+          <p>{mesaj}</p>
+          <p className="mt-2">Bağlantı geçici olarak kopmuş olabilir. Tekrar deneyin; sorun sürerse sistem yöneticisine haber verin.</p>
+        </>
+      }
+    >
+      <Button onClick={() => retry()}>Tekrar dene</Button>
+      <Link href="/" className={buttonVariants({ variant: "outline" })}>
+        Ana sayfaya dön
+      </Link>
+    </BilgiEkrani>
   );
 }

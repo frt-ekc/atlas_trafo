@@ -24,8 +24,8 @@ export function OzetKarti({
       <div
         className={cn(
           "text-3xl font-semibold tabular-nums",
-          ton === "dikkat" && "text-amber-700 dark:text-amber-400",
-          ton === "iyi" && "text-emerald-700 dark:text-emerald-400",
+          ton === "dikkat" && "text-dikkat",
+          ton === "iyi" && "text-iyi",
         )}
       >
         {deger}
@@ -36,7 +36,7 @@ export function OzetKarti({
 
   const sinif = cn(
     "flex flex-col gap-1 rounded-xl border bg-card p-4",
-    ton === "dikkat" && "border-amber-300 dark:border-amber-800",
+    ton === "dikkat" && "border-dikkat/40",
   );
 
   return href ? (

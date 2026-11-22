@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
 import { tarih, tarihSaat } from "@/lib/bicim";
@@ -237,7 +238,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
               {planlar.length} plan{bekleyenSayisi > 0 && ` · ${bekleyenSayisi} tanesi İK kararı bekliyor`}
             </p>
           </div>
-          <form method="get" className="flex items-end gap-2">
+          <SuzgecFormu className="flex items-end gap-2">
             {yil !== buYil && <input type="hidden" name="yil" value={yil} />}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="durum" className="text-sm font-medium">Durum</label>
@@ -249,7 +250,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
               </Secim>
             </div>
             <Button type="submit" size="sm">Süz</Button>
-          </form>
+          </SuzgecFormu>
         </div>
 
         {gosterilenPlanlar.length === 0 ? (
@@ -272,7 +273,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
               <TableBody>
                 {gosterilenPlanlar.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="tabular-nums">{tarih(p.is_gunu)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarih(p.is_gunu)}</TableCell>
                     <TableCell><KisiAdi kisi={p.calisan} /></TableCell>
                     <TableCell>{p.vardiya?.kod === "GUNDUZ" ? "Gündüz" : (p.vardiya?.kod ?? "—")}</TableCell>
                     <TableCell className="text-right tabular-nums">{saat(p.planli_dk)}</TableCell>
@@ -340,7 +341,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
               <TableBody>
                 {havuz.map((h) => (
                   <TableRow key={h.id}>
-                    <TableCell className="tabular-nums">{tarih(h.is_gunu)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarih(h.is_gunu)}</TableCell>
                     <TableCell><KisiAdi kisi={h.calisan} /></TableCell>
                     <TableCell>{HAVUZ_TURU[h.tur]}</TableCell>
                     <TableCell className="text-right tabular-nums">{h.dakika} dk</TableCell>
@@ -527,7 +528,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
 }
 
 function Doluluk({ yuzde, yaklasma }: { yuzde: number; yaklasma: number }) {
-  const renk = yuzde >= 100 ? "bg-destructive" : yuzde >= yaklasma ? "bg-amber-500" : "bg-primary";
+  const renk = yuzde >= 100 ? "bg-destructive" : yuzde >= yaklasma ? "bg-dikkat" : "bg-primary";
   return (
     <div className="flex items-center gap-2">
       <div

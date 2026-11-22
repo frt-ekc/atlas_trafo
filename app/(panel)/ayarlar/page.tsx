@@ -1,7 +1,9 @@
+import { ArrowRightIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
-import { tarihSaat } from "@/lib/bicim";
+import { tarih, saat, tarihSaat } from "@/lib/bicim";
 import { rolGerekli } from "@/lib/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { ayarGuncelle } from "./actions";
@@ -36,6 +38,9 @@ export default async function AyarlarSayfasi() {
 
   const ayarlar = (ayarSonucu.data ?? []) as unknown as Ayar[];
   const gecmis = (gecmisSonucu.data ?? []) as unknown as Gecmis[];
+  // Geçmişte anahtar yerine ayarın Türkçe açıklaması ve birimi gösterilir
+  const ayarBilgisi = new Map(ayarlar.map((a) => [a.anahtar, a]));
+  const sayi = (d: number) => d.toLocaleString("tr-TR");
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,7 +64,7 @@ export default async function AyarlarSayfasi() {
           <TableBody>
             {ayarlar.map((a) => (
               <TableRow key={a.anahtar}>
-                <TableCell className="max-w-96 whitespace-normal">
+                <TableCell className="min-w-80 max-w-[32rem] whitespace-normal">
                   <div className="text-sm">{a.aciklama}</div>
                   <div className="font-mono text-xs text-muted-foreground">{a.anahtar}</div>
                 </TableCell>
@@ -89,19 +94,65 @@ export default async function AyarlarSayfasi() {
         </Table>
       </div>
 
-      <section aria-labelledby="gecmis-baslik" className="flex flex-col gap-2">
-        <h2 id="gecmis-baslik" className="text-lg font-semibold">Değişiklik geçmişi</h2>
+      <section aria-labelledby="gecmis-baslik" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 id="gecmis-baslik" className="text-lg font-semibold">Değişiklik geçmişi</h2>
+          <p className="text-sm text-muted-foreground">Son 20 değişiklik. Kayıtlar silinemez; kim, ne zaman, neyi değiştirdi görünür.</p>
+        </div>
         {gecmis.length === 0 ? (
           <p className="text-sm text-muted-foreground">Henüz değişiklik yok.</p>
         ) : (
-          <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-            {gecmis.map((g) => (
-              <li key={g.id}>
-                <span className="tabular-nums">{tarihSaat(g.degisim_zamani)}</span> · <span className="font-mono">{g.anahtar}</span>:{" "}
-                {g.eski_deger ?? "—"} → {g.yeni_deger} ({g.guncelleyen?.ad_soyad ?? "sistem"})
-              </li>
-            ))}
-          </ul>
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Zaman</TableHead>
+                  <TableHead>Ayar</TableHead>
+                  <TableHead>Değişiklik</TableHead>
+                  <TableHead>Yapan</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {gecmis.map((g) => {
+                  const ayar = ayarBilgisi.get(g.anahtar);
+                  const birim = ayar?.birim ?? "";
+                  return (
+                    <TableRow key={g.id}>
+                      <TableCell className="tarih-hucre">
+                        {tarih(g.degisim_zamani)} <span className="ml-1 opacity-80">{saat(g.degisim_zamani)}</span>
+                      </TableCell>
+                      <TableCell className="min-w-64 max-w-md whitespace-normal" title={g.anahtar}>
+                        {ayar?.aciklama ?? g.anahtar}
+                      </TableCell>
+                      <TableCell>
+                        {g.eski_deger === null ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Badge variant="secondary">İlk değer</Badge>
+                            <span className="font-semibold tabular-nums">{sayi(g.yeni_deger)}</span>
+                            <span className="text-xs text-muted-foreground">{birim}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 tabular-nums">
+                            <span className="text-muted-foreground line-through decoration-muted-foreground/50">{sayi(g.eski_deger)}</span>
+                            <ArrowRightIcon className="size-3.5 text-muted-foreground" aria-label="yerine" />
+                            <span className="font-semibold">{sayi(g.yeni_deger)}</span>
+                            <span className="text-xs text-muted-foreground">{birim}</span>
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {g.guncelleyen ? (
+                          g.guncelleyen.ad_soyad
+                        ) : (
+                          <span className="text-muted-foreground">Sistem (kurulum)</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </section>
     </div>

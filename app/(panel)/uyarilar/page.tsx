@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BosDurum } from "@/components/panel/bos-durum";
 import { HizliIslem } from "@/components/panel/hizli-islem";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
 import { tarihSaat } from "@/lib/bicim";
@@ -64,7 +65,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         </p>
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-2">
+      <SuzgecFormu className="flex flex-wrap items-end gap-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="goster" className="text-sm font-medium">Göster</label>
           <Secim id="goster" name="goster" defaultValue={tumu ? "tumu" : ""}>
@@ -80,7 +81,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
           </Secim>
         </div>
         <Button type="submit" size="sm">Göster</Button>
-      </form>
+      </SuzgecFormu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {uyarilar.length} uyarı
@@ -105,7 +106,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
             <TableBody>
               {uyarilar.map((u) => (
                 <TableRow key={u.id}>
-                  <TableCell className="tabular-nums whitespace-nowrap">{tarihSaat(u.olusturma_zamani)}</TableCell>
+                  <TableCell className="tarih-hucre">{tarihSaat(u.olusturma_zamani)}</TableCell>
                   <TableCell className="font-medium">{UYARI_TURU[u.tur] ?? u.tur}</TableCell>
                   <TableCell>
                     {u.calisan ? (
@@ -118,7 +119,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
                       "—"
                     )}
                   </TableCell>
-                  <TableCell className="max-w-96 whitespace-normal">{u.mesaj}</TableCell>
+                  <TableCell className="min-w-80 max-w-[32rem] whitespace-normal">{u.mesaj}</TableCell>
                   <TableCell>
                     {u.goruldu ? (
                       <span className="text-sm text-muted-foreground">
