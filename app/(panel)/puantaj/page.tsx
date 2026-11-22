@@ -5,8 +5,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { tekDeger } from "@/lib/arama";
-import { tarihSaat } from "@/lib/bicim";
-import { bugun } from "@/lib/hafta";
+import { tarih, tarihSaat } from "@/lib/bicim";
+import { ayBittiMi, bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
 import { ayAdi, ayKaydir, saatDakika, type PuantajSatiri } from "@/lib/puantaj";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
@@ -63,6 +63,8 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
 
   const istenen = tekDeger(parametre.ay);
   const ay = /^\d{4}-(0[1-9]|1[0-2])$/.test(istenen) ? istenen : bugun().slice(0, 7);
+  // Bitmemiş ay kilitlenemez (T-89): kilit geri açılamaz, kalan günler puantaja hiç girmezdi
+  const ayBitti = ayBittiMi(ay, bugun());
   const [yil, ayNo] = ay.split("-").map(Number);
 
   const supabase = await sunucuIstemcisi();
@@ -273,7 +275,14 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
         </Alert>
       )}
 
-      {!kilitli && (
+      {!kilitli && !ayBitti && (
+        <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+          {ayAdi(ay)} henüz bitmedi. Ay kilidi {tarih(`${ayKaydir(ay, 1)}-01`)} tarihinden itibaren yapılabilir.
+          {acikIsler.length > 0 && ` Şu an ${acikIsler.join(", ")} var.`}
+        </p>
+      )}
+
+      {!kilitli && ayBitti && (
         <div className="flex flex-col gap-2 rounded-lg border border-dashed p-4">
           <div className="self-start">
             <IslemPenceresi
