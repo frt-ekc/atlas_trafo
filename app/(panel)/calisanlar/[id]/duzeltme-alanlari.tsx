@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Secim } from "@/components/panel/secim";
+import { ITIRAZ_DURUMU } from "@/lib/etiketler";
 
 // İK'nın gün kaydında değiştirebileceği alanlar ve "durum" için seçenekler.
 // gun_kaydi doğrudan değişmez: kayit_duzelt → duzeltme_uygula eski / yeni değeri ve gerekçeyi saklar.
@@ -25,9 +26,12 @@ export function DuzeltmeAlanlari({
 }: {
   girisVarsayilan: string;
   cikisVarsayilan: string;
-  itirazlar: DuzeltmeItirazi[]; // o güne girilmiş itirazlar (düzeltme bir itiraza bağlanabilir)
+  itirazlar: DuzeltmeItirazi[]; // o güne girilmiş, reddedilmemiş itirazlar (düzeltme bir itiraza bağlanabilir)
 }) {
   const [alan, setAlan] = useState("giris_zamani");
+  // Kendiliğinden yalnızca kabul edilmiş tek itiraz seçilir; kararı verilmemiş itirazı İK bilerek seçer
+  const kabulEdilenler = itirazlar.filter((i) => i.durum === "kabul");
+  const varsayilanItiraz = kabulEdilenler.length === 1 ? String(kabulEdilenler[0].id) : "";
 
   return (
     <>
@@ -62,10 +66,10 @@ export function DuzeltmeAlanlari({
       {itirazlar.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <label htmlFor="itiraz_id" className="text-sm font-medium">Bağlı itiraz (isteğe bağlı)</label>
-          <Secim id="itiraz_id" name="itiraz_id" defaultValue={itirazlar.length === 1 ? String(itirazlar[0].id) : ""} className="h-9">
+          <Secim id="itiraz_id" name="itiraz_id" defaultValue={varsayilanItiraz} className="h-9">
             <option value="">İtiraza bağlı değil</option>
             {itirazlar.map((i) => (
-              <option key={i.id} value={i.id}>No {i.id}: {i.metin.slice(0, 50)}</option>
+              <option key={i.id} value={i.id}>No {i.id} · {ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}: {i.metin.slice(0, 50)}</option>
             ))}
           </Secim>
         </div>
