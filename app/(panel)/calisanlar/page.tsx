@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { aramaTemizle, tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
@@ -106,7 +107,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
         )}
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-3">
+      <SuzgecFormu className="flex flex-wrap items-end gap-3">
         <div className="flex min-w-48 flex-1 flex-col gap-1.5 sm:max-w-xs">
           <label htmlFor="ara" className="text-sm font-medium">Ara</label>
           <Input id="ara" name="ara" defaultValue={araMetni} placeholder="Sicil, ad ya da soyad" />
@@ -131,7 +132,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
         {suzgecVar && (
           <Link href="/calisanlar" className={buttonVariants({ variant: "ghost" })}>Temizle</Link>
         )}
-      </form>
+      </SuzgecFormu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{calisanlar.length} kişi</p>
 
@@ -163,7 +164,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                     )}
                   </TableCell>
                   <TableCell>{c.departman?.ad ?? "—"}</TableCell>
-                  <TableCell className="tabular-nums">{tarih(c.ise_giris_tarihi)}</TableCell>
+                  <TableCell className="tarih-hucre">{tarih(c.ise_giris_tarihi)}</TableCell>
                   <TableCell>
                     {c.aktif && c.ise_giris_tarihi > bugunTarih ? (
                       <Badge variant="default">Başlayacak · {tarih(c.ise_giris_tarihi)}</Badge>

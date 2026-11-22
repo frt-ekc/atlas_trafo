@@ -98,15 +98,15 @@ export default async function GeciciKartlarSayfasi() {
           <BosDurum>Kayıtlı geçici kart yok.</BosDurum>
         ) : (
           <div className="rounded-lg border">
-            <Table>
+            <Table className="islem-sabit">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Kart</TableHead>
+                  <TableHead className="w-20">Kart</TableHead>
                   <TableHead>Durum</TableHead>
                   <TableHead>Kimde</TableHead>
                   <TableHead>Veriliş</TableHead>
                   <TableHead>Süre</TableHead>
-                  {yazabilir && <TableHead className="w-28"><span className="sr-only">İşlem</span></TableHead>}
+                  {yazabilir && <TableHead className="w-20"><span className="sr-only">İşlem</span></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -152,7 +152,7 @@ export default async function GeciciKartlarSayfasi() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-28">Kart</TableHead>
+                  <TableHead className="w-20">Kart</TableHead>
                   <TableHead>Çalışan</TableHead>
                   <TableHead>Veriliş</TableHead>
                   <TableHead>İade</TableHead>
@@ -166,7 +166,7 @@ export default async function GeciciKartlarSayfasi() {
                   <TableRow key={z.id}>
                     <TableCell className="font-mono">{kartNo.get(z.gecici_kart_id) ?? "—"}</TableCell>
                     <TableCell><KisiAdi kisi={z.calisan} /></TableCell>
-                    <TableCell className="tabular-nums">{tarihSaat(z.verilis_zamani)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(z.verilis_zamani)}</TableCell>
                     <TableCell className="tabular-nums">
                       {z.iade_zamani ? (
                         tarihSaat(z.iade_zamani)
@@ -177,10 +177,10 @@ export default async function GeciciKartlarSayfasi() {
                       )}
                     </TableCell>
                     <TableCell className="tabular-nums">{sure(z.verilis_zamani, z.iade_zamani, simdi)}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="min-w-36 whitespace-normal text-muted-foreground">
                       {z.veren?.ad_soyad ?? "—"} / {z.iade_zamani ? (z.iade_alan?.ad_soyad ?? "—") : "—"}
                     </TableCell>
-                    <TableCell className="max-w-64 truncate text-muted-foreground" title={z.aciklama ?? undefined}>
+                    <TableCell className="max-w-52 truncate text-muted-foreground" title={z.aciklama ?? undefined}>
                       {z.aciklama ?? "—"}
                     </TableCell>
                   </TableRow>

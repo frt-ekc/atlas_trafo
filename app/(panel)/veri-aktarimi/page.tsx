@@ -200,10 +200,10 @@ export default async function VeriAktarimiSayfasi() {
               <TableBody>
                 {geceIsleri.map((g) => (
                   <TableRow key={g.id}>
-                    <TableCell className="tabular-nums">{tarih(g.islenen_gun)}</TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">{tarihSaat(g.baslangic)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarih(g.islenen_gun)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(g.baslangic)}</TableCell>
                     <TableCell><Badge variant={GECE_ISI_DURUMU[g.durum].tur}>{GECE_ISI_DURUMU[g.durum].ad}</Badge></TableCell>
-                    <TableCell className="max-w-96 whitespace-normal text-sm">
+                    <TableCell className="min-w-80 max-w-[32rem] whitespace-normal text-sm">
                       {g.durum === "hatali" ? <span className="text-destructive">{g.hata_mesaji ?? "—"}</span> : ozetMetni(g.ozet)}
                     </TableCell>
                   </TableRow>
@@ -253,11 +253,11 @@ export default async function VeriAktarimiSayfasi() {
               <TableBody>
                 {sonAktarimlar.map((a) => (
                   <TableRow key={a.id}>
-                    <TableCell className="tabular-nums">{tarih(a.veri_tarihi)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarih(a.veri_tarihi)}</TableCell>
                     <TableCell>{KAYNAK_ADI[a.kaynak]}</TableCell>
                     <TableCell className="font-mono text-xs">{a.dosya_adi}</TableCell>
                     <TableCell className="text-right tabular-nums">{a.satir_sayisi.toLocaleString("tr-TR")}</TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">{tarihSaat(a.aktarim_zamani)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(a.aktarim_zamani)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -324,13 +324,13 @@ export default async function VeriAktarimiSayfasi() {
                 {arizalar.map((a) => (
                   <TableRow key={a.id}>
                     <TableCell className="font-mono">{a.okuyucu?.kod ?? "—"}</TableCell>
-                    <TableCell className="tabular-nums">{tarihSaat(a.baslangic)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(a.baslangic)}</TableCell>
                     <TableCell className="tabular-nums">{a.bitis ? tarihSaat(a.bitis) : "Sürüyor"}</TableCell>
                     <TableCell>
                       <Badge variant={ARIZA_DURUMU[a.durum].tur}>{ARIZA_DURUMU[a.durum].ad}</Badge>
                       <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}</div>
                     </TableCell>
-                    <TableCell className="max-w-72 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
+                    <TableCell className="min-w-60 max-w-96 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
                     {ik && (
                       <TableCell>
                         {a.durum === "suphe" && (

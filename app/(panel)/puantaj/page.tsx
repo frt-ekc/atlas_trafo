@@ -333,19 +333,19 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">Sicil</TableHead>
+              <TableHead className="w-14">Sicil</TableHead>
               <TableHead>Ad soyad</TableHead>
               <TableHead>Bölüm</TableHead>
-              <TableHead className="text-right">Çalışılan gün</TableHead>
-              <TableHead className="text-right">Çalışma</TableHead>
-              <TableHead className="text-right">Fazla mesai</TableHead>
-              <TableHead className="text-right">Geç kalma</TableHead>
-              <TableHead className="text-right">Erken çıkış</TableHead>
-              <TableHead className="text-right">Devamsız</TableHead>
-              <TableHead className="text-right">İzinli</TableHead>
-              <TableHead className="text-right">Raporlu</TableHead>
-              <TableHead className="text-right">Tatil</TableHead>
-              {!kilitli && <TableHead className="text-right">Kesinleşmemiş</TableHead>}
+              <TableHead className="text-right whitespace-normal">Çalışılan gün</TableHead>
+              <TableHead className="text-right whitespace-normal">Çalışma</TableHead>
+              <TableHead className="text-right whitespace-normal">Fazla mesai</TableHead>
+              <TableHead className="text-right whitespace-normal">Geç kalma</TableHead>
+              <TableHead className="text-right whitespace-normal">Erken çıkış</TableHead>
+              <TableHead className="text-right whitespace-normal">Devamsız</TableHead>
+              <TableHead className="text-right whitespace-normal">İzinli</TableHead>
+              <TableHead className="text-right whitespace-normal">Raporlu</TableHead>
+              <TableHead className="text-right whitespace-normal">Tatil</TableHead>
+              {!kilitli && <TableHead className="text-right whitespace-normal">Kesinleşmemiş</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -353,7 +353,7 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
               <TableRow key={s.sicil}>
                 <TableCell className="font-mono">{s.sicil}</TableCell>
                 <TableCell className="font-medium">{s.adSoyad}</TableCell>
-                <TableCell>{s.bolum}</TableCell>
+                <TableCell className="min-w-24 whitespace-normal">{s.bolum}</TableCell>
                 <Sayi deger={s.calisilanGun} />
                 <TableCell className="text-right tabular-nums">{saatDakika(s.calismaDk)}</TableCell>
                 <TableCell className="text-right tabular-nums">{s.fazlaMesaiDk ? saatDakika(s.fazlaMesaiDk) : "—"}</TableCell>

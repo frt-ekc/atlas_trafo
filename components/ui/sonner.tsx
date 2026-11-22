@@ -3,11 +3,10 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-// Uygulamada tema seçici yok; renkler işletim sisteminin açık/koyu ayarını izler.
+// Tema, kök düzenden (çerezdeki seçim) gelir.
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme="system"
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

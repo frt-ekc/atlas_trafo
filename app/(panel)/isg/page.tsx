@@ -7,6 +7,7 @@ import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-l
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
 import { tarih, tarihSaat } from "@/lib/bicim";
@@ -94,7 +95,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
             <p className="text-sm text-muted-foreground">{gosterilen.length} satır</p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
-            <form method="get" className="flex items-end gap-2">
+            <SuzgecFormu className="flex items-end gap-2">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="goster" className="text-sm font-medium">Göster</label>
                 <Secim id="goster" name="goster" defaultValue={goster}>
@@ -103,7 +104,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                 </Secim>
               </div>
               <Button type="submit" size="sm">Göster</Button>
-            </form>
+            </SuzgecFormu>
             {isg && (
               <>
                 <IslemPenceresi

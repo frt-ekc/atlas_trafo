@@ -1,4 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { GrafikKarti, ParcaliCubuk } from "@/components/panel/grafik";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
 import { tarih, tarihSaat, uzunTarih } from "@/lib/bicim";
@@ -170,7 +171,61 @@ async function IkOzeti({ supabase, bugunTarih, saltOkur }: { supabase: Istemci; 
           </p>
         )}
       </section>
+
+      <DuzeltmeGrafigi supabase={supabase} bugunTarih={bugunTarih} />
     </>
+  );
+}
+
+// Son 30 günde hatalı / eksik kayıtların kimin eliyle düzeldiği. Sistemin asıl işi bu:
+// kanıt varsa kendisi düzeltir, yoksa amire sorar; çalışan aleyhine karar İK'dadır.
+async function DuzeltmeGrafigi({ supabase, bugunTarih }: { supabase: Istemci; bugunTarih: string }) {
+  const d = new Date(`${bugunTarih}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 29);
+  const baslangic = d.toISOString().slice(0, 10);
+
+  const duzeltme = (kaynak: string) =>
+    say(
+      supabase.from("duzeltme").select("id, gun:gun_kaydi_id!inner(is_gunu)", SAYIM).eq("kaynak", kaynak).gte("gun.is_gunu", baslangic),
+      "Düzeltmeler",
+    );
+  const [sistem, amir, ik, bekleyen] = await Promise.all([
+    duzeltme("gece_isi"),
+    duzeltme("amir"),
+    duzeltme("ik"),
+    say(
+      supabase
+        .from("amir_sorusu")
+        .select("id, gun:gun_kaydi_id!inner(is_gunu)", SAYIM)
+        .in("durum", ["acik", "eskale", "ik_karari_bekliyor"])
+        .gte("gun.is_gunu", baslangic),
+      "Sorular",
+    ),
+  ]);
+  if (sistem + amir + ik + bekleyen === 0) return null;
+
+  const otomatikOran = Math.round((sistem / (sistem + amir + ik + bekleyen)) * 100);
+
+  return (
+    <GrafikKarti
+      baslik="Hatalı kayıtlar nasıl düzeldi?"
+      aciklama={
+        <>
+          Son 30 gün ({tarih(baslangic)} – {tarih(bugunTarih)}). Sistemin kimseye sormadan, kanıt ya da izin kaydıyla düzelttiği kayıt
+          oranı: <strong className="text-foreground">%{otomatikOran}</strong>
+        </>
+      }
+    >
+      <ParcaliCubuk
+        birim="kayıt"
+        dilimler={[
+          { etiket: "Sistem düzeltti (kanıt / izin kaydı)", deger: sistem, renk: "var(--grafik-sistem)" },
+          { etiket: "Amirin cevabıyla düzeldi", deger: amir, renk: "var(--grafik-amir)" },
+          { etiket: "İK düzeltti", deger: ik, renk: "var(--grafik-ik)" },
+          { etiket: "Cevap bekliyor", deger: bekleyen, renk: "color-mix(in srgb, var(--grafik-bekliyor) 25%, transparent)", desenli: true, href: "/sorular?durum=tumu" },
+        ]}
+      />
+    </GrafikKarti>
   );
 }
 

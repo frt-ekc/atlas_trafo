@@ -295,7 +295,7 @@ function Sonuc({
                     <TableCell className="tabular-nums">{s.satirNo}</TableCell>
                     <TableCell className="font-mono">{s.okuyucuKod}</TableCell>
                     <TableCell className="font-mono">{s.kartNo}</TableCell>
-                    <TableCell className="tabular-nums">{tarihSaat(s.zaman)}</TableCell>
+                    <TableCell className="tarih-hucre">{tarihSaat(s.zaman)}</TableCell>
                     <TableCell>{s.yon === "giris" ? "Giriş" : s.yon === "cikis" ? "Çıkış" : <Badge variant="outline">Yok</Badge>}</TableCell>
                   </TableRow>
                 ))}

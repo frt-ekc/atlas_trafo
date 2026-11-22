@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
 import { tekDeger } from "@/lib/arama";
@@ -189,11 +190,11 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
           </nav>
         </div>
 
-        <form method="get" className="flex items-end gap-2">
+        <SuzgecFormu className="flex w-full items-end gap-2 sm:w-auto">
           <input type="hidden" name="hafta" value={pazartesi} />
-          <div className="flex flex-col gap-1.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <label htmlFor="departman" className="text-sm font-medium">Bölüm</label>
-            <Secim id="departman" name="departman" defaultValue={departmanId ?? ""}>
+            <Secim id="departman" name="departman" defaultValue={departmanId ?? ""} className="w-full min-w-0">
               <option value="">Tümü</option>
               {bolumler.map((b) => (
                 <option key={b.id} value={b.id}>{b.ad}</option>
@@ -201,7 +202,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             </Secim>
           </div>
           <Button type="submit" size="sm">Göster</Button>
-        </form>
+        </SuzgecFormu>
       </div>
 
       {planGirebilir && (
@@ -347,7 +348,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
           ))}
           <li className="flex items-center gap-2"><Badge variant="outline">İzinli</Badge></li>
           <li className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-amber-500" aria-hidden /> Geriye dönük değişiklik, İK onayı bekliyor
+            <span className="size-2 rounded-full bg-dikkat" aria-hidden /> Geriye dönük değişiklik, İK onayı bekliyor
           </li>
           <li className="flex items-center gap-2">
             <span className="text-xs font-medium text-primary">+FM</span> Planlı fazla mesai
@@ -399,7 +400,7 @@ function Hucre({
       <div className="relative">
         <VardiyaEtiketi kod={v.kod} ustuCizili={reddedildi} />
         {bekliyor && (
-          <span className="absolute -top-1 -right-1 size-2 rounded-full bg-amber-500 ring-2 ring-background">
+          <span className="absolute -top-1 -right-1 size-2 rounded-full bg-dikkat ring-2 ring-background">
             <span className="sr-only">İK onayı bekliyor</span>
           </span>
         )}

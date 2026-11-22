@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BosDurum } from "@/components/panel/bos-durum";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
+import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
 import { saat, tarih, tarihSaat, yerelZamanGirdisi } from "@/lib/bicim";
@@ -101,7 +102,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         </p>
       </div>
 
-      <form method="get" className="flex items-end gap-2">
+      <SuzgecFormu className="flex items-end gap-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="durum" className="text-sm font-medium">Göster</label>
           <Secim id="durum" name="durum" defaultValue={suzgec}>
@@ -109,7 +110,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
           </Secim>
         </div>
         <Button type="submit" size="sm">Göster</Button>
-      </form>
+      </SuzgecFormu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{sorular.length} soru</p>
 
@@ -125,7 +126,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                 <TableHead>Gün</TableHead>
                 <TableHead>Çalışan</TableHead>
                 <TableHead>Soru</TableHead>
-                <TableHead>Kanıttaki saat</TableHead>
+                <TableHead className="min-w-20 whitespace-normal">Kanıttaki saat</TableHead>
                 <TableHead>Son gün</TableHead>
                 <TableHead>Durum</TableHead>
                 {!amir && <TableHead>Atanan</TableHead>}
@@ -138,20 +139,20 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                 const gecikti = (s.durum === "acik" || s.durum === "eskale") && s.son_cevap_tarihi < bugunTarih;
                 return (
                   <TableRow key={s.id}>
-                    <TableCell className="tabular-nums">{s.gun ? tarih(s.gun.is_gunu) : "—"}</TableCell>
+                    <TableCell className="tarih-hucre">{s.gun ? tarih(s.gun.is_gunu) : "—"}</TableCell>
                     <TableCell>
                       {c ? (
                         <Link href={`/calisanlar/${c.id}?ay=${s.gun!.is_gunu.slice(0, 7)}`} className="underline-offset-4 hover:underline">
-                          {c.ad} {c.soyad} <span className="font-mono text-xs text-muted-foreground">({c.sicil_no})</span>
+                          {c.ad} {c.soyad} <span className="block font-mono text-xs font-normal text-muted-foreground">{c.sicil_no}</span>
                         </Link>
                       ) : (
                         // Eskale edilen üst amir, başka bölümün gün kaydını RLS yüzünden göremeyebilir
                         <span className="text-muted-foreground">Görüntülenemiyor</span>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-80 whitespace-normal">
+                    <TableCell className="min-w-64 max-w-[28rem] whitespace-normal">
                       <div className="font-medium">{SORU_TURU[s.soru_turu] ?? s.soru_turu}</div>
-                      <div className="text-sm text-muted-foreground">{s.aciklama}</div>
+                      <div className="text-sm text-muted-foreground">{s.aciklama.replace(/^\d{2}\.\d{2}\.\d{4}:\s*/, "")}</div>
                       {s.cevap && (
                         <div className="mt-1 text-sm">
                           Cevap: {SORU_CEVABI[s.cevap] ?? s.cevap}
@@ -170,7 +171,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                       <Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>
                     </TableCell>
                     {!amir && (
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="min-w-24 whitespace-normal text-muted-foreground">
                         {s.atanan?.ad_soyad ?? "—"}
                         {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
                       </TableCell>

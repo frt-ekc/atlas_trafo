@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Secim } from "@/components/panel/secim";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
+import { DurumEtiketi } from "@/components/panel/durum-etiketi";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
 import { tekDeger } from "@/lib/arama";
 import { yerelZamanGirdisi } from "@/lib/bicim";
@@ -192,7 +193,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                 g.erkenCikisDk ? `Erken çıkış ${g.erkenCikisDk} dk` : null,
               ].filter(Boolean);
               return (
-                <TableRow key={g.tarih} className={cn(g.haftaSonu && !g.vardiya && "text-muted-foreground", g.tarih === bugunTarih && "bg-primary/5")}>
+                <TableRow key={g.tarih} className={cn(g.haftaSonu && "bg-muted/40", g.haftaSonu && !g.vardiya && "text-muted-foreground", g.tarih === bugunTarih && "bg-primary/5")}>
                   <TableCell className="tabular-nums whitespace-nowrap">
                     <span className="inline-block w-8">{g.gunAdi}</span> {g.tarihMetni}
                   </TableCell>
@@ -208,8 +209,8 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                     {g.cikisKaynagi && g.cikisKaynagi !== "PDKS" && <span className="ml-1 text-xs text-muted-foreground">({g.cikisKaynagi})</span>}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{g.calismaDk != null ? saatDakika(g.calismaDk) : "—"}</TableCell>
-                  <TableCell>{g.durum ?? "—"}</TableCell>
-                  <TableCell className="max-w-80 whitespace-normal text-sm text-muted-foreground">{notlar.join(" · ") || ""}</TableCell>
+                  <TableCell><DurumEtiketi kod={g.durumKodu}>{g.durum}</DurumEtiketi></TableCell>
+                  <TableCell className="min-w-72 max-w-[28rem] whitespace-normal text-sm text-muted-foreground">{notlar.join(" · ") || ""}</TableCell>
                   {islemSutunu && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -281,7 +282,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                     <TableCell>{d.alan}{d.aleyhine && <Badge variant="destructive" className="ml-2">Aleyhe</Badge>}</TableCell>
                     <TableCell className="tabular-nums">{d.eski}</TableCell>
                     <TableCell className="tabular-nums">{d.yeni}</TableCell>
-                    <TableCell className="max-w-72 whitespace-normal">{d.gerekce}</TableCell>
+                    <TableCell className="min-w-60 max-w-96 whitespace-normal">{d.gerekce}</TableCell>
                     <TableCell className="text-muted-foreground">{d.kaynak} · {d.yapan}<div className="text-xs">{d.zaman}</div></TableCell>
                   </TableRow>
                 ))}

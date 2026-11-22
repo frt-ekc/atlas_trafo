@@ -28,6 +28,7 @@ export type DokumGunu = {
   girisKaynagi: string | null;
   cikisKaynagi: string | null;
   durum: string | null;
+  durumKodu: string | null; // renk için ham durum (rapor İK dışına "izinli" görünür)
   gunKaydiId: number | null; // itiraz ve düzeltme bu kayda bağlanır
   girisZamani: string | null; // ham değer (düzeltme penceresinin varsayılanı)
   cikisZamani: string | null;
@@ -213,6 +214,7 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
       girisKaynagi: k?.giris_kaynagi ? KAYIT_KAYNAGI[k.giris_kaynagi] : null,
       cikisKaynagi: k?.cikis_kaynagi ? KAYIT_KAYNAGI[k.cikis_kaynagi] : null,
       durum: k ? durumEtiketi(k.durum, ikMi) : null,
+      durumKodu: k ? (k.durum === "raporlu" && !ikMi ? "izinli" : k.durum) : null,
       gunKaydiId: k?.id ?? null,
       girisZamani: k?.giris_zamani ?? null,
       cikisZamani: k?.cikis_zamani ?? null,

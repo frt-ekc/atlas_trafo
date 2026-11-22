@@ -51,6 +51,36 @@ export const UYARI_TURU: Record<string, string> = {
   yetkisiz_bolge_okutmasi: "Yetkisiz bölgeye giriş",
 };
 
+// Uyarı özetinde türler konuya göre gruplanır. Listede olmayan tür "Diğer" altında görünür.
+export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
+  { ad: "Soru ve vardiya", turler: ["soru_eskale", "geriye_donuk_vardiya"] },
+  {
+    ad: "Kart",
+    turler: [
+      "kart_paylasim_suphesi",
+      "sik_kart_unutma",
+      "iptal_kart_okutma",
+      "gecici_kart_iade_edilmedi",
+      "gecici_kart_cakisma",
+      "gecici_kart_zimmetsiz",
+    ],
+  },
+  {
+    ad: "Çalışma süresi",
+    turler: [
+      "fm_plansiz_calisma",
+      "fm_onay_yok",
+      "fm_onay_geri_alindi",
+      "fm_gunluk_sinir_asildi",
+      "fm_yillik_sinir_yaklasti",
+      "fm_yillik_sinir_asildi",
+      "gece_calisma_siniri_asildi",
+    ],
+  },
+  { ad: "Sistem ve cihaz", turler: ["ariza_suphesi", "dosya_gelmedi", "gece_isi_calismadi"] },
+  { ad: "İSG", turler: ["isg_belgesi_yok", "isg_belgesi_suresi_dolmus", "isg_belgesi_suresi_doluyor", "yetkisiz_bolge_okutmasi"] },
+];
+
 export const ITIRAZ_DURUMU: Record<string, { ad: string; tur: "default" | "secondary" | "destructive" | "outline" }> = {
   acik: { ad: "Açık", tur: "default" },
   inceleniyor: { ad: "İnceleniyor", tur: "default" },
