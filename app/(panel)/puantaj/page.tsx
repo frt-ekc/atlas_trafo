@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { tekDeger } from "@/lib/arama";
@@ -16,6 +17,10 @@ import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { ayKilitle } from "./actions";
 import { ErpIndir } from "./erp-indir";
 import { ExcelIndir } from "./excel-indir";
+import { aramaSuzgeci } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 
 export const metadata = { title: "Puantaj" };
 
@@ -62,6 +67,8 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
   const parametre = await searchParams;
 
   const istenen = tekDeger(parametre.ay);
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const uyar = aramaSuzgeci(araMetni);
   const ay = /^\d{4}-(0[1-9]|1[0-2])$/.test(istenen) ? istenen : bugun().slice(0, 7);
   // Bitmemiş ay kilitlenemez (T-89): kilit geri açılamaz, kalan günler puantaja hiç girmezdi
   const ayBitti = ayBittiMi(ay, bugun());
@@ -211,6 +218,8 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
   const toplamFmDk = satirlar.reduce((t, s) => t + s.fazlaMesaiDk, 0);
   const bekleyenGun = satirlar.reduce((t, s) => t + s.bekleyenGun, 0);
   const veriVar = sayilar.length > 0;
+  // Ad / sicil / bölüm araması yalnızca ekrandaki listeyi süzer; Excel ve ERP dosyası her zaman tüm satırları içerir
+  const gosterilenSatirlar = satirlar.filter((s) => uyar(s.adSoyad, s.sicil, s.bolum));
 
   return (
     <div className="flex flex-col gap-6">
@@ -329,50 +338,68 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
         </div>
       )}
 
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-14">Sicil</TableHead>
-              <TableHead>Ad soyad</TableHead>
-              <TableHead>Bölüm</TableHead>
-              <TableHead className="text-right whitespace-normal">Çalışılan gün</TableHead>
-              <TableHead className="text-right whitespace-normal">Çalışma</TableHead>
-              <TableHead className="text-right whitespace-normal">Fazla mesai</TableHead>
-              <TableHead className="text-right whitespace-normal">Geç kalma</TableHead>
-              <TableHead className="text-right whitespace-normal">Erken çıkış</TableHead>
-              <TableHead className="text-right whitespace-normal">Devamsız</TableHead>
-              <TableHead className="text-right whitespace-normal">İzinli</TableHead>
-              <TableHead className="text-right whitespace-normal">Raporlu</TableHead>
-              <TableHead className="text-right whitespace-normal">Tatil</TableHead>
-              {!kilitli && <TableHead className="text-right whitespace-normal">Kesinleşmemiş</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {satirlar.map((s) => (
-              <TableRow key={s.sicil}>
-                <TableCell className="font-mono">{s.sicil}</TableCell>
-                <TableCell className="font-medium">{s.adSoyad}</TableCell>
-                <TableCell className="min-w-24 whitespace-normal">{s.bolum}</TableCell>
-                <Sayi deger={s.calisilanGun} />
-                <TableCell className="text-right tabular-nums">{saatDakika(s.calismaDk)}</TableCell>
-                <TableCell className="text-right tabular-nums">{s.fazlaMesaiDk ? saatDakika(s.fazlaMesaiDk) : "—"}</TableCell>
-                <Sayi deger={s.gecKalmaDk} birim="dk" />
-                <Sayi deger={s.erkenCikisDk} birim="dk" />
-                <Sayi deger={s.devamsizGun} />
-                <Sayi deger={s.izinliGun} />
-                <Sayi deger={s.raporluGun} />
-                <Sayi deger={s.tatilGun} />
-                {!kilitli && (
-                  <TableCell className="text-right">
-                    {s.bekleyenGun ? <Badge variant="default">{s.bekleyenGun}</Badge> : "—"}
-                  </TableCell>
-                )}
+      <FiltreCubugu temizleAdres={`/puantaj?ay=${ay}`} suzgecVar={Boolean(araMetni)}>
+        <input type="hidden" name="ay" value={ay} />
+        <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil ya da bölüm" />
+        </FiltreAlani>
+        {araMetni && (
+          <p className="self-center text-xs text-muted-foreground">
+            {gosterilenSatirlar.length} / {satirlar.length} çalışan gösteriliyor. Excel her zaman tüm çalışanları içerir.
+          </p>
+        )}
+      </FiltreCubugu>
+
+      {gosterilenSatirlar.length === 0 ? (
+        <BosDurum aciklama={araMetni ? "Aramaya uyan çalışan yok." : "Bu ay bordroya girecek çalışan yok."} />
+      ) : (
+        // Dar ekranda sayı sütunları yana kayar; çalışan sütunu solda sabit kalır, kimin satırı olduğu hep görünür
+        <TabloKutusu>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="sticky left-0 z-10 min-w-44 bg-card shadow-[inset_-1px_0_0_var(--border)]">Çalışan</TableHead>
+                <TableHead className="text-right whitespace-normal">Çalışılan gün</TableHead>
+                <TableHead className="text-right whitespace-normal">Çalışma</TableHead>
+                <TableHead className="text-right whitespace-normal">Fazla mesai</TableHead>
+                <TableHead className="text-right whitespace-normal">Geç kalma</TableHead>
+                <TableHead className="text-right whitespace-normal">Erken çıkış</TableHead>
+                <TableHead className="text-right whitespace-normal">Devamsız</TableHead>
+                <TableHead className="text-right whitespace-normal">İzinli</TableHead>
+                <TableHead className="text-right whitespace-normal">Raporlu</TableHead>
+                <TableHead className="text-right whitespace-normal">Tatil</TableHead>
+                {!kilitli && <TableHead className="text-right whitespace-normal">Kesinleşmemiş</TableHead>}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {gosterilenSatirlar.map((s) => (
+                <TableRow key={s.sicil}>
+                  <TableCell className="sticky left-0 z-10 bg-card whitespace-normal shadow-[inset_-1px_0_0_var(--border)]">
+                    <div className="font-medium">{s.adSoyad}</div>
+                    <div className="text-xs text-muted-foreground">
+                      <span className="font-mono">{s.sicil}</span> · {s.bolum}
+                    </div>
+                  </TableCell>
+                  <Sayi deger={s.calisilanGun} />
+                  <TableCell className="text-right tabular-nums">{saatDakika(s.calismaDk)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.fazlaMesaiDk ? saatDakika(s.fazlaMesaiDk) : "—"}</TableCell>
+                  <Sayi deger={s.gecKalmaDk} birim="dk" />
+                  <Sayi deger={s.erkenCikisDk} birim="dk" />
+                  <Sayi deger={s.devamsizGun} />
+                  <Sayi deger={s.izinliGun} />
+                  <Sayi deger={s.raporluGun} />
+                  <Sayi deger={s.tatilGun} />
+                  {!kilitli && (
+                    <TableCell className="text-right">
+                      {s.bekleyenGun ? <Badge variant="default">{s.bekleyenGun}</Badge> : "—"}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabloKutusu>
+      )}
 
       {farkSatirlari.length > 0 && (
         <p className="text-sm text-muted-foreground">

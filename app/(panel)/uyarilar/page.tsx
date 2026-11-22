@@ -1,18 +1,21 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BosDurum } from "@/components/panel/bos-durum";
+import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { HizliIslem } from "@/components/panel/hizli-islem";
-import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
-import { tekDeger } from "@/lib/arama";
-import { tarihSaat } from "@/lib/bicim";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { ListeKarti } from "@/components/liste/liste-karti";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { SecimKutusu, TopluSecim } from "@/components/liste/toplu-secim";
+import { Zaman } from "@/components/liste/zaman";
+import { aramaTemizle, tekDeger } from "@/lib/arama";
 import { UYARI_KONULARI, UYARI_TURU } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { uyariGoruldu } from "./actions";
+import { uyariGoruldu, uyarilarGoruldu } from "./actions";
 
 export const metadata = { title: "Uyarılar" };
 
@@ -28,53 +31,181 @@ type Uyari = {
   goren: { ad_soyad: string } | null;
 };
 
+// İK'nın incelemesi gereken şüpheler üstte, belirgin gösterilir; kalanı bilgi amaçlıdır.
+// Gruplama yalnızca ekrandadır (uyarı türüne göre); veritabanında böyle bir alan yoktur.
+// Kart paylaşımı şüphesi, kural kanıtla güçlendirilene kadar yanlış alarm ürettiği için "Bilgi" grubundadır.
+const KARAR_GEREKLI = new Set(["ariza_suphesi", "gecici_kart_cakisma"]);
+
+const TARIH = /^\d{4}-\d{2}-\d{2}$/;
+
 // Sistem en fazla uyarı ya da şüphe üretir; çalışan aleyhine kararı İK verir.
 export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyarilar">) {
   const kullanici = await rolGerekli(["ik", "yonetici", "isg"]);
+  const ik = kullanici.rol === "ik";
+  // Çalışan ayrıntısı sayfasını İSG uzmanı açamaz; ona ad bağlantı olarak verilmez
+  const calisanSayfasi = kullanici.rol === "ik" || kullanici.rol === "yonetici";
+
   const parametre = await searchParams;
-  const tumu = tekDeger(parametre.goster) === "tumu";
+  const gorulenler = tekDeger(parametre.goster) === "goruldu";
   const tur = tekDeger(parametre.tur);
   const gecerliTur = tur in UYARI_TURU ? tur : "";
+  const bas = TARIH.test(tekDeger(parametre.bas)) ? tekDeger(parametre.bas) : "";
+  const bit = TARIH.test(tekDeger(parametre.bit)) ? tekDeger(parametre.bit) : "";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const kelimeler = aramaTemizle(araMetni).map((k) => k.toLocaleLowerCase("tr"));
+  const suzgecVar = Boolean(gecerliTur || bas || bit || kelimeler.length);
 
   const supabase = await sunucuIstemcisi();
-  const uyarilar = await tumSatirlar<Uyari>((bas, son) => {
-    let q = supabase
-      .from("uyari")
-      .select(
-        "id, tur, mesaj, olusturma_zamani, goruldu, gorulme_zamani, " +
-          "calisan:calisan_id(id, sicil_no, ad, soyad), okuyucu:okuyucu_id(kod), goren:kullanici!goren_id(ad_soyad)",
-      )
-      .order("olusturma_zamani", { ascending: false })
-      .order("id")
-      .range(bas, son);
-    if (!tumu) q = q.eq("goruldu", false);
-    if (gecerliTur) q = q.eq("tur", gecerliTur);
-    return q;
-  });
+  const [tumUyarilar, yeniSayisi, gorulenSayisi] = await Promise.all([
+    tumSatirlar<Uyari>((ilk, son) => {
+      let q = supabase
+        .from("uyari")
+        .select(
+          "id, tur, mesaj, olusturma_zamani, goruldu, gorulme_zamani, " +
+            "calisan:calisan_id(id, sicil_no, ad, soyad), okuyucu:okuyucu_id(kod), goren:kullanici!goren_id(ad_soyad)",
+        )
+        .eq("goruldu", gorulenler)
+        .order(gorulenler ? "gorulme_zamani" : "olusturma_zamani", { ascending: false })
+        .order("id")
+        .range(ilk, son);
+      if (gecerliTur) q = q.eq("tur", gecerliTur);
+      // Tarih süzgeci uyarının kayıt zamanına uygulanır (Türkiye saatiyle gün başı / sonu)
+      if (bas) q = q.gte("olusturma_zamani", `${bas}T00:00:00+03:00`);
+      if (bit) q = q.lt("olusturma_zamani", new Date(Date.parse(`${bit}T00:00:00+03:00`) + 86_400_000).toISOString());
+      return q;
+    }),
+    supabase.from("uyari").select("id", { count: "exact", head: true }).eq("goruldu", false),
+    supabase.from("uyari").select("id", { count: "exact", head: true }).eq("goruldu", true),
+  ]);
 
-  // Türlere göre sayı (süzgeç yardımı)
-  const turSayisi = new Map<string, number>();
-  for (const u of uyarilar) turSayisi.set(u.tur, (turSayisi.get(u.tur) ?? 0) + 1);
+  // Ad / sicil araması ekranda yapılır: ilgili kişinin adı, sicili, okuyucu kodu ve mesaj metni
+  // (kart paylaşımında ikinci kişi yalnızca mesajda geçer).
+  const uyarilar = kelimeler.length
+    ? tumUyarilar.filter((u) => {
+        const metin = [u.calisan?.ad, u.calisan?.soyad, u.calisan?.sicil_no, u.okuyucu?.kod, u.mesaj]
+          .filter(Boolean)
+          .join(" ")
+          .toLocaleLowerCase("tr");
+        return kelimeler.every((k) => metin.includes(k));
+      })
+    : tumUyarilar;
 
-  // Özet tablosu: konu başına bir satır; yalnızca uyarısı olan konu ve türler
-  const konusuOlanlar = new Set(UYARI_KONULARI.flatMap((k) => k.turler));
-  const ozet = [...UYARI_KONULARI, { ad: "Diğer", turler: [...turSayisi.keys()].filter((t) => !konusuOlanlar.has(t)) }]
-    .map((k) => {
-      const turler = k.turler
-        .map((t) => ({ tur: t, sayi: turSayisi.get(t) ?? 0 }))
-        .filter((t) => t.sayi > 0)
-        .sort((a, b) => b.sayi - a.sayi);
-      return { ad: k.ad, turler, toplam: turler.reduce((n, t) => n + t.sayi, 0) };
-    })
-    .filter((k) => k.toplam > 0)
-    .sort((a, b) => b.toplam - a.toplam);
-  const adres = (t: string) => {
+  const kararGerekli = uyarilar.filter((u) => KARAR_GEREKLI.has(u.tur));
+  const bilgi = uyarilar.filter((u) => !KARAR_GEREKLI.has(u.tur));
+
+  // Sekme ve süzgeç bağlantıları için adres
+  const adres = (degisen: Record<string, string>) => {
     const p = new URLSearchParams();
-    if (tumu) p.set("goster", "tumu");
-    if (t) p.set("tur", t);
+    const tum = { goster: gorulenler ? "goruldu" : "", tur: gecerliTur, bas, bit, ara: araMetni, ...degisen };
+    for (const [ad, deger] of Object.entries(tum)) if (deger) p.set(ad, deger);
     const sorgu = p.toString();
     return sorgu ? `/uyarilar?${sorgu}` : "/uyarilar";
   };
+
+  // Türlere göre dağılım (açılır özet): konu başına, yalnızca uyarısı olan türler
+  const turSayisi = new Map<string, number>();
+  for (const u of uyarilar) turSayisi.set(u.tur, (turSayisi.get(u.tur) ?? 0) + 1);
+  const konusuOlanlar = new Set(UYARI_KONULARI.flatMap((k) => k.turler));
+  const ozet = [...UYARI_KONULARI, { ad: "Diğer", turler: [...turSayisi.keys()].filter((t) => !konusuOlanlar.has(t)) }]
+    .map((k) => ({
+      ad: k.ad,
+      turler: k.turler
+        .map((t) => ({ tur: t, sayi: turSayisi.get(t) ?? 0 }))
+        .filter((t) => t.sayi > 0)
+        .sort((a, b) => b.sayi - a.sayi),
+    }))
+    .filter((k) => k.turler.length > 0);
+
+  const secilebilir = ik && !gorulenler;
+
+  const kart = (u: Uyari) => {
+    const karar = KARAR_GEREKLI.has(u.tur);
+    const turAdi = UYARI_TURU[u.tur] ?? u.tur;
+    const kisiAdi = u.calisan ? `${u.calisan.ad} ${u.calisan.soyad}` : u.okuyucu ? `Okuyucu ${u.okuyucu.kod}` : "";
+    return (
+      <ListeKarti
+        key={u.id}
+        vurgu={karar ? "karar" : "bilgi"}
+        yeni={!u.goruldu}
+        soluk={u.goruldu}
+        baslik={turAdi}
+        zaman={<Zaman deger={u.olusturma_zamani} etiket="Kayıt" />}
+        secim={secilebilir ? <SecimKutusu id={u.id} etiket={`Seç: ${turAdi}${kisiAdi ? `, ${kisiAdi}` : ""}`} /> : undefined}
+        kisi={
+          u.calisan ? (
+            calisanSayfasi ? (
+              <Link href={`/calisanlar/${u.calisan.id}`} className="font-medium underline-offset-4 hover:underline">
+                {u.calisan.ad} {u.calisan.soyad}
+                <span className="ml-1.5 font-mono text-xs text-muted-foreground">{u.calisan.sicil_no}</span>
+              </Link>
+            ) : (
+              <span className="font-medium">
+                {u.calisan.ad} {u.calisan.soyad}
+                <span className="ml-1.5 font-mono text-xs text-muted-foreground">{u.calisan.sicil_no}</span>
+              </span>
+            )
+          ) : u.okuyucu ? (
+            <span>
+              Okuyucu <span className="font-mono font-medium">{u.okuyucu.kod}</span>
+            </span>
+          ) : undefined
+        }
+        alt={
+          u.goruldu ? (
+            <span className="flex flex-wrap items-center gap-2">
+              <DurumRozeti ton="notr">Görüldü</DurumRozeti>
+              {u.goren?.ad_soyad ?? "—"} · <Zaman deger={u.gorulme_zamani} />
+            </span>
+          ) : undefined
+        }
+        eylemler={
+          <>
+            {karar && u.tur === "ariza_suphesi" && calisanSayfasi && (
+              <Link href="/veri-aktarimi?sekme=ariza" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Arıza kayıtlarını aç
+              </Link>
+            )}
+            {karar && u.calisan && calisanSayfasi && (
+              <Link href={`/calisanlar/${u.calisan.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Çalışan kaydını aç
+              </Link>
+            )}
+            {ik && !u.goruldu && <HizliIslem dugme="Görüldü yap" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />}
+          </>
+        }
+      >
+        {u.mesaj}
+      </ListeKarti>
+    );
+  };
+
+  const liste = (
+    <div className="flex flex-col gap-6">
+      {kararGerekli.length > 0 && (
+        <section aria-labelledby="karar-baslik" className="flex flex-col gap-3">
+          <div className="flex flex-col gap-0.5">
+            <h2 id="karar-baslik" className="flex items-center gap-2 text-lg font-semibold">
+              Karar gerekli
+              <DurumRozeti ton="dikkat">{kararGerekli.length}</DurumRozeti>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Okuyucu arızası ve geçici kart çakışması şüpheleri. İK inceler; şüphe tek başına ceza değildir.
+            </p>
+          </div>
+          {kararGerekli.map(kart)}
+        </section>
+      )}
+      {bilgi.length > 0 && (
+        <section aria-labelledby="bilgi-baslik" className="flex flex-col gap-3">
+          <h2 id="bilgi-baslik" className="flex items-center gap-2 text-lg font-semibold">
+            Bilgi
+            <DurumRozeti ton="notr">{bilgi.length}</DurumRozeti>
+          </h2>
+          {bilgi.map(kart)}
+        </section>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -85,125 +216,92 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         </p>
       </div>
 
-      <SuzgecFormu className="flex flex-wrap items-end gap-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="goster" className="text-sm font-medium">Göster</label>
-          <Secim id="goster" name="goster" defaultValue={tumu ? "tumu" : ""}>
-            <option value="">Görülmemişler</option>
-            <option value="tumu">Tümü</option>
-          </Secim>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="tur" className="text-sm font-medium">Tür</label>
-          <Secim id="tur" name="tur" defaultValue={gecerliTur}>
+      <Sekmeler
+        etiket="Uyarı listesi"
+        sekmeler={[
+          { ad: "Yeni", adres: adres({ goster: "" }), sayi: yeniSayisi.count ?? undefined, aktif: !gorulenler },
+          { ad: "Görülenler", adres: adres({ goster: "goruldu" }), sayi: gorulenSayisi.count ?? undefined, aktif: gorulenler },
+        ]}
+      />
+
+      <FiltreCubugu temizleAdres={gorulenler ? "/uyarilar?goster=goruldu" : "/uyarilar"} suzgecVar={suzgecVar}>
+        {gorulenler && <input type="hidden" name="goster" value="goruldu" />}
+        <FiltreAlani etiket="Tür" htmlFor="tur">
+          <Secim id="tur" name="tur" defaultValue={gecerliTur} className="max-w-72">
             <option value="">Tüm türler</option>
-            {Object.entries(UYARI_TURU).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            <optgroup label="Karar gerekli">
+              {[...KARAR_GEREKLI].map((k) => <option key={k} value={k}>{UYARI_TURU[k]}</option>)}
+            </optgroup>
+            <optgroup label="Bilgi">
+              {Object.entries(UYARI_TURU)
+                .filter(([k]) => !KARAR_GEREKLI.has(k))
+                .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </optgroup>
           </Secim>
+        </FiltreAlani>
+        <div className="flex gap-3">
+          <FiltreAlani etiket="Kayıt tarihi, başlangıç" htmlFor="bas">
+            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-40" />
+          </FiltreAlani>
+          <FiltreAlani etiket="Bitiş" htmlFor="bit">
+            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-40" />
+          </FiltreAlani>
         </div>
-        <Button type="submit" size="sm">Göster</Button>
-      </SuzgecFormu>
+        <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+        </FiltreAlani>
+      </FiltreCubugu>
 
-      <p className="text-sm text-muted-foreground" aria-live="polite">
-        {uyarilar.length} uyarı
-        {gecerliTur && (
-          <>
-            {" "}· {UYARI_TURU[gecerliTur]} ·{" "}
-            <Link href={adres("")} scroll={false} className="text-foreground underline underline-offset-4">Tüm türleri göster</Link>
-          </>
-        )}
-      </p>
-
-      {!gecerliTur && turSayisi.size > 1 && (
-        <div className="overflow-hidden rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-20 sm:w-40">Konu</TableHead>
-                <TableHead>Uyarı türü</TableHead>
-                <TableHead className="w-14 text-right sm:w-20">Toplam</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {uyarilar.length} uyarı · {kararGerekli.length} karar gerekli · {bilgi.length} bilgi
+        </p>
+        {ozet.length > 1 && (
+          <details className="group w-full rounded-xl border bg-card/60 open:p-3 sm:w-auto sm:open:w-full">
+            <summary className="cursor-pointer list-none rounded-xl px-3 py-1.5 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring group-open:mb-2 group-open:px-0 group-open:py-0">
+              Türlere göre dağılım ▾
+            </summary>
+            <dl className="flex flex-col gap-2">
               {ozet.map((k) => (
-                <TableRow key={k.ad}>
-                  <TableCell className="font-medium whitespace-normal">{k.ad}</TableCell>
-                  <TableCell className="whitespace-normal">
-                    {/* Türe tıklayınca aşağıdaki liste o türe süzülür */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {k.turler.map((t) => (
-                        <Link
-                          key={t.tur}
-                          href={adres(t.tur)}
-                          scroll={false}
-                          className="inline-flex items-center gap-2 rounded-lg border bg-secondary/60 px-2.5 py-1 text-[0.8125rem] transition-colors hover:border-ring/50 hover:bg-secondary"
-                        >
-                          {UYARI_TURU[t.tur] ?? t.tur}
-                          <span className="font-semibold tabular-nums text-vurgu">{t.sayi}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-base font-semibold tabular-nums">{k.toplam}</TableCell>
-                </TableRow>
+                <div key={k.ad} className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-3">
+                  <dt className="w-36 shrink-0 text-sm font-medium">{k.ad}</dt>
+                  <dd className="flex flex-wrap gap-1.5">
+                    {k.turler.map((t) => (
+                      <Link
+                        key={t.tur}
+                        href={adres({ tur: t.tur })}
+                        scroll={false}
+                        className="inline-flex items-center gap-2 rounded-lg border bg-secondary/60 px-2.5 py-1 text-[0.8125rem] outline-none transition-colors hover:border-ring/50 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {UYARI_TURU[t.tur] ?? t.tur}
+                        <span className="font-semibold tabular-nums text-vurgu">{t.sayi}</span>
+                      </Link>
+                    ))}
+                  </dd>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            </dl>
+          </details>
+        )}
+      </div>
 
       {uyarilar.length === 0 ? (
-        <BosDurum>{tumu ? "Hiç uyarı yok." : "Görülmemiş uyarı yok."} Uyarılar gece işi çalıştığında oluşur.</BosDurum>
+        <BosDurum
+          aciklama={
+            suzgecVar
+              ? "Süzgeçlere uyan uyarı yok. Süzgeçleri temizleyip yeniden deneyin."
+              : gorulenler
+                ? "Henüz görüldü olarak işaretlenmiş uyarı yok."
+                : "Görülmemiş uyarı yok. Uyarılar gece işi çalıştığında oluşur."
+          }
+        />
+      ) : secilebilir ? (
+        <TopluSecim idler={uyarilar.map((u) => u.id)} alanAdi="uyari_id" dugme="Seçilenleri görüldü yap" islem={uyarilarGoruldu}>
+          {liste}
+        </TopluSecim>
       ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Zaman</TableHead>
-                <TableHead>Tür</TableHead>
-                <TableHead>İlgili</TableHead>
-                <TableHead>Mesaj</TableHead>
-                <TableHead>Durum</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {uyarilar.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="tarih-hucre">{tarihSaat(u.olusturma_zamani)}</TableCell>
-                  <TableCell className="min-w-36 font-medium whitespace-normal">{UYARI_TURU[u.tur] ?? u.tur}</TableCell>
-                  <TableCell>
-                    {u.calisan ? (
-                      <Link href={`/calisanlar/${u.calisan.id}`} className="underline-offset-4 hover:underline">
-                        {u.calisan.ad} {u.calisan.soyad} <span className="font-mono text-xs text-muted-foreground">({u.calisan.sicil_no})</span>
-                      </Link>
-                    ) : u.okuyucu ? (
-                      <span className="font-mono">{u.okuyucu.kod}</span>
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-80 max-w-[32rem] whitespace-normal">{u.mesaj}</TableCell>
-                  <TableCell>
-                    {u.goruldu ? (
-                      <span className="text-sm text-muted-foreground">
-                        Görüldü · {u.goren?.ad_soyad ?? "—"}
-                        <div className="text-xs">{tarihSaat(u.gorulme_zamani)}</div>
-                      </span>
-                    ) : kullanici.rol === "ik" ? (
-                      <div className="flex items-center gap-2">
-                        <Badge>Yeni</Badge>
-                        <HizliIslem dugme="Görüldü" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />
-                      </div>
-                    ) : (
-                      <Badge>Yeni</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        liste
       )}
-
     </div>
   );
 }

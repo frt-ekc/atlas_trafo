@@ -2,7 +2,12 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BosDurum } from "@/components/panel/bos-durum";
+import { Input } from "@/components/ui/input";
+import { aramaSuzgeci } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { tekDeger } from "@/lib/arama";
 import { bugun } from "@/lib/hafta";
@@ -55,6 +60,9 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
   const istenen = tekDeger(parametre.ay);
   const ay = /^\d{4}-(0[1-9]|1[0-2])$/.test(istenen) ? istenen : bugun().slice(0, 7);
   const [yil, ayNo] = ay.split("-").map(Number);
+  const esnekSekmesi = tekDeger(parametre.sekme) === "esnek";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const uyar = aramaSuzgeci(araMetni);
 
   const supabase = await sunucuIstemcisi();
   const [ozetSonucu, yakaSonucu, esnekler, calisanlar] = await Promise.all([
@@ -87,7 +95,13 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
   const devamOrani = calisilan + devamsiz > 0 ? (calisilan / (calisilan + devamsiz)) * 100 : null;
   const acikIs = top("acik_soru") + top("acik_itiraz");
 
-  const adres = (a: string) => `/departmanlar?ay=${a}`;
+  const adres = (a: string) => `/departmanlar?ay=${a}${esnekSekmesi ? "&sekme=esnek" : ""}`;
+  // Departman adı / çalışan araması ekranda yapılır (yalnızca tabloyu süzer; üstteki özet tüm departmanlardır)
+  const gosterilenDepartmanlar = departmanlar.filter((d) => uyar(d.departman));
+  const gosterilenEsnek = esnek.filter((e) => {
+    const c = calisanById.get(e.calisan_id);
+    return uyar(c?.ad, c?.soyad, c?.sicil_no, c?.departman?.ad);
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -106,8 +120,30 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
         <Link href={adres(ayKaydir(ay, 1))} className={buttonVariants({ variant: "outline", size: "sm" })}>{ayAdi(ayKaydir(ay, 1))} →</Link>
       </nav>
 
-      {departmanlar.length === 0 ? (
-        <BosDurum>Bu ay için günlük kayıt yok. Özet, gece işi çalışınca oluşur.</BosDurum>
+      <Sekmeler
+        etiket="Departman bölümleri"
+        sekmeler={[
+          { ad: "Devam özeti", adres: `/departmanlar?ay=${ay}`, sayi: departmanlar.length, aktif: !esnekSekmesi },
+          { ad: "Esnek mesai", adres: `/departmanlar?ay=${ay}&sekme=esnek`, sayi: esnek.length, aktif: esnekSekmesi },
+        ]}
+      />
+
+      <FiltreCubugu temizleAdres={adres(ay)} suzgecVar={Boolean(araMetni)}>
+        <input type="hidden" name="ay" value={ay} />
+        {esnekSekmesi && <input type="hidden" name="sekme" value="esnek" />}
+        <FiltreAlani etiket={esnekSekmesi ? "Çalışan ara" : "Departman ara"} htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input
+            id="ara"
+            name="ara"
+            type="search"
+            defaultValue={araMetni}
+            placeholder={esnekSekmesi ? "Ad, sicil ya da departman" : "ör. Bobinaj"}
+          />
+        </FiltreAlani>
+      </FiltreCubugu>
+
+      {!esnekSekmesi && (departmanlar.length === 0 ? (
+        <BosDurum aciklama="Bu ay için günlük kayıt yok. Özet, gece işi çalışınca oluşur." />
       ) : (
         <>
           <OzetIzgarasi>
@@ -131,11 +167,15 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
             />
           </OzetIzgarasi>
 
-          <div className="rounded-lg border">
+          {gosterilenDepartmanlar.length === 0 ? (
+            <BosDurum aciklama="Aramaya uyan departman yok." />
+          ) : (
+          // Dar ekranda sayı sütunları yana kayar; departman adı solda sabit kalır
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Departman</TableHead>
+                  <TableHead className="sticky left-0 z-10 bg-card shadow-[inset_-1px_0_0_var(--border)]">Departman</TableHead>
                   <TableHead className="text-right">Çalışan</TableHead>
                   <TableHead className="text-right">Çalışılan gün</TableHead>
                   <TableHead className="text-right">Devamsız</TableHead>
@@ -146,9 +186,9 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {departmanlar.map((d) => (
+                {gosterilenDepartmanlar.map((d) => (
                   <TableRow key={d.departman_id}>
-                    <TableCell className="min-w-52 max-w-72 whitespace-normal">
+                    <TableCell className="sticky left-0 z-10 min-w-52 bg-card whitespace-normal shadow-[inset_-1px_0_0_var(--border)]">
                       <Link href={`/calisanlar?departman=${d.departman_id}`} className="underline-offset-4 hover:underline">{d.departman}</Link>
                       {yaka.get(d.departman_id) && <div className="text-xs text-muted-foreground">{yaka.get(d.departman_id)} yaka</div>}
                     </TableCell>
@@ -173,10 +213,12 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
+          )}
         </>
-      )}
+      ))}
 
+      {esnekSekmesi && (
       <section aria-labelledby="esnek-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="esnek-baslik" className="text-lg font-semibold">Esnek mesai</h2>
@@ -185,15 +227,15 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
             gösterir. İzinli ve tatil günleri hedefe girmez.
           </p>
         </div>
-        {esnek.length === 0 ? (
-          <BosDurum>Bu ay esnek mesaili çalışan kaydı yok.</BosDurum>
+        {gosterilenEsnek.length === 0 ? (
+          <BosDurum aciklama={esnek.length === 0 ? "Bu ay esnek mesaili çalışan kaydı yok." : "Aramaya uyan çalışan yok."} />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Çalışan</TableHead>
-                  <TableHead>Departman</TableHead>
+                  <TableHead className="w-full">Departman</TableHead>
                   <TableHead className="text-right">Hedef gün</TableHead>
                   <TableHead className="text-right">Hedef</TableHead>
                   <TableHead className="text-right">Gerçekleşen</TableHead>
@@ -201,15 +243,15 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {esnek.map((e) => {
+                {gosterilenEsnek.map((e) => {
                   const c = calisanById.get(e.calisan_id);
                   return (
                     <TableRow key={e.calisan_id}>
                       <TableCell>
                         {c ? `${c.ad} ${c.soyad}` : "—"}
-                        {c && <span className="ml-1 font-mono text-xs text-muted-foreground">({c.sicil_no})</span>}
+                        {c && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{c.sicil_no}</span>}
                       </TableCell>
-                      <TableCell className="text-sm">{c?.departman?.ad ?? "—"}</TableCell>
+                      <TableCell className="whitespace-normal text-sm">{c?.departman?.ad ?? "—"}</TableCell>
                       <TableCell className="text-right tabular-nums">{e.hedef_gun}</TableCell>
                       <TableCell className="text-right tabular-nums">{saatDakika(e.hedef_dk)}</TableCell>
                       <TableCell className="text-right tabular-nums">{saatDakika(e.gerceklesen_dk)}</TableCell>
@@ -222,9 +264,10 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                 })}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
+      )}
     </div>
   );
 }

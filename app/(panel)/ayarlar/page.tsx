@@ -3,7 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
-import { tarih, saat, tarihSaat } from "@/lib/bicim";
+import { aramaSuzgeci } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { Zaman } from "@/components/liste/zaman";
+import { tekDeger } from "@/lib/arama";
 import { rolGerekli } from "@/lib/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { ayarGuncelle } from "./actions";
@@ -22,8 +28,12 @@ type Gecmis = { id: number; anahtar: string; eski_deger: number | null; yeni_deg
 
 // Kuralların eşikleri (tolerans, mola, fazla mesai sınırları…) koda değil bu tabloya yazılıdır.
 // Yalnızca sistem yöneticisi değiştirir; her değişiklik geçmişe yazılır.
-export default async function AyarlarSayfasi() {
+export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarlar">) {
   await rolGerekli(["admin"]);
+  const parametre = await searchParams;
+  const gecmisSekmesi = tekDeger(parametre.sekme) === "gecmis";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const uyar = aramaSuzgeci(araMetni);
   const supabase = await sunucuIstemcisi();
 
   const [ayarSonucu, gecmisSonucu] = await Promise.all([
@@ -41,6 +51,8 @@ export default async function AyarlarSayfasi() {
   // Geçmişte anahtar yerine ayarın Türkçe açıklaması ve birimi gösterilir
   const ayarBilgisi = new Map(ayarlar.map((a) => [a.anahtar, a]));
   const sayi = (d: number) => d.toLocaleString("tr-TR");
+  // Ayar adı / açıklaması araması ekranda yapılır
+  const gosterilenAyarlar = ayarlar.filter((a) => uyar(a.aciklama, a.anahtar));
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,63 +63,90 @@ export default async function AyarlarSayfasi() {
         </p>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ayar</TableHead>
-              <TableHead className="text-right">Değer</TableHead>
-              <TableHead>Son değişiklik</TableHead>
-              <TableHead><span className="sr-only">İşlem</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ayarlar.map((a) => (
-              <TableRow key={a.anahtar}>
-                <TableCell className="min-w-80 max-w-[32rem] whitespace-normal">
-                  <div className="text-sm">{a.aciklama}</div>
-                  <div className="font-mono text-xs text-muted-foreground">{a.anahtar}</div>
-                </TableCell>
-                <TableCell className="text-right tabular-nums whitespace-nowrap">
-                  {a.deger.toLocaleString("tr-TR")} <span className="text-muted-foreground">{a.birim}</span>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {a.guncelleyen ? `${a.guncelleyen.ad_soyad}, ${tarihSaat(a.guncelleme_zamani)}` : "—"}
-                </TableCell>
-                <TableCell className="text-right">
-                  <IslemPenceresi
-                    dugme="Değiştir"
-                    dugmeTuru="ghost"
-                    baslik={a.aciklama}
-                    aciklama={`Şu an: ${a.deger.toLocaleString("tr-TR")} ${a.birim}. Eski ve yeni değer geçmişe yazılır.`}
-                    onay="Kaydet"
-                    islem={ayarGuncelle}
-                    gizli={{ anahtar: a.anahtar }}
-                  >
-                    <label htmlFor={`deger-${a.anahtar}`} className="text-sm font-medium">Yeni değer ({a.birim})</label>
-                    <Input id={`deger-${a.anahtar}`} name="deger" type="number" min={0} step={1} required defaultValue={a.deger} />
-                  </IslemPenceresi>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <Sekmeler
+        etiket="Ayarlar bölümleri"
+        sekmeler={[
+          { ad: "Eşikler", adres: "/ayarlar", sayi: ayarlar.length, aktif: !gecmisSekmesi },
+          { ad: "Değişiklik geçmişi", adres: "/ayarlar?sekme=gecmis", aktif: gecmisSekmesi },
+        ]}
+      />
 
+      {!gecmisSekmesi && (
+        <>
+          <FiltreCubugu temizleAdres="/ayarlar" suzgecVar={Boolean(araMetni)}>
+            <FiltreAlani etiket="Ayar ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-sm">
+              <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="ör. mola, fazla mesai, tolerans" />
+            </FiltreAlani>
+          </FiltreCubugu>
+          {gosterilenAyarlar.length === 0 ? (
+            <BosDurum aciklama="Aramaya uyan ayar yok." />
+          ) : (
+            <TabloKutusu>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-full">Ayar</TableHead>
+                    <TableHead className="text-right">Değer</TableHead>
+                    <TableHead>Son değişiklik</TableHead>
+                    <TableHead><span className="sr-only">İşlem</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {gosterilenAyarlar.map((a) => (
+                    <TableRow key={a.anahtar}>
+                      <TableCell className="min-w-72 whitespace-normal">
+                        <div className="text-sm">{a.aciklama}</div>
+                        <div className="font-mono text-xs text-muted-foreground">{a.anahtar}</div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {a.deger.toLocaleString("tr-TR")} <span className="text-muted-foreground">{a.birim}</span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {a.guncelleyen ? (
+                          <>
+                            {a.guncelleyen.ad_soyad}
+                            <div className="text-xs"><Zaman deger={a.guncelleme_zamani} /></div>
+                          </>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <IslemPenceresi
+                          dugme="Değiştir"
+                          dugmeTuru="outline"
+                          baslik={a.aciklama}
+                          aciklama={`Şu an: ${a.deger.toLocaleString("tr-TR")} ${a.birim}. Eski ve yeni değer geçmişe yazılır.`}
+                          onay="Kaydet"
+                          islem={ayarGuncelle}
+                          gizli={{ anahtar: a.anahtar }}
+                        >
+                          <label htmlFor={`deger-${a.anahtar}`} className="text-sm font-medium">Yeni değer ({a.birim})</label>
+                          <Input id={`deger-${a.anahtar}`} name="deger" type="number" min={0} step={1} required defaultValue={a.deger} />
+                        </IslemPenceresi>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabloKutusu>
+          )}
+        </>
+      )}
+
+      {gecmisSekmesi && (
       <section aria-labelledby="gecmis-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="gecmis-baslik" className="text-lg font-semibold">Değişiklik geçmişi</h2>
           <p className="text-sm text-muted-foreground">Son 20 değişiklik. Kayıtlar silinemez; kim, ne zaman, neyi değiştirdi görünür.</p>
         </div>
         {gecmis.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Henüz değişiklik yok.</p>
+          <BosDurum aciklama="Henüz ayar değiştirilmedi." />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Zaman</TableHead>
-                  <TableHead>Ayar</TableHead>
+                  <TableHead className="w-full">Ayar</TableHead>
                   <TableHead>Değişiklik</TableHead>
                   <TableHead>Yapan</TableHead>
                 </TableRow>
@@ -118,10 +157,8 @@ export default async function AyarlarSayfasi() {
                   const birim = ayar?.birim ?? "";
                   return (
                     <TableRow key={g.id}>
-                      <TableCell className="tarih-hucre">
-                        {tarih(g.degisim_zamani)} <span className="ml-1 opacity-80">{saat(g.degisim_zamani)}</span>
-                      </TableCell>
-                      <TableCell className="min-w-64 max-w-md whitespace-normal" title={g.anahtar}>
+                      <TableCell className="tarih-hucre"><Zaman deger={g.degisim_zamani} /></TableCell>
+                      <TableCell className="min-w-64 whitespace-normal" title={g.anahtar}>
                         {ayar?.aciklama ?? g.anahtar}
                       </TableCell>
                       <TableCell>
@@ -152,9 +189,10 @@ export default async function AyarlarSayfasi() {
                 })}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
+      )}
     </div>
   );
 }

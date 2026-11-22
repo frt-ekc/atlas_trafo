@@ -11,6 +11,11 @@ import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { DurumEtiketi } from "@/components/panel/durum-etiketi";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumIslem } from "@/components/liste/durum-islem";
+import { IslemMenusu } from "@/components/liste/islem-menusu";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
 import { yerelZamanGirdisi } from "@/lib/bicim";
 import { aylikDokum } from "@/lib/dokum";
@@ -41,7 +46,9 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
 
   const { calisan, gunler, duzeltmeler, ozet } = dokum;
   const bugunTarih = bugun();
-  const adres = (a: string) => `/calisanlar/${calisanId}?ay=${a}`;
+  // Günler ve düzeltmeler ayrı sekmelerde (?sekme=duzeltme)
+  const duzeltmeSekmesi = tekDeger(parametre.sekme) === "duzeltme";
+  const adres = (a: string) => `/calisanlar/${calisanId}?ay=${a}${duzeltmeSekmesi ? "&sekme=duzeltme" : ""}`;
   // İtirazı amir ve İK girer; yönetici yalnızca okur. Kimse kendi kaydına itiraz giremez
   // (veritabanı da reddeder; düğme hiç gösterilmez).
   const itirazGirebilir = (kullanici.rol === "amir" || kullanici.rol === "ik") && kullanici.calisanId !== calisanId;
@@ -168,7 +175,16 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
         </Alert>
       )}
 
-      <div className="rounded-lg border">
+      <Sekmeler
+        etiket="Çalışan kayıtları"
+        sekmeler={[
+          { ad: "Günler", adres: `/calisanlar/${calisanId}?ay=${ay}`, aktif: !duzeltmeSekmesi },
+          { ad: "Düzeltmeler", adres: `/calisanlar/${calisanId}?ay=${ay}&sekme=duzeltme`, sayi: duzeltmeler.length, aktif: duzeltmeSekmesi },
+        ]}
+      />
+
+      {!duzeltmeSekmesi && (
+      <TabloKutusu>
         <Table>
           <TableHeader>
             <TableRow>
@@ -177,9 +193,8 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
               <TableHead>Giriş</TableHead>
               <TableHead>Çıkış</TableHead>
               <TableHead className="text-right">Çalışma</TableHead>
+              <TableHead className="w-full">Not</TableHead>
               <TableHead>Durum</TableHead>
-              <TableHead>Not</TableHead>
-              {islemSutunu && <TableHead><span className="sr-only">İşlem</span></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -209,61 +224,67 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                     {g.cikisKaynagi && g.cikisKaynagi !== "PDKS" && <span className="ml-1 text-xs text-muted-foreground">({g.cikisKaynagi})</span>}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{g.calismaDk != null ? saatDakika(g.calismaDk) : "—"}</TableCell>
-                  <TableCell><DurumEtiketi kod={g.durumKodu}>{g.durum}</DurumEtiketi></TableCell>
-                  <TableCell className="min-w-72 max-w-[28rem] whitespace-normal text-sm text-muted-foreground">{notlar.join(" · ") || ""}</TableCell>
-                  {islemSutunu && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                      {duzeltebilir && g.gunKaydiId && (
-                        <IslemPenceresi
-                          dugme="Düzelt"
-                          dugmeTuru="ghost"
-                          baslik={`${calisan.adSoyad} · ${g.tarihMetni} kaydını düzelt`}
-                          aciklama={`Şu an: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}.`}
-                          onay="Düzeltmeyi kaydet"
-                          islem={kayitDuzelt}
-                          gizli={{ gun_kaydi_id: g.gunKaydiId }}
-                        >
-                          <DuzeltmeAlanlari
-                            girisVarsayilan={yerelZamanGirdisi(g.girisZamani ?? g.planliBaslangic)}
-                            cikisVarsayilan={yerelZamanGirdisi(g.cikisZamani ?? g.planliBitis)}
-                            itirazlar={itirazByGun.get(g.gunKaydiId) ?? []}
-                          />
-                        </IslemPenceresi>
+                  <TableCell className="min-w-56 whitespace-normal text-sm text-muted-foreground">{notlar.join(" · ") || ""}</TableCell>
+                  <TableCell>
+                    {/* Durum ve işlemler tek dar sütunda: İK için ana işlem Düzelt, İtiraz menüde; amir için İtiraz görünür */}
+                    <DurumIslem yatay durum={<DurumEtiketi kod={g.durumKodu}>{g.durum}</DurumEtiketi>}>
+                      {islemSutunu && g.gunKaydiId && (
+                        <>
+                          {duzeltebilir && (
+                            <IslemPenceresi
+                              dugme="Düzelt"
+                              dugmeTuru="outline"
+                              baslik={`${calisan.adSoyad} · ${g.tarihMetni} kaydını düzelt`}
+                              aciklama={`Şu an: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}.`}
+                              onay="Düzeltmeyi kaydet"
+                              islem={kayitDuzelt}
+                              gizli={{ gun_kaydi_id: g.gunKaydiId }}
+                            >
+                              <DuzeltmeAlanlari
+                                girisVarsayilan={yerelZamanGirdisi(g.girisZamani ?? g.planliBaslangic)}
+                                cikisVarsayilan={yerelZamanGirdisi(g.cikisZamani ?? g.planliBitis)}
+                                itirazlar={itirazByGun.get(g.gunKaydiId) ?? []}
+                              />
+                            </IslemPenceresi>
+                          )}
+                          {/* İK'da İtiraz yan düğmedir, amirde tek işlemdir; görünümü IslemMenusu belirler */}
+                          <IslemMenusu>
+                            {itirazGirebilir && (
+                              <IslemPenceresi
+                                dugme="İtiraz gir"
+                                baslik={`${calisan.adSoyad} · ${g.tarihMetni} itirazı`}
+                                aciklama={`Kayıt: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}. Çalışanın söylediğini yazın; kabul ya da red kararını İK verir.`}
+                                onay="İtirazı kaydet"
+                                islem={itirazGir}
+                                gizli={{ gun_kaydi_id: g.gunKaydiId }}
+                              >
+                                <label htmlFor="metin" className="text-sm font-medium">İtiraz</label>
+                                <Textarea id="metin" name="metin" rows={3} required minLength={5} maxLength={1000} placeholder="ör. 08:00'de geldim, kartım okumadı" />
+                              </IslemPenceresi>
+                            )}
+                          </IslemMenusu>
+                        </>
                       )}
-                      {itirazGirebilir && g.gunKaydiId && (
-                        <IslemPenceresi
-                          dugme="İtiraz"
-                          dugmeTuru="ghost"
-                          baslik={`${calisan.adSoyad} · ${g.tarihMetni} itirazı`}
-                          aciklama={`Kayıt: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}. Çalışanın söylediğini yazın; kabul ya da red kararını İK verir.`}
-                          onay="İtirazı kaydet"
-                          islem={itirazGir}
-                          gizli={{ gun_kaydi_id: g.gunKaydiId }}
-                        >
-                          <label htmlFor="metin" className="text-sm font-medium">İtiraz</label>
-                          <Textarea id="metin" name="metin" rows={3} required minLength={5} maxLength={1000} placeholder="ör. 08:00'de geldim, kartım okumadı" />
-                        </IslemPenceresi>
-                      )}
-                      </div>
-                    </TableCell>
-                  )}
+                    </DurumIslem>
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
-      </div>
+      </TabloKutusu>
+      )}
 
+      {duzeltmeSekmesi && (
       <section aria-labelledby="duzeltme-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="duzeltme-baslik" className="text-lg font-semibold">Düzeltmeler</h2>
           <p className="text-sm text-muted-foreground">Ham kayıt değiştirilmez; her düzeltme kim, ne zaman, eski-yeni değer ve gerekçesiyle saklanır.</p>
         </div>
         {duzeltmeler.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Bu ay düzeltme yok.</div>
+          <BosDurum aciklama="Bu ay bu çalışanın kayıtlarında düzeltme yapılmadı." />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -271,7 +292,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                   <TableHead>Alan</TableHead>
                   <TableHead>Eski</TableHead>
                   <TableHead>Yeni</TableHead>
-                  <TableHead>Gerekçe</TableHead>
+                  <TableHead className="w-full">Gerekçe</TableHead>
                   <TableHead>Yapan</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,15 +303,16 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                     <TableCell>{d.alan}{d.aleyhine && <Badge variant="destructive" className="ml-2">Aleyhe</Badge>}</TableCell>
                     <TableCell className="tabular-nums">{d.eski}</TableCell>
                     <TableCell className="tabular-nums">{d.yeni}</TableCell>
-                    <TableCell className="min-w-60 max-w-96 whitespace-normal">{d.gerekce}</TableCell>
+                    <TableCell className="min-w-56 whitespace-normal">{d.gerekce}</TableCell>
                     <TableCell className="text-muted-foreground">{d.kaynak} · {d.yapan}<div className="text-xs">{d.zaman}</div></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
+      )}
     </div>
   );
 }
