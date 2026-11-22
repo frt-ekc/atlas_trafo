@@ -116,13 +116,14 @@ grant execute on all functions in schema test to authenticated;
 
 -- Test verisi (yalnızca sahte) ---------------------------------------------
 --   TZ01, TZ02: kart · TZ03, TZ04: vardiya planı · TZ05, TZ06: fazla mesai iptali
---   TZ09: yazılı onayın geri alınması · TZ11, TZ12: İSG belgesi
+--   TZ09: yazılı onayın geri alınması · TZ10: geri alma, kilitli ay (8. bölüm)
+--   TZ11, TZ12: İSG belgesi
 insert into pdks.departman (ad) values ('TZ Üretim'), ('TZ İdari');
 insert into pdks.calisan (sicil_no, ad, soyad, departman_id, ise_giris_tarihi)
 select s, 'Ad' || s, 'Örnek', (select id from pdks.departman where ad = d), '2025-01-01'
 from (values ('TZA1', 'TZ Üretim'), ('TZ01', 'TZ Üretim'), ('TZ02', 'TZ Üretim'), ('TZ03', 'TZ Üretim'),
              ('TZ04', 'TZ Üretim'), ('TZ05', 'TZ Üretim'), ('TZ06', 'TZ Üretim'), ('TZ09', 'TZ Üretim'),
-             ('TZ11', 'TZ Üretim'), ('TZ12', 'TZ Üretim'), ('TZI1', 'TZ İdari'), ('TZS1', 'TZ İdari')) v(s, d);
+             ('TZ10', 'TZ Üretim'), ('TZ11', 'TZ Üretim'), ('TZ12', 'TZ Üretim'), ('TZI1', 'TZ İdari'), ('TZS1', 'TZ İdari')) v(s, d);
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id, auth_kullanici_id) values
     ('TZ İK',   'tz_ik@ornek.test',   'ik',   test.c('TZI1'), '00000000-0000-0000-0000-0000000000f1'),
     ('TZ Amir', 'tz_amir@ornek.test', 'amir', test.c('TZA1'), '00000000-0000-0000-0000-0000000000f2'),
@@ -239,6 +240,43 @@ select test.dogrula('UTC−12 oturum: kartın veriliş tarihi İstanbul''un bug�
     test.kart_ekle('Etc/GMT+12', 'TZ01') = test.ist_bugun());
 select test.dogrula('UTC+14 oturum: kartın veriliş tarihi İstanbul''un bugünü',
     test.kart_ekle('Etc/GMT-14', 'TZ02') = test.ist_bugun());
+
+-- 8) T-59: yazılı onay geri alınınca kilitli aydaki planlar korunur ---------
+--   Geçen ayın 10'unda onaylı plan, 11'inde talep var; ay kilitli.
+--   Talep geçmiş günde de olsa normalde iptal edilir; kilitli aydaki talebe
+--   dokunulursa fazla_mesai_plani_kontrol hata verir ve geri alma hiç
+--   kaydedilmez. Beklenen: geri alma kaydedilir, iki plan da olduğu gibi kalır,
+--   İK uyarısı "0 plan iptal edildi" ve "2 plan ... iptal edilmedi" der.
+--   Yıl başında da çalışsın diye tarihler geçen aya göre kurulur: onay 60 gün
+--   önce imzalı, bildirim ayın 30 gün öncesinde (geçerlilik ayın 1'inde biter).
+--   Ayı kilitlemek önceki bölümleri etkilemesin diye bu bölüm en sondadır.
+create function test.gecen_ay() returns date language sql as $$
+    select (date_trunc('month', test.ist_bugun()) - interval '1 month')::date $$;
+
+insert into pdks.fazla_mesai_onayi (calisan_id, yil, imza_tarihi, belge_no, giren_id)
+values (test.c('TZ10'), extract(year from test.gecen_ay()), test.gecen_ay() - 60,
+        'TZ-FMO-TZ10', test.k('tz_ik@ornek.test'));
+insert into pdks.vardiya_plani (calisan_id, tarih, vardiya_id)
+select test.c('TZ10'), test.gecen_ay() + g, (select id from pdks.vardiya_tanim where kod = 'GUNDUZ')
+from unnest(array[9, 10]) g;
+insert into pdks.fazla_mesai_plani (calisan_id, is_gunu, planli_dk, gerekce, talep_eden_id)
+select test.c('TZ10'), test.gecen_ay() + g, 60, 'Sipariş yetişmeli', test.k('tz_amir@ornek.test')
+from unnest(array[9, 10]) g;
+update pdks.fazla_mesai_plani set durum = 'onaylandi', karar_veren_id = test.k('tz_ik@ornek.test')
+where calisan_id = test.c('TZ10') and is_gunu = test.gecen_ay() + 9;
+select pdks.donem_kilitle(pdks.donem_bul(test.gecen_ay()), test.k('tz_ik@ornek.test'), true);
+
+select test.calisir('kilitli ayda plan varken yazılı onayın geri alınması kaydedildi',
+    $$update pdks.fazla_mesai_onayi
+      set geri_alma_bildirim_tarihi = test.gecen_ay() - 30, geri_alma_giren_id = test.k('tz_ik@ornek.test')
+      where calisan_id = test.c('TZ10')$$);
+select test.dogrula('kilitli aydaki onaylı plan iptal edilmedi',
+    (select durum = 'onaylandi' from test.fm('TZ10', test.gecen_ay() + 9)));
+select test.dogrula('kilitli aydaki talep iptal edilmedi',
+    (select durum = 'talep' from test.fm('TZ10', test.gecen_ay() + 10)));
+select test.dogrula('İK uyarısı kilitli aydaki 2 planı "iptal edilmedi" sayıyor',
+    (select mesaj like '%. 0 plan iptal edildi.%' and mesaj like '% 2 plan%iptal edilmedi%'
+     from pdks.uyari where tur = 'fm_onay_geri_alindi' and calisan_id = test.c('TZ10')));
 
 select 'İstanbul tarihi testi: hepsi GEÇTİ';
 rollback;

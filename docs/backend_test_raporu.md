@@ -281,7 +281,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-43 | Düşük | 7 | Amir izne çıkınca önceden açılmış soruları vekile geçmiyor | K2 | — | Sınırlılık |
 | T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
-| T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi (PR #46) |
+| T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | Düzelt (25 Kas) |
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | Düzelt (25 Kas) |
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | Düzelt |
@@ -295,7 +295,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | Düzelt (25 Kas) |
 | T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | Düzelt (25 Kas) |
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | Düzelt |
-| T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi (PR #46) |
+| T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | Düzelt |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | Düzelt |
@@ -2072,7 +2072,7 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 
   Bu tablo yalnızca listedir. İlk altı satırdan ikisi gece penceresinde denendi: `vardiya_plani_gir` (bu bulgu) ve `fazla_mesai_plani_kontrol`. İkincisi Adım 9'da kanıtlandı: `fazla_mesai_onayi_geri_al` RPC'si UTC oturumunda dünkü onaylı planı iptal etti, İstanbul oturumunda reddetti (`scratch/a9_saat_dilimi_geri_al_sonuc.txt`, T-59). Kalan dördü denenmedi.
 - **Öneri:** `v_geri := p_tarih < (now() at time zone 'Europe/Istanbul')::date`. Yukarıdaki tablonun ilk altı satırı da aynı kalıpla yazılmalı (ya da veritabanı/rol düzeyinde `timezone = 'Europe/Istanbul'`). Kalıcı test UTC oturumuyla, sabit bir saatte yazılmalı (T-04).
-- **Durum:** ✅ Düzeltildi — PR #46 (migration: `20261205010000_istanbul_tarihi.sql`, test: `istanbul_tarihi_testi.sql`). `pdks.bugun()` eklendi; tablodaki ilk altı satırın hepsi (`vardiya_plani_gir`, `fazla_mesai_plani_kontrol`, `gece_isi_calistir`, `v_gece_isi_durumu`, `v_isg_durum`, `kart.verilis_tarihi`) buna çevrildi. Aşağıdaki Adım 10 notu da bununla kapandı.
+- **Durum:** ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi). (PR #46 migration: `20261205010000_istanbul_tarihi.sql`, test: `istanbul_tarihi_testi.sql`). `pdks.bugun()` eklendi; tablodaki ilk altı satırın hepsi (`vardiya_plani_gir`, `fazla_mesai_plani_kontrol`, `gece_isi_calistir`, `v_gece_isi_durumu`, `v_isg_durum`, `kart.verilis_tarihi`) buna çevrildi. Aşağıdaki Adım 10 notu da bununla kapandı.
 - **Adım 10 notu (`v_isg_durum`, kod okunarak; gece penceresinde çalıştırılmadı):** Görünüm `gecerlilik_bitis < CURRENT_DATE` ve `< CURRENT_DATE + isg_uyari_gun` ile durum veriyor. Yerelde veritabanının varsayılan saat dilimi `UTC`; `authenticated` / `authenticator` rollerinde saat dilimi ayarı yok, yani ekrandan (PostgREST) gelen oturum da UTC olur (çıkarım; HTTP ile denenmedi). İstanbul 00:00–03:00 arasında `CURRENT_DATE` dünü gösterir: dün biten belge 3 saat boyunca `doluyor` (ya da `gecerli`) görünür, `doluyor` penceresi de bir gün kayar. Etkisi yalnızca ekrandaki İSG listesi: uyarıları üreten `isg_kontrol(p_gun)` tarihi parametre olarak alıyor, saat diliminden etkilenmiyor. Önem: Düşük (T-45'in kalıbıyla birlikte düzeltilebilir: `(now() at time zone 'Europe/Istanbul')::date`).
 
 ### T-46 · İşlenmiş güne girilen izin günü değiştirmiyor; amire giden "hiç kayıt yok" sorusu açık kalıyor
@@ -2417,7 +2417,7 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** İşçi "artık fazla mesaiye kalmak istemiyorum" diye dilekçe verdi, İK bunu birkaç hafta geç sisteme giriyor. Arada onaylanıp çalışılmış bir fazla mesai varsa sistem "geçmiş planı iptal edemem" deyip dilekçeyi hiç kaydetmiyor. İşçinin geri çekilmesi kayıtta görünmüyor, sonraki fazla mesailer de engellenmiyor. Aynı işlem gece 03:00'ten önce yapılırsa sonuç farklı çıkıyor ve dünkü onaylı fazla mesai iptal edilebiliyor.
 - **Öneri:** `fazla_mesai_onayi_geri_alindi`: iptali yalnızca `is_gunu >= greatest(gecerlilik_bitisi, bugün_istanbul)` olan ve kilitli olmayan planlara uygula, `karar_veren_id = null` yaz (sistem iptali). Geçmişte kalanlar için İK'ya uyarı. `fazla_mesai_plani_kontrol`'deki `current_date`'i İstanbul tarihine çevir (T-45).
-- **Durum:** ✅ Düzeltildi — PR #46 (migration: `20261205010000_istanbul_tarihi.sql`, test: `istanbul_tarihi_testi.sql`). Geri alma artık her zaman kaydedilir: ileri tarihli (bugün dahil) onaylı planlar ve talepler sistemce iptal edilir (`karar_veren_id` boş); geçmişteki onaylı ve kilitli aydaki planlar korunur, sayısı İK uyarısına yazılır. "Geçmiş gün" kararı İstanbul tarihiyle verilir.
+- **Durum:** ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi). (PR #46 migration: `20261205010000_istanbul_tarihi.sql`, test: `istanbul_tarihi_testi.sql`). Geri alma artık her zaman kaydedilir: ileri tarihli (bugün dahil) onaylı planlar ve talepler sistemce iptal edilir (`karar_veren_id` boş); geçmişteki onaylı ve kilitli aydaki planlar korunur, sayısı İK uyarısına yazılır. "Geçmiş gün" kararı İstanbul tarihiyle verilir.
 
 ### T-60 · Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor
 - **Adım:** 9 · **Önem:** Düşük
