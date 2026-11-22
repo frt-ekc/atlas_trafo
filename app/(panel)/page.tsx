@@ -211,8 +211,8 @@ async function DuzeltmeGrafigi({ supabase, bugunTarih }: { supabase: Istemci; bu
       baslik="Hatalı kayıtlar nasıl düzeldi?"
       aciklama={
         <>
-          Son 30 gün ({tarih(baslangic)} – {tarih(bugunTarih)}). Kayıtların <strong className="text-foreground">%{otomatikOran}</strong>&apos;ini sistem,
-          kimseye sormadan kanıt kaydıyla kendisi düzeltti.
+          Son 30 gün ({tarih(baslangic)} – {tarih(bugunTarih)}). Sistemin kimseye sormadan, kanıt ya da izin kaydıyla düzelttiği kayıt
+          oranı: <strong className="text-foreground">%{otomatikOran}</strong>
         </>
       }
     >
@@ -222,7 +222,7 @@ async function DuzeltmeGrafigi({ supabase, bugunTarih }: { supabase: Istemci; bu
           { etiket: "Sistem düzeltti (kanıt / izin kaydı)", deger: sistem, renk: "var(--grafik-sistem)" },
           { etiket: "Amirin cevabıyla düzeldi", deger: amir, renk: "var(--grafik-amir)" },
           { etiket: "İK düzeltti", deger: ik, renk: "var(--grafik-ik)" },
-          { etiket: "Cevap bekliyor", deger: bekleyen, renk: "rgb(127 179 184 / 0.12)", desenli: true, href: "/sorular?durum=tumu" },
+          { etiket: "Cevap bekliyor", deger: bekleyen, renk: "color-mix(in srgb, var(--grafik-bekliyor) 25%, transparent)", desenli: true, href: "/sorular?durum=tumu" },
         ]}
       />
     </GrafikKarti>

@@ -62,7 +62,7 @@
     petrol    #2E6F73  açık temada ana renk (düğmeler, bağlantılar)
     su        #7FB3B8  ikincil vurgu, odak halkası
     kum       #EADCC8  koyu temada yazı, açık temada kenarlık / zemin tonu
-    şeftali   #F4D6B0  dikkat çeken tek vurgu (marka, seçili menü, koyu temada ana düğme)
+    şeftali   #F4D6B0  tek vurgu (marka, seçili menü, koyu temada ana düğme); uyarı rengi ayrıdır (--dikkat)
   Göz yormasın diye: geniş alanlar nötr (gece / kum tonları), renk yalnızca vurguda.
 */
 
@@ -79,10 +79,10 @@
   --secondary: #efe6d8;
   --secondary-foreground: #0f3d3e;
   --muted: #f0e8dc;
-  --muted-foreground: #55686b;
+  --muted-foreground: #46585b;
   --accent: #e6efee;
   --accent-foreground: #0f3d3e;
-  --destructive: #b4442f;
+  --destructive: #9c3723;
   --border: #e4d8c6;
   --input: #d9ccb8;
   --ring: #2e6f73;
@@ -94,8 +94,8 @@
   --chart-5: #eadcc8;
   --radius: 0.75rem;
   --zemin:
-    radial-gradient(1100px 600px at 0% 0%, rgb(127 179 184 / 0.18), transparent 60%),
-    radial-gradient(900px 520px at 100% 100%, rgb(244 214 176 / 0.35), transparent 60%), #f7f2ea;
+    radial-gradient(1300px 800px at 24% 0%, rgb(127 179 184 / 0.32), transparent 66%),
+    radial-gradient(1100px 680px at 100% 100%, rgb(244 214 176 / 0.65), transparent 66%), #f7f2ea;
   --ust-bar: rgb(255 252 247 / 0.75);
 }
 
@@ -126,8 +126,9 @@
   --chart-4: #eadcc8;
   --chart-5: #0f3d3e;
   --zemin:
-    radial-gradient(1200px 650px at 0% 0%, rgb(15 61 62 / 0.55), transparent 60%),
-    radial-gradient(900px 520px at 100% 100%, rgb(244 214 176 / 0.07), transparent 60%), #0a0f14;
+    /* Petrol ışımanın merkezi kenar çubuğunun sağında: köşede olsa en parlak yeri çubuğun altında kalır */
+    radial-gradient(1300px 800px at 24% 0%, rgb(15 61 62 / 0.8), transparent 66%),
+    radial-gradient(1100px 680px at 100% 100%, rgb(244 214 176 / 0.17), transparent 66%), #0a0f14;
   --ust-bar: rgb(14 26 31 / 0.7);
 }
 
@@ -191,7 +192,7 @@
   }
   /* Grafikte "bekleyen" dilimi: düz renk yerine çizgili, tamamlanmamış olduğu belli olsun */
   .desenli {
-    background-image: repeating-linear-gradient(135deg, rgb(127 179 184 / 0.45) 0 3px, transparent 3px 7px);
+    background-image: repeating-linear-gradient(135deg, var(--grafik-bekliyor) 0 4px, transparent 4px 7px);
   }
 }
 
@@ -221,16 +222,16 @@
 :root {
   --iyi: #24595c;
   --iyi-zemin: #e1eeed;
-  --dikkat: #8f5320;
+  --dikkat: #7d4719;
   --dikkat-zemin: #f7e4cb;
-  --kotu: #a63d2a;
+  --kotu: #9c3723;
   --kotu-zemin: #f5dfd9;
 }
 .dark {
   --iyi: #a6d0d4;
   --iyi-zemin: rgb(127 179 184 / 0.15);
-  --dikkat: #f4d6b0;
-  --dikkat-zemin: rgb(244 214 176 / 0.14);
+  --dikkat: #e8a86b; /* kehribar: ana düğmenin şeftalisinden ayrışır */
+  --dikkat-zemin: rgb(232 168 107 / 0.16);
   --kotu: #f0a598;
   --kotu-zemin: rgb(229 134 122 / 0.15);
 }
@@ -247,12 +248,14 @@
 
 /* Grafik renkleri: iki temada da okunur ton */
 :root {
-  --grafik-sistem: #7fb3b8;
-  --grafik-amir: #2e6f73;
+  --grafik-sistem: #5f9ca2;
+  --grafik-amir: #7d5576;
   --grafik-ik: #e2b88a;
+  --grafik-bekliyor: #c26a1a;
 }
 .dark {
   --grafik-sistem: #7fb3b8;
-  --grafik-amir: #2e6f73;
+  --grafik-amir: #9a5f8f;
   --grafik-ik: #f4d6b0;
+  --grafik-bekliyor: #de8f3a;
 }
