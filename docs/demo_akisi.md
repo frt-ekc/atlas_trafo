@@ -14,12 +14,12 @@ Demo canlı sistemde (atlas-pdks) yalnızca **sahte veriyle** yapılır. Kasım 
 
 | Kısa ad | E-posta | Rol |
 |---|---|---|
-| İK | `elif.sen@atlastrafo.test` | ik |
-| Montaj amiri | `hasan.yilmaz@atlastrafo.test` | amir |
-| Güvenlik | `recep.bayram@atlastrafo.test` | guvenlik |
-| İSG | `tuba.erkoc@atlastrafo.test` | isg |
-| Fabrika müdürü | `nur.tekin@atlastrafo.test` | yonetici |
-| Sistem yöneticisi | `alper.cinar@atlastrafo.test` | admin |
+| İK | `elif.sen@atlastrafo.example.com` | ik |
+| Montaj amiri | `hasan.yilmaz@atlastrafo.example.com` | amir |
+| Güvenlik | `recep.bayram@atlastrafo.example.com` | guvenlik |
+| İSG | `tuba.erkoc@atlastrafo.example.com` | isg |
+| Fabrika müdürü | `nur.tekin@atlastrafo.example.com` | yonetici |
+| Sistem yöneticisi | `alper.cinar@atlastrafo.example.com` | admin |
 
 ## Demo sırası
 
@@ -118,32 +118,32 @@ Canlıda kilit yapılmaz. Yerelde alınmış görüntülerle anlatılır:
 
 ## Demo kullanıcıları
 
-Bütün adresler sahtedir (`.test` alan adı yalnızca test için ayrılmıştır, e-posta gitmez).
+Bütün adresler sahtedir; example.com test için ayrılmış bir alan adıdır, e-posta gitmez.
 
 | E-posta | Ad soyad | Rol | Görev |
 |---|---|---|---|
-| ahmet.er@atlastrafo.test | Ahmet Er | ik | İK müdürü |
-| elif.sen@atlastrafo.test | Elif Şen | ik | İK uzmanı |
-| recep.bayram@atlastrafo.test | Recep Bayram | guvenlik | Güvenlik |
-| nur.tekin@atlastrafo.test | Nur Tekin | yonetici | Fabrika müdürü |
-| riza.kalkan@atlastrafo.test | Rıza Kalkan | amir | Genel müdür (beyaz yaka üst amiri) |
-| levent.sari@atlastrafo.test | Levent Sarı | amir | Üretim müdürü (mavi yaka üst amiri) |
-| hasan.yilmaz@atlastrafo.test | Hasan Yılmaz | amir | Montaj amiri (Bobinaj vekili) |
-| serkan.ozturk@atlastrafo.test | Serkan Öztürk | amir | Bobinaj amiri |
-| zeynep.acar@atlastrafo.test | Zeynep Acar | amir | Kalite amiri |
-| baris.yalcin@atlastrafo.test | Barış Yalçın | amir | Nüve amiri |
-| sinan.guler@atlastrafo.test | Sinan Güler | amir | Kazan amiri |
-| cengiz.sezer@atlastrafo.test | Cengiz Sezer | amir | Boyahane amiri |
-| volkan.simsek@atlastrafo.test | Volkan Şimşek | amir | Bakım amiri |
-| ramazan.cetin@atlastrafo.test | Ramazan Çetin | amir | Depo amiri |
-| aylin.kaplan@atlastrafo.test | Aylin Kaplan | amir | Ar-Ge amiri |
-| cansu.akin@atlastrafo.test | Cansu Akın | amir | Planlama amiri |
-| serdar.coskun@atlastrafo.test | Serdar Coşkun | amir | Satış amiri |
-| gamze.yuksel@atlastrafo.test | Gamze Yüksel | amir | Dış ticaret amiri |
-| nihat.uysal@atlastrafo.test | Nihat Uysal | amir | Satın alma amiri |
-| filiz.oral@atlastrafo.test | Filiz Oral | amir | İnsan kaynakları departman amiri |
-| mert.alkan@atlastrafo.test | Mert Alkan | amir | İSG departman amiri |
-| hulya.gundogdu@atlastrafo.test | Hülya Gündoğdu | amir | Finans amiri |
-| tamer.oguz@atlastrafo.test | Tamer Oğuz | amir | Bilgi işlem amiri |
-| tuba.erkoc@atlastrafo.test | Tuba Erkoç | isg | İSG uzmanı |
-| alper.cinar@atlastrafo.test | Alper Çınar | admin | Sistem yöneticisi |
+| ahmet.er@atlastrafo.example.com | Ahmet Er | ik | İK müdürü |
+| elif.sen@atlastrafo.example.com | Elif Şen | ik | İK uzmanı |
+| recep.bayram@atlastrafo.example.com | Recep Bayram | guvenlik | Güvenlik |
+| nur.tekin@atlastrafo.example.com | Nur Tekin | yonetici | Fabrika müdürü |
+| riza.kalkan@atlastrafo.example.com | Rıza Kalkan | amir | Genel müdür (beyaz yaka üst amiri) |
+| levent.sari@atlastrafo.example.com | Levent Sarı | amir | Üretim müdürü (mavi yaka üst amiri) |
+| hasan.yilmaz@atlastrafo.example.com | Hasan Yılmaz | amir | Montaj amiri (Bobinaj vekili) |
+| serkan.ozturk@atlastrafo.example.com | Serkan Öztürk | amir | Bobinaj amiri |
+| zeynep.acar@atlastrafo.example.com | Zeynep Acar | amir | Kalite amiri |
+| baris.yalcin@atlastrafo.example.com | Barış Yalçın | amir | Nüve amiri |
+| sinan.guler@atlastrafo.example.com | Sinan Güler | amir | Kazan amiri |
+| cengiz.sezer@atlastrafo.example.com | Cengiz Sezer | amir | Boyahane amiri |
+| volkan.simsek@atlastrafo.example.com | Volkan Şimşek | amir | Bakım amiri |
+| ramazan.cetin@atlastrafo.example.com | Ramazan Çetin | amir | Depo amiri |
+| aylin.kaplan@atlastrafo.example.com | Aylin Kaplan | amir | Ar-Ge amiri |
+| cansu.akin@atlastrafo.example.com | Cansu Akın | amir | Planlama amiri |
+| serdar.coskun@atlastrafo.example.com | Serdar Coşkun | amir | Satış amiri |
+| gamze.yuksel@atlastrafo.example.com | Gamze Yüksel | amir | Dış ticaret amiri |
+| nihat.uysal@atlastrafo.example.com | Nihat Uysal | amir | Satın alma amiri |
+| filiz.oral@atlastrafo.example.com | Filiz Oral | amir | İnsan kaynakları departman amiri |
+| mert.alkan@atlastrafo.example.com | Mert Alkan | amir | İSG departman amiri |
+| hulya.gundogdu@atlastrafo.example.com | Hülya Gündoğdu | amir | Finans amiri |
+| tamer.oguz@atlastrafo.example.com | Tamer Oğuz | amir | Bilgi işlem amiri |
+| tuba.erkoc@atlastrafo.example.com | Tuba Erkoç | isg | İSG uzmanı |
+| alper.cinar@atlastrafo.example.com | Alper Çınar | admin | Sistem yöneticisi |

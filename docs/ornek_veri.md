@@ -47,18 +47,18 @@ Hesaplar Supabase Auth'ta (Authentication → Add user) aşağıdaki e-postalarl
 
 | E-posta | Kişi (sicil) | Rol | Ne görür |
 |---|---|---|---|
-| `elif.sen@atlastrafo.test` | Elif Şen (4001) | ik | Her şey |
-| `ahmet.er@atlastrafo.test` | Ahmet Er (4002) | ik | Her şey; Elif'in kendi kayıtlarını o işler |
-| `hasan.yilmaz@atlastrafo.test` | Hasan Yılmaz (1001) | amir | Montaj; ayrıca Bobinaj'ın vekil amiri |
-| `serkan.ozturk@atlastrafo.test` | Serkan Öztürk (2001) | amir | Bobinaj |
-| `zeynep.acar@atlastrafo.test` | Zeynep Acar (3001) | amir | Kalite |
-| `levent.sari@atlastrafo.test` | Levent Sarı (4006) | amir | İdari; üç amirin üst amiri |
-| `recep.bayram@atlastrafo.test` | Recep Bayram (4003) | guvenlik | Çalışan listesi, geçici kartlar |
-| `nur.tekin@atlastrafo.test` | Nur Tekin (4004) | yonetici | Her şey (yalnızca okur) |
-| `tuba.erkoc@atlastrafo.test` | Tuba Erkoç (6602) | isg | Çalışan listesi, departmanlar, İSG belgeleri, bölge yetkileri, İSG / bölge uyarıları |
-| `alper.cinar@atlastrafo.test` | Alper Çınar (6802) | admin | Kullanıcılar, çalışan listesi, ayarlar, okuyucular, gece işi durumu; çalışan kayıtlarını (gün kaydı, izin, puantaj) görmez |
+| `elif.sen@atlastrafo.example.com` | Elif Şen (4001) | ik | Her şey |
+| `ahmet.er@atlastrafo.example.com` | Ahmet Er (4002) | ik | Her şey; Elif'in kendi kayıtlarını o işler |
+| `hasan.yilmaz@atlastrafo.example.com` | Hasan Yılmaz (1001) | amir | Montaj; ayrıca Bobinaj'ın vekil amiri |
+| `serkan.ozturk@atlastrafo.example.com` | Serkan Öztürk (2001) | amir | Bobinaj |
+| `zeynep.acar@atlastrafo.example.com` | Zeynep Acar (3001) | amir | Kalite |
+| `levent.sari@atlastrafo.example.com` | Levent Sarı (4006) | amir | İdari; üç amirin üst amiri |
+| `recep.bayram@atlastrafo.example.com` | Recep Bayram (4003) | guvenlik | Çalışan listesi, geçici kartlar |
+| `nur.tekin@atlastrafo.example.com` | Nur Tekin (4004) | yonetici | Her şey (yalnızca okur) |
+| `tuba.erkoc@atlastrafo.example.com` | Tuba Erkoç (6602) | isg | Çalışan listesi, departmanlar, İSG belgeleri, bölge yetkileri, İSG / bölge uyarıları |
+| `alper.cinar@atlastrafo.example.com` | Alper Çınar (6802) | admin | Kullanıcılar, çalışan listesi, ayarlar, okuyucular, gece işi durumu; çalışan kayıtlarını (gün kaydı, izin, puantaj) görmez |
 
-Yeni departmanların amirleri (`baris.yalcin@atlastrafo.test`, `aylin.kaplan@atlastrafo.test` … `riza.kalkan@atlastrafo.test`) de `kullanici` tablosunda tanımlıdır; sorular onlara gider. Demo için Auth hesabı açmak zorunlu değildir.
+Yeni departmanların amirleri (`baris.yalcin@atlastrafo.example.com`, `aylin.kaplan@atlastrafo.example.com` … `riza.kalkan@atlastrafo.example.com`) de `kullanici` tablosunda tanımlıdır; sorular onlara gider. Demo için Auth hesabı açmak zorunlu değildir.
 
 ## İSG
 
