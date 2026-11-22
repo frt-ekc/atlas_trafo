@@ -2,7 +2,7 @@
 // Hem sunucuda hem tarayıcıda kullanılır; bu yüzden burada sunucuya özel bir şey yoktur.
 export type IslemSonucu =
   | { durum: "bos" } // henüz gönderilmedi
-  | { durum: "tamam"; mesaj: string }
+  | { durum: "tamam"; mesaj: string; uyari?: boolean } // uyari: işlem oldu ama dikkat edilecek bir şey var
   | { durum: "hata"; mesaj: string };
 
 export const BOS_SONUC: IslemSonucu = { durum: "bos" };

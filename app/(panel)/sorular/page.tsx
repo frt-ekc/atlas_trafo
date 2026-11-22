@@ -31,7 +31,8 @@ type Soru = {
   cevap_cikis: string | null;
   cevap_aciklama: string | null;
   cevap_zamani: string | null;
-  atanan: { ad_soyad: string } | null;
+  atanan: { ad_soyad: string; rol: string } | null;
+  eskale: { ad_soyad: string; rol: string } | null;
   cevaplayan: { ad_soyad: string } | null;
   gun: {
     is_gunu: string;
@@ -45,11 +46,19 @@ type Soru = {
 
 const SUZGECLER = {
   bekleyen: { ad: "Cevap bekleyenler", durumlar: ["acik", "eskale"] },
-  ik: { ad: "İK kararı bekleyenler", durumlar: ["ik_karari_bekliyor"] },
+  // Açık / eskale sorulardan İK'da duranlar aşağıda ayrıca süzülür (ikteBekliyor)
+  ik: { ad: "İK kararı bekleyenler", durumlar: ["ik_karari_bekliyor", "acik", "eskale"] },
   kapanan: { ad: "Cevaplanan ve kapananlar", durumlar: ["cevaplandi", "kapandi"] },
   tumu: { ad: "Tümü", durumlar: null },
 } as const;
 type Suzgec = keyof typeof SUZGECLER;
+
+// İK'nın karar vereceği soru (soru_ik_karari): amirin "gelmedi / bilmiyorum" dediği soru ya da
+// İK'ya eskale edilmiş / doğrudan İK'ya atanmış açık soru (ör. üst amiri olmayan amirin kendi günü).
+function ikteBekliyor(s: Soru) {
+  if (s.durum === "ik_karari_bekliyor") return true;
+  return (s.durum === "acik" || s.durum === "eskale") && (s.eskale ?? s.atanan)?.rol === "ik";
+}
 
 // Gece işi kanıt bulamadığı kayıtlar için amire sabah soru açar.
 // Amir yalnızca kendisine atanan (ya da kendisine eskale edilen) soruları görür (RLS).
@@ -61,13 +70,13 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
   const durumlar = SUZGECLER[suzgec].durumlar;
 
   const supabase = await sunucuIstemcisi();
-  const sorular = await tumSatirlar<Soru>((bas, son) => {
+  const tumSorular = await tumSatirlar<Soru>((bas, son) => {
     let q = supabase
       .from("amir_sorusu")
       .select(
         "id, soru_turu, aciklama, onerilen_zaman, durum, olusturma_zamani, son_cevap_tarihi, " +
           "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, " +
-          "atanan:kullanici!atanan_id(ad_soyad), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
+          "atanan:kullanici!atanan_id(ad_soyad, rol), eskale:kullanici!eskale_edilen_id(ad_soyad, rol), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
           "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))",
       )
       .order("son_cevap_tarihi")
@@ -76,6 +85,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
     if (durumlar) q = q.in("durum", [...durumlar]);
     return q;
   });
+  const sorular = suzgec === "ik" ? tumSorular.filter(ikteBekliyor) : tumSorular;
 
   const bugunTarih = bugun();
   const amir = kullanici.rol === "amir";
@@ -159,7 +169,12 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                     <TableCell>
                       <Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>
                     </TableCell>
-                    {!amir && <TableCell className="text-muted-foreground">{s.atanan?.ad_soyad ?? "—"}</TableCell>}
+                    {!amir && (
+                      <TableCell className="text-muted-foreground">
+                        {s.atanan?.ad_soyad ?? "—"}
+                        {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
+                      </TableCell>
+                    )}
                     {amir && (
                       <TableCell className="text-right">
                         {(s.durum === "acik" || s.durum === "eskale") && <CevaplaPenceresi soru={s} />}
@@ -167,7 +182,8 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                     )}
                     {ik && (
                       <TableCell className="text-right">
-                        {s.durum === "ik_karari_bekliyor" && <IkKararPenceresi soru={s} />}
+                        {/* Görevler ayrılığı: İK kendi günündeki soruya karar veremez; soru diğer İK'ya düşer */}
+                        {ikteBekliyor(s) && c?.id !== kullanici.calisanId && <IkKararPenceresi soru={s} />}
                       </TableCell>
                     )}
                   </TableRow>
@@ -225,8 +241,22 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
       baslik={`${kisi} · ${g ? tarih(g.is_gunu) : ""}`}
       aciklama={
         <>
-          {SORU_TURU[soru.soru_turu] ?? soru.soru_turu}. Amirin cevabı: {soru.cevap ? (SORU_CEVABI[soru.cevap] ?? soru.cevap) : "—"}
-          {soru.cevap_aciklama && ` (${soru.cevap_aciklama})`}.
+          {SORU_TURU[soru.soru_turu] ?? soru.soru_turu}.{" "}
+          {soru.cevap ? (
+            <>
+              Amirin cevabı: {SORU_CEVABI[soru.cevap] ?? soru.cevap}
+              {soru.cevap_aciklama && ` (${soru.cevap_aciklama})`}.
+            </>
+          ) : (
+            <>
+              {soru.aciklama}{" "}
+              {soru.durum === "eskale"
+                ? "Amir süresinde cevaplamadı; üst amiri olmadığı için soru İK'ya eskale edildi."
+                : "Cevaplayacak amir olmadığı için soru doğrudan İK'ya atandı."}
+              {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
+            </>
+          )}
+          {g && ` Plan: ${saat(g.planli_baslangic)}–${saat(g.planli_bitis)}.`}
         </>
       }
       onay="Kararı kaydet"
@@ -234,8 +264,8 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <IkKararAlanlari
-        girisVarsayilan={yerelZamanGirdisi(g?.giris_zamani ? null : g?.planli_baslangic)}
-        cikisVarsayilan={yerelZamanGirdisi(g?.cikis_zamani ? null : g?.planli_bitis)}
+        girisVarsayilan={yerelZamanGirdisi(g?.giris_zamani ? null : ((soru.soru_turu !== "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_baslangic))}
+        cikisVarsayilan={yerelZamanGirdisi(g?.cikis_zamani ? null : ((soru.soru_turu === "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_bitis))}
       />
     </IslemPenceresi>
   );

@@ -34,7 +34,10 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
   revalidatePath("/calisanlar", "layout");
   revalidatePath("/puantaj");
   revalidatePath("/");
-  return { durum: "tamam", mesaj: `Düzeltme kaydedildi (no ${sonuc.veri}).` };
+  return {
+    durum: "tamam",
+    mesaj: `Düzeltme kaydedildi (no ${sonuc.veri}), gün yeniden hesaplandı. Ay kilitliyse fark satırı olarak sonraki aya geçer.`,
+  };
 }
 
 // Çalışan itirazını sözlü ya da yazılı olarak amire veya İK'ya iletir; onlar sisteme girer.

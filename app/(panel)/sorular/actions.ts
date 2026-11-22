@@ -33,11 +33,12 @@ export async function soruCevapla(_onceki: IslemSonucu, form: FormData): Promise
   revalidatePath("/");
   return {
     durum: "tamam",
-    mesaj: cevap === "gelmedi" || cevap === "bilmiyorum" ? "Cevap kaydedildi. Karar İK'ya geçti." : "Cevap kaydedildi, gün kaydı düzeltildi.",
+    mesaj: cevap === "gelmedi" || cevap === "bilmiyorum" ? "Cevap kaydedildi. Karar İK'ya geçti." : "Cevap kaydedildi; gün kaydı düzeltildi ve hesaplandı.",
   };
 }
 
-// İK, amirin "gelmedi / bilmiyorum" dediği soruyu kapatır: devamsız sayar ya da saati yazar.
+// İK, amirin "gelmedi / bilmiyorum" dediği ya da İK'ya düşen (eskale / İK'ya atanmış) soruyu kapatır:
+// devamsız sayar ya da saati yazar. Gün hemen hesaplanır.
 export async function soruIkKarari(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const soruId = sayiAl(form, "soru_id");
   const karar = metinAl(form, "karar");
@@ -62,5 +63,5 @@ export async function soruIkKarari(_onceki: IslemSonucu, form: FormData): Promis
 
   revalidatePath("/sorular");
   revalidatePath("/");
-  return { durum: "tamam", mesaj: devamsiz ? "Gün devamsız olarak işaretlendi." : "Saat yazıldı, soru kapandı." };
+  return { durum: "tamam", mesaj: devamsiz ? "Gün devamsız olarak işaretlendi." : "Saat yazıldı, gün hesaplandı; soru kapandı." };
 }

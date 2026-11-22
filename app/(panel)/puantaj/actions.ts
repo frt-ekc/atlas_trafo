@@ -29,5 +29,11 @@ export async function ayKilitle(_onceki: IslemSonucu, form: FormData): Promise<I
   // Veritabanının kilit özeti gösterilir: zorla geçilenler ve puantaja kodsuz giren gün sayısı.
   // Kilit geri açılamadığı için İK bunu tam bu anda görmeli.
   const ozet = sonuc.veri?.mesaj ?? "Ay kilitlendi.";
-  return { durum: "tamam", mesaj: `${ozet} Puantaj yazıldı; Excel ve ERP dosyaları artık kesin.` };
+  // Puantaja hiçbir kodla girmeyen gün varsa (zorla kilitlenen açık sorulu gün) uyarı olarak gösterilir.
+  const kodsuz = (sonuc.veri?.kodsuz_gun ?? 0) > 0;
+  return {
+    durum: "tamam",
+    mesaj: `${ozet} Puantaj yazıldı; Excel ve ERP dosyaları artık kesin.${kodsuz ? " Kodsuz günler bordroda elle kontrol edilmeli." : ""}`,
+    uyari: kodsuz || Boolean(sonuc.veri?.zorla),
+  };
 }
