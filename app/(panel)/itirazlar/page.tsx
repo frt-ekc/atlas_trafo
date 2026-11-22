@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BosDurum } from "@/components/panel/bos-durum";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
-import { SuzgecFormu } from "@/components/panel/suzgec-formu";
+import { aralikta, aramaSuzgeci, tarihParametresi } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumIslem } from "@/components/liste/durum-islem";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { IslemMenusu } from "@/components/liste/islem-menusu";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { Zaman } from "@/components/liste/zaman";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
-import { tarih, tarihSaat } from "@/lib/bicim";
+import { tarih } from "@/lib/bicim";
 import { ITIRAZ_DURUMU } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
@@ -37,9 +42,14 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
   const parametre = await searchParams;
   const tumu = tekDeger(parametre.goster) === "tumu";
   const ik = kullanici.rol === "ik";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const basGun = tarihParametresi(tekDeger(parametre.bas));
+  const bitGun = tarihParametresi(tekDeger(parametre.bit));
+  const uyar = aramaSuzgeci(araMetni);
+  const suzgecVar = tumu || Boolean(araMetni || basGun || bitGun);
 
   const supabase = await sunucuIstemcisi();
-  const itirazlar = await tumSatirlar<Itiraz>((bas, son) => {
+  const tumItirazlar = await tumSatirlar<Itiraz>((bas, son) => {
     let q = supabase
       .from("itiraz")
       .select(
@@ -52,6 +62,10 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
     if (!tumu) q = q.in("durum", ["acik", "inceleniyor"]);
     return q;
   });
+  // Gün aralığı ve ad / sicil araması ekranda süzülür
+  const itirazlar = tumItirazlar.filter(
+    (i) => aralikta(i.gun?.is_gunu, basGun, bitGun) && uyar(i.calisan?.ad, i.calisan?.soyad, i.calisan?.sicil_no),
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -64,73 +78,93 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
         </p>
       </div>
 
-      <SuzgecFormu className="flex items-end gap-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="goster" className="text-sm font-medium">Göster</label>
+      <FiltreCubugu temizleAdres="/itirazlar" suzgecVar={suzgecVar}>
+        <FiltreAlani etiket="Durum" htmlFor="goster">
           <Secim id="goster" name="goster" defaultValue={tumu ? "tumu" : ""}>
             <option value="">Açık olanlar</option>
             <option value="tumu">Tümü</option>
           </Secim>
+        </FiltreAlani>
+        <div className="flex gap-3">
+          <FiltreAlani etiket="Gün, başlangıç" htmlFor="bas">
+            <Input id="bas" name="bas" type="date" defaultValue={basGun} className="w-40" />
+          </FiltreAlani>
+          <FiltreAlani etiket="Bitiş" htmlFor="bit">
+            <Input id="bit" name="bit" type="date" defaultValue={bitGun} className="w-40" />
+          </FiltreAlani>
         </div>
-        <Button type="submit" size="sm">Göster</Button>
-      </SuzgecFormu>
+        <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+        </FiltreAlani>
+      </FiltreCubugu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{itirazlar.length} itiraz</p>
 
       {itirazlar.length === 0 ? (
-        <BosDurum>{tumu ? "Hiç itiraz yok." : "Açık itiraz yok."}</BosDurum>
+        <BosDurum
+          aciklama={
+            araMetni || basGun || bitGun
+              ? "Süzgeçlere uyan itiraz yok. Süzgeçleri temizleyip yeniden deneyin."
+              : tumu
+                ? "Henüz itiraz girilmedi."
+                : "Açık itiraz yok."
+          }
+        />
       ) : (
-        <div className="rounded-lg border">
+        <TabloKutusu>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Giriş</TableHead>
-                <TableHead>Çalışan</TableHead>
                 <TableHead>Gün</TableHead>
-                <TableHead>İtiraz</TableHead>
+                <TableHead>Çalışan</TableHead>
+                <TableHead className="w-full">İtiraz</TableHead>
                 <TableHead>Durum</TableHead>
-                {ik && <TableHead><span className="sr-only">İşlem</span></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {itirazlar.map((i) => (
                 <TableRow key={i.id}>
-                  <TableCell className="tarih-hucre">{tarihSaat(i.olusturma_zamani)}</TableCell>
+                  {/* Olayın günü öne; itirazın sisteme girildiği an metnin altında "Kayıt" olarak */}
+                  <TableCell className="tarih-hucre">{i.gun ? tarih(i.gun.is_gunu) : "—"}</TableCell>
                   <TableCell>
                     {i.calisan ? (
                       <Link
                         href={`/calisanlar/${i.calisan.id}${i.gun ? `?ay=${i.gun.is_gunu.slice(0, 7)}` : ""}`}
                         className="underline-offset-4 hover:underline"
                       >
-                        {i.calisan.ad} {i.calisan.soyad} <span className="font-mono text-xs text-muted-foreground">({i.calisan.sicil_no})</span>
+                        {i.calisan.ad} {i.calisan.soyad}
+                        <span className="block font-mono text-xs text-muted-foreground">{i.calisan.sicil_no}</span>
                       </Link>
                     ) : "—"}
                   </TableCell>
-                  <TableCell className="tabular-nums">{i.gun ? tarih(i.gun.is_gunu) : "—"}</TableCell>
-                  <TableCell className="min-w-80 max-w-[32rem] whitespace-normal">
+                  <TableCell className="min-w-72 whitespace-normal">
                     {i.metin}
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      <Zaman deger={i.olusturma_zamani} etiket="Kayıt" />
+                    </div>
                     {i.karar_zamani && (
                       <div className="mt-1 text-sm text-muted-foreground">
-                        Karar: {i.karar_aciklama ?? "—"} · {i.karar_veren?.ad_soyad ?? "—"}, {tarihSaat(i.karar_zamani)}
+                        Karar: {i.karar_aciklama ?? "—"} · {i.karar_veren?.ad_soyad ?? "—"}, <Zaman deger={i.karar_zamani} />
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ITIRAZ_DURUMU[i.durum]?.tur ?? "outline"}>{ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}</Badge>
+                    <DurumIslem
+                      durum={<Badge variant={ITIRAZ_DURUMU[i.durum]?.tur ?? "outline"}>{ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}</Badge>}
+                    >
+                      {ik && (i.durum === "acik" || i.durum === "inceleniyor") && <KararPenceresi itiraz={i} />}
+                      {ik && i.durum === "acik" && (
+                        <IslemMenusu>
+                          <HizliIslem dugme="İncelemeye al" dugmeTuru="ghost" islem={itirazIncelemeyeAl} gizli={{ itiraz_id: i.id }} />
+                        </IslemMenusu>
+                      )}
+                    </DurumIslem>
                   </TableCell>
-                  {ik && (
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        {i.durum === "acik" && <HizliIslem dugme="İncelemeye al" islem={itirazIncelemeyeAl} gizli={{ itiraz_id: i.id }} />}
-                        {(i.durum === "acik" || i.durum === "inceleniyor") && <KararPenceresi itiraz={i} />}
-                      </div>
-                    </TableCell>
-                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TabloKutusu>
       )}
 
       {kullanici.rol !== "yonetici" && (

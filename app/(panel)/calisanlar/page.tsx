@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
-import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { aramaTemizle, tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
 import { bolumNumarasi, gorunurBolumler } from "@/lib/bolumler";
@@ -107,47 +108,40 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
         )}
       </div>
 
-      <SuzgecFormu className="flex flex-wrap items-end gap-3">
-        <div className="flex min-w-48 flex-1 flex-col gap-1.5 sm:max-w-xs">
-          <label htmlFor="ara" className="text-sm font-medium">Ara</label>
-          <Input id="ara" name="ara" defaultValue={araMetni} placeholder="Sicil, ad ya da soyad" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="departman" className="text-sm font-medium">Bölüm</label>
-          <Secim id="departman" name="departman" defaultValue={departmanId ?? ""}>
+      <FiltreCubugu temizleAdres="/calisanlar" suzgecVar={suzgecVar}>
+        <FiltreAlani etiket="Ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Sicil, ad ya da soyad" />
+        </FiltreAlani>
+        <FiltreAlani etiket="Bölüm" htmlFor="departman">
+          <Secim id="departman" name="departman" defaultValue={departmanId ?? ""} className="max-w-72">
             <option value="">Tümü</option>
             {departmanlar.map((d) => (
               <option key={d.id} value={d.id}>{d.ad}</option>
             ))}
           </Secim>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="durum" className="text-sm font-medium">Durum</label>
+        </FiltreAlani>
+        <FiltreAlani etiket="Durum" htmlFor="durum">
           <Secim id="durum" name="durum" defaultValue={tumu ? "tumu" : ""}>
             <option value="">Çalışanlar</option>
             <option value="tumu">Ayrılanlar dahil</option>
           </Secim>
-        </div>
-        <Button type="submit">Süz</Button>
-        {suzgecVar && (
-          <Link href="/calisanlar" className={buttonVariants({ variant: "ghost" })}>Temizle</Link>
-        )}
-      </SuzgecFormu>
+        </FiltreAlani>
+      </FiltreCubugu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{calisanlar.length} kişi</p>
 
       {calisanlar.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {suzgecVar ? "Süzgece uyan çalışan yok." : "Görebileceğiniz çalışan kaydı yok."}
-        </div>
+        <BosDurum
+          aciklama={suzgecVar ? "Süzgeçlere uyan çalışan yok. Süzgeçleri temizleyip yeniden deneyin." : "Görebileceğiniz çalışan kaydı yok."}
+        />
       ) : (
-        <div className="rounded-lg border">
+        <TabloKutusu>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-24">Sicil</TableHead>
                 <TableHead>Ad soyad</TableHead>
-                <TableHead>Bölüm</TableHead>
+                <TableHead className="w-full">Bölüm</TableHead>
                 <TableHead>İşe giriş</TableHead>
                 <TableHead>Durum</TableHead>
               </TableRow>
@@ -163,13 +157,14 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                       <Link href={`/calisanlar/${c.id}`} className="underline-offset-4 hover:underline">{c.ad} {c.soyad}</Link>
                     )}
                   </TableCell>
-                  <TableCell>{c.departman?.ad ?? "—"}</TableCell>
+                  <TableCell className="whitespace-normal">{c.departman?.ad ?? "—"}</TableCell>
                   <TableCell className="tarih-hucre">{tarih(c.ise_giris_tarihi)}</TableCell>
                   <TableCell>
                     {c.aktif && c.ise_giris_tarihi > bugunTarih ? (
                       <Badge variant="default">Başlayacak · {tarih(c.ise_giris_tarihi)}</Badge>
                     ) : c.aktif ? (
-                      <Badge variant="secondary">Çalışıyor</Badge>
+                      // Olağan durum rozetsiz yazılır; rozet yalnızca istisnalarda (başlayacak, ayrıldı) görünür
+                      <span className="text-sm text-muted-foreground">Çalışıyor</span>
                     ) : (
                       <Badge variant="outline">Ayrıldı{c.isten_cikis_tarihi ? ` · ${tarih(c.isten_cikis_tarihi)}` : ""}</Badge>
                     )}
@@ -178,7 +173,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TabloKutusu>
       )}
     </div>
   );

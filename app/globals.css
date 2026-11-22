@@ -197,23 +197,20 @@
 }
 
 /* Orta genişlikte (tablet, dar pencere) tablo yana kayar; son sütunda işlem düğmesi varsa
-   o sütun sağda sabit kalır, düğmeler ekran dışında kalmaz. Telefonda yer dar olduğu için uygulanmaz. */
+   o sütun sağda sabit kalır, düğmeler ekran dışında kalmaz. 1280px ve üstünde tablo sığdığı için,
+   telefonda da yer dar olduğu için sabitlenmez.
+   Sabit hücre satırla aynı zemindedir (tablolar TabloKutusu ile kart zemininde durur); yalnızca
+   ince bir sol çizgi alttan kayan yazıyla sınır çizer. Hücre saydam olamaz, yoksa alttaki yazı görünür. */
 @media (min-width: 768px) and (max-width: 1279px) {
   [data-slot="table"]:has(tbody td:last-child button) :is(th, td):last-child {
     position: sticky;
     right: -1px; /* 0 olunca yuvarlama farkıyla sağ kenardan alttaki yazı sızıyor */
     background: var(--card);
     box-shadow: inset 1px 0 0 var(--border);
-    padding-left: 0.75rem;
   }
-}
-/* Güvenliğin kart tablosu: tek işlem düğmesi (Ver / İade al) telefonda da görünür kalır */
-@media (max-width: 767px) {
-  .islem-sabit :is(th, td):last-child {
-    position: sticky;
-    right: -1px; /* 0 olunca yuvarlama farkıyla sağ kenardan alttaki yazı sızıyor */
-    background: var(--card);
-    box-shadow: inset 1px 0 0 var(--border);
+  /* Satırın üzerine gelince sabit hücre de satırla birlikte renk alır */
+  [data-slot="table"]:has(tbody td:last-child button) tbody tr:hover > td:last-child {
+    background: color-mix(in oklab, var(--muted) 50%, var(--card));
   }
 }
 

@@ -4,7 +4,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { aramaSuzgeci } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { Zaman } from "@/components/liste/zaman";
+import { tekDeger } from "@/lib/arama";
 import { sure, tarihSaat } from "@/lib/bicim";
+import { cn } from "@/lib/utils";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -38,8 +45,10 @@ const ZIMMET_ALANLARI =
   "calisan:calisan_id(sicil_no, ad, soyad), " +
   "veren:kullanici!veren_id(ad_soyad), iade_alan:kullanici!iade_alan_id(ad_soyad)";
 
-export default async function GeciciKartlarSayfasi() {
+export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"/gecici-kartlar">) {
   const kullanici = await rolGerekli(["guvenlik", "ik", "yonetici"]);
+  const araMetni = tekDeger((await searchParams).ara).slice(0, 100);
+  const uyar = aramaSuzgeci(araMetni);
   // Kart verip iade alabilenler: güvenlik ve İK (veritabanı da aynısını denetler). Yönetici yalnızca okur.
   const yazabilir = kullanici.rol === "guvenlik" || kullanici.rol === "ik";
   const supabase = await sunucuIstemcisi();
@@ -81,9 +90,13 @@ export default async function GeciciKartlarSayfasi() {
 
   const bostaSayisi = kartlar.filter((k) => k.durum === "aktif" && !kimde.has(k.id)).length;
   const gecikenSayisi = acikZimmetler.filter(gecikti).length;
+  // Hareketlerde ad / sicil / kart numarası araması ekranda yapılır
+  const gosterilenHareketler = sonHareketler.filter((z) =>
+    uyar(z.calisan?.ad, z.calisan?.soyad, z.calisan?.sicil_no, kartNo.get(z.gecici_kart_id)),
+  );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Geçici kartlar</h1>
         <p className="text-sm text-muted-foreground">
@@ -95,45 +108,51 @@ export default async function GeciciKartlarSayfasi() {
       <section className="flex flex-col gap-3" aria-labelledby="kartlar-baslik">
         <h2 id="kartlar-baslik" className="text-lg font-semibold">Kartlar</h2>
         {kartlar.length === 0 ? (
-          <BosDurum>Kayıtlı geçici kart yok.</BosDurum>
+          <BosDurum aciklama="Kayıtlı geçici kart yok." />
         ) : (
-          <div className="rounded-lg border">
-            <Table className="islem-sabit">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-20">Kart</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Kimde</TableHead>
-                  <TableHead>Veriliş</TableHead>
-                  <TableHead>Süre</TableHead>
-                  {yazabilir && <TableHead className="w-20"><span className="sr-only">İşlem</span></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {kartlar.map((k) => {
-                  const z = kimde.get(k.id);
-                  return (
-                    <TableRow key={k.id}>
-                      <TableCell className="font-mono font-medium">{k.kart_no}</TableCell>
-                      <TableCell><KartDurumu durum={k.durum} zimmetli={Boolean(z)} gecikti={z ? gecikti(z) : false} /></TableCell>
-                      <TableCell>{z ? <KisiAdi kisi={z.calisan} /> : "—"}</TableCell>
-                      <TableCell className="tabular-nums">{z ? tarihSaat(z.verilis_zamani) : "—"}</TableCell>
-                      <TableCell className="tabular-nums">{z ? sure(z.verilis_zamani, null, simdi) : "—"}</TableCell>
-                      {yazabilir && (
-                        <TableCell className="text-right">
-                          {z ? (
-                            <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} />
-                          ) : k.durum === "aktif" ? (
-                            <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />
-                          ) : null}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+          // Kart başına küçük bir kutu: boşta ise "Ver", zimmetliyse kişi ve süreyle "İade al"
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {kartlar.map((k) => {
+              const z = kimde.get(k.id);
+              const gec = z ? gecikti(z) : false;
+              return (
+                <li
+                  key={k.id}
+                  className={cn(
+                    "flex flex-col gap-3 rounded-xl border bg-card p-4",
+                    gec && "border-l-4 border-l-kotu",
+                    (k.durum === "kayip" || k.durum === "iptal") && "bg-card/50 text-muted-foreground",
+                  )}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-mono text-base font-semibold whitespace-nowrap">{k.kart_no}</span>
+                    <KartDurumu durum={k.durum} zimmetli={Boolean(z)} gecikti={gec} />
+                  </div>
+                  {z ? (
+                    <dl className="flex flex-1 flex-col gap-1 text-sm">
+                      <dt className="sr-only">Kimde</dt>
+                      <dd><KisiAdi kisi={z.calisan} /></dd>
+                      <dt className="sr-only">Veriliş</dt>
+                      <dd className="text-xs text-muted-foreground"><Zaman deger={z.verilis_zamani} etiket="Veriliş" /></dd>
+                      <dt className="sr-only">Süre</dt>
+                      <dd className={cn("text-xs tabular-nums", gec ? "font-medium text-kotu" : "text-muted-foreground")}>
+                        Süre: {sure(z.verilis_zamani, null, simdi)}
+                      </dd>
+                    </dl>
+                  ) : (
+                    <p className="flex-1 text-sm text-muted-foreground">
+                      {k.durum === "aktif" ? "Boşta, verilebilir." : "Kullanılamaz."}
+                    </p>
+                  )}
+                  {yazabilir && (z ? (
+                    <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} />
+                  ) : k.durum === "aktif" ? (
+                    <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />
+                  ) : null)}
+                </li>
+              );
+            })}
+          </ul>
         )}
         {yazabilir && (
           <CalisanListesi id="calisan-listesi" calisanlar={calisanlar} />
@@ -145,28 +164,33 @@ export default async function GeciciKartlarSayfasi() {
           <h2 id="hareket-baslik" className="text-lg font-semibold">Son zimmet hareketleri</h2>
           <p className="text-sm text-muted-foreground">En yeni {SON_HAREKET_SAYISI} kayıt. Zimmet kayıtları silinemez.</p>
         </div>
-        {sonHareketler.length === 0 ? (
-          <BosDurum>Henüz zimmet kaydı yok.</BosDurum>
+        <FiltreCubugu temizleAdres="/gecici-kartlar" suzgecVar={Boolean(araMetni)}>
+          <FiltreAlani etiket="Çalışan ya da kart ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+            <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil ya da GK-01" />
+          </FiltreAlani>
+        </FiltreCubugu>
+        {gosterilenHareketler.length === 0 ? (
+          <BosDurum aciklama={sonHareketler.length === 0 ? "Henüz zimmet kaydı yok." : "Aramaya uyan zimmet kaydı yok."} />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">Kart</TableHead>
-                  <TableHead>Çalışan</TableHead>
                   <TableHead>Veriliş</TableHead>
+                  <TableHead>Kart</TableHead>
+                  <TableHead>Çalışan</TableHead>
                   <TableHead>İade</TableHead>
                   <TableHead>Süre</TableHead>
                   <TableHead>Veren / İade alan</TableHead>
-                  <TableHead>Açıklama</TableHead>
+                  <TableHead className="w-full">Açıklama</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sonHareketler.map((z) => (
+                {gosterilenHareketler.map((z) => (
                   <TableRow key={z.id}>
+                    <TableCell className="tarih-hucre">{tarihSaat(z.verilis_zamani)}</TableCell>
                     <TableCell className="font-mono">{kartNo.get(z.gecici_kart_id) ?? "—"}</TableCell>
                     <TableCell><KisiAdi kisi={z.calisan} /></TableCell>
-                    <TableCell className="tarih-hucre">{tarihSaat(z.verilis_zamani)}</TableCell>
                     <TableCell className="tabular-nums">
                       {z.iade_zamani ? (
                         tarihSaat(z.iade_zamani)
@@ -180,14 +204,12 @@ export default async function GeciciKartlarSayfasi() {
                     <TableCell className="min-w-36 whitespace-normal text-muted-foreground">
                       {z.veren?.ad_soyad ?? "—"} / {z.iade_zamani ? (z.iade_alan?.ad_soyad ?? "—") : "—"}
                     </TableCell>
-                    <TableCell className="max-w-52 truncate text-muted-foreground" title={z.aciklama ?? undefined}>
-                      {z.aciklama ?? "—"}
-                    </TableCell>
+                    <TableCell className="min-w-48 whitespace-normal text-muted-foreground">{z.aciklama ?? "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
     </div>
@@ -198,6 +220,7 @@ function KartVerPenceresi({ kartId, kartNo }: { kartId: number; kartNo: string }
   return (
     <IslemPenceresi
       dugme="Ver"
+      dugmeTuru="default"
       baslik={`${kartNo} kartını ver`}
       aciklama="Kartını unutan çalışana geçici kart zimmetlenir. Kart gün sonunda iade alınmalıdır."
       onay="Kartı ver"
@@ -240,11 +263,7 @@ function KisiAdi({ kisi }: { kisi: Kisi }) {
   if (!kisi) return <span className="text-muted-foreground">—</span>;
   return (
     <span>
-      {kisi.ad} {kisi.soyad} <span className="font-mono text-xs text-muted-foreground">({kisi.sicil_no})</span>
+      {kisi.ad} {kisi.soyad} <span className="font-mono text-xs text-muted-foreground">{kisi.sicil_no}</span>
     </span>
   );
-}
-
-function BosDurum({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">{children}</div>;
 }

@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
 import { HizliIslem } from "@/components/panel/hizli-islem";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
+import { IslemMenusu } from "@/components/liste/islem-menusu";
+import { ListeKarti } from "@/components/liste/liste-karti";
+import { Zaman } from "@/components/liste/zaman";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
@@ -16,7 +20,7 @@ import { bugun, gecerliTarihMi, gunEkle, haftaBasi, haftaBasligi, haftaninGunler
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { tarih, tarihSaat } from "@/lib/bicim";
+import { tarih } from "@/lib/bicim";
 import { cn } from "@/lib/utils";
 import { vardiyaPlaniGir, vardiyaPlaniOnayla } from "./actions";
 
@@ -243,32 +247,56 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
       )}
 
       {bekleyenPlanlar.length > 0 && (
-        <section aria-labelledby="onay-baslik" className="flex flex-col gap-3 rounded-lg border p-4">
+        <section aria-labelledby="onay-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 id="onay-baslik" className="text-lg font-semibold">Onay bekleyen geriye dönük değişiklikler</h2>
+            <h2 id="onay-baslik" className="flex items-center gap-2 text-lg font-semibold">
+              Onay bekleyen geriye dönük değişiklikler
+              <DurumRozeti ton="dikkat">{bekleyenPlanlar.length}</DurumRozeti>
+            </h2>
             <p className="text-sm text-muted-foreground">
               Geçmiş güne girilen plan, onaylanana kadar puantajı değiştirmez. Planı giren kişi onaylayamaz.
             </p>
           </div>
-          <ul className="flex flex-col divide-y">
-            {bekleyenPlanlar.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-2">
-                <div className="text-sm">
-                  <span className="font-medium">{p.calisan ? `${p.calisan.ad} ${p.calisan.soyad}` : "—"}</span>
-                  {p.calisan && <span className="font-mono text-xs text-muted-foreground"> ({p.calisan.sicil_no})</span>}
-                  {" · "}<span className="tabular-nums">{tarih(p.tarih)}</span> → {p.vardiya?.ad ?? "—"}
-                  <div className="text-xs text-muted-foreground">
-                    {p.giren?.ad_soyad ?? "—"}, {tarihSaat(p.giris_zamani)}
-                    {p.aciklama && ` · ${p.aciklama}`}
-                  </div>
-                </div>
-                <div className="flex gap-2">
+          {bekleyenPlanlar.map((p) => (
+            <ListeKarti
+              key={p.id}
+              vurgu="karar"
+              baslik={
+                <>
+                  <span className="tabular-nums">{tarih(p.tarih)}</span> → {p.vardiya?.ad ?? "—"}
+                </>
+              }
+              kisi={
+                p.calisan ? (
+                  <span className="font-medium">
+                    {p.calisan.ad} {p.calisan.soyad}
+                    <span className="ml-1.5 font-mono text-xs text-muted-foreground">{p.calisan.sicil_no}</span>
+                  </span>
+                ) : undefined
+              }
+              zaman={<Zaman deger={p.giris_zamani} etiket="Kayıt" />}
+              eylemler={
+                <>
                   <HizliIslem dugme="Onayla" dugmeTuru="default" islem={vardiyaPlaniOnayla} gizli={{ plan_id: p.id, karar: "onay" }} />
-                  <HizliIslem dugme="Reddet" islem={vardiyaPlaniOnayla} gizli={{ plan_id: p.id, karar: "ret" }} />
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <IslemMenusu>
+                    {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
+                    <IslemPenceresi
+                      dugme="Reddet"
+                      baslik="Planı reddet"
+                      aciklama="Plan reddedilecek; bu işlem geri alınamaz."
+                      onay="Reddet"
+                      onayTuru="destructive"
+                      islem={vardiyaPlaniOnayla}
+                      gizli={{ plan_id: p.id, karar: "ret" }}
+                    />
+                  </IslemMenusu>
+                </>
+              }
+            >
+              Giren: {p.giren?.ad_soyad ?? "—"}
+              {p.aciklama && ` · ${p.aciklama}`}
+            </ListeKarti>
+          ))}
         </section>
       )}
 

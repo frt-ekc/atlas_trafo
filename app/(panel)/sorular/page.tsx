@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BosDurum } from "@/components/panel/bos-durum";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
-import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
+import { aralikta, aramaSuzgeci, tarihParametresi } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumIslem } from "@/components/liste/durum-islem";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
 import { saat, tarih, tarihSaat, yerelZamanGirdisi } from "@/lib/bicim";
 import { SORU_CEVABI, SORU_DURUMU, SORU_TURU } from "@/lib/etiketler";
@@ -69,6 +72,12 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
   const istenen = tekDeger(parametre.durum);
   const suzgec: Suzgec = istenen in SUZGECLER ? (istenen as Suzgec) : kullanici.rol === "amir" ? "bekleyen" : "tumu";
   const durumlar = SUZGECLER[suzgec].durumlar;
+  const varsayilanSuzgec: Suzgec = kullanici.rol === "amir" ? "bekleyen" : "tumu";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const bas = tarihParametresi(tekDeger(parametre.bas));
+  const bit = tarihParametresi(tekDeger(parametre.bit));
+  const uyar = aramaSuzgeci(araMetni);
+  const suzgecVar = suzgec !== varsayilanSuzgec || Boolean(araMetni || bas || bit);
 
   const supabase = await sunucuIstemcisi();
   const tumSorular = await tumSatirlar<Soru>((bas, son) => {
@@ -86,7 +95,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
     if (durumlar) q = q.in("durum", [...durumlar]);
     return q;
   });
-  const sorular = suzgec === "ik" ? tumSorular.filter(ikteBekliyor) : tumSorular;
+  // Gün aralığı ve ad / sicil araması ekranda süzülür (gün ve çalışan, gün kaydının içinden gelir)
+  const sorular = (suzgec === "ik" ? tumSorular.filter(ikteBekliyor) : tumSorular).filter(
+    (s) => aralikta(s.gun?.is_gunu, bas, bit) && uyar(s.gun?.calisan?.ad, s.gun?.calisan?.soyad, s.gun?.calisan?.sicil_no),
+  );
 
   const bugunTarih = bugun();
   const amir = kullanici.rol === "amir";
@@ -102,35 +114,49 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         </p>
       </div>
 
-      <SuzgecFormu className="flex items-end gap-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="durum" className="text-sm font-medium">Göster</label>
+      <FiltreCubugu temizleAdres="/sorular" suzgecVar={suzgecVar}>
+        <FiltreAlani etiket="Durum" htmlFor="durum">
           <Secim id="durum" name="durum" defaultValue={suzgec}>
             {Object.entries(SUZGECLER).map(([k, v]) => <option key={k} value={k}>{v.ad}</option>)}
           </Secim>
+        </FiltreAlani>
+        <div className="flex gap-3">
+          <FiltreAlani etiket="Gün, başlangıç" htmlFor="bas">
+            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-40" />
+          </FiltreAlani>
+          <FiltreAlani etiket="Bitiş" htmlFor="bit">
+            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-40" />
+          </FiltreAlani>
         </div>
-        <Button type="submit" size="sm">Göster</Button>
-      </SuzgecFormu>
+        <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+        </FiltreAlani>
+      </FiltreCubugu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{sorular.length} soru</p>
 
       {sorular.length === 0 ? (
-        <BosDurum>
-          {suzgec === "bekleyen" ? "Cevap bekleyen soru yok." : "Bu süzgece uyan soru yok."} Sorular gece işi çalıştığında oluşur.
-        </BosDurum>
+        <BosDurum
+          aciklama={
+            suzgecVar
+              ? "Süzgeçlere uyan soru yok. Süzgeçleri temizleyip yeniden deneyin."
+              : suzgec === "bekleyen"
+                ? "Cevap bekleyen soru yok. Sorular gece işi çalıştığında oluşur."
+                : "Henüz soru yok. Sorular gece işi çalıştığında oluşur."
+          }
+        />
       ) : (
-        <div className="rounded-lg border">
+        <TabloKutusu>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Gün</TableHead>
                 <TableHead>Çalışan</TableHead>
-                <TableHead>Soru</TableHead>
-                <TableHead className="min-w-20 whitespace-normal">Kanıttaki saat</TableHead>
+                <TableHead className="w-full">Soru</TableHead>
+                <TableHead className="whitespace-normal">Kanıttaki saat</TableHead>
                 <TableHead>Son gün</TableHead>
-                <TableHead>Durum</TableHead>
                 {!amir && <TableHead>Atanan</TableHead>}
-                {(amir || ik) && <TableHead><span className="sr-only">İşlem</span></TableHead>}
+                <TableHead>Durum</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -150,7 +176,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                         <span className="text-muted-foreground">Görüntülenemiyor</span>
                       )}
                     </TableCell>
-                    <TableCell className="min-w-64 max-w-[28rem] whitespace-normal">
+                    <TableCell className="min-w-72 whitespace-normal">
                       <div className="font-medium">{SORU_TURU[s.soru_turu] ?? s.soru_turu}</div>
                       <div className="text-sm text-muted-foreground">{s.aciklama.replace(/^\d{2}\.\d{2}\.\d{4}:\s*/, "")}</div>
                       {s.cevap && (
@@ -167,32 +193,27 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                       {tarih(s.son_cevap_tarihi)}
                       {gecikti && <div className="text-xs text-destructive">Süresi geçti</div>}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>
-                    </TableCell>
                     {!amir && (
-                      <TableCell className="min-w-24 whitespace-normal text-muted-foreground">
+                      <TableCell className="min-w-28 whitespace-normal text-muted-foreground">
                         {s.atanan?.ad_soyad ?? "—"}
                         {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
                       </TableCell>
                     )}
-                    {amir && (
-                      <TableCell className="text-right">
-                        {(s.durum === "acik" || s.durum === "eskale") && <CevaplaPenceresi soru={s} />}
-                      </TableCell>
-                    )}
-                    {ik && (
-                      <TableCell className="text-right">
+                    <TableCell>
+                      <DurumIslem
+                        durum={<Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>}
+                      >
+                        {amir && (s.durum === "acik" || s.durum === "eskale") && <CevaplaPenceresi soru={s} />}
                         {/* Görevler ayrılığı: İK kendi günündeki soruya karar veremez; soru diğer İK'ya düşer */}
-                        {ikteBekliyor(s) && c?.id !== kullanici.calisanId && <IkKararPenceresi soru={s} />}
-                      </TableCell>
-                    )}
+                        {ik && ikteBekliyor(s) && c?.id !== kullanici.calisanId && <IkKararPenceresi soru={s} />}
+                      </DurumIslem>
+                    </TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
-        </div>
+        </TabloKutusu>
       )}
 
     </div>

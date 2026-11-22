@@ -1,16 +1,20 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BosDurum } from "@/components/panel/bos-durum";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
-import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
+import { CheckIcon } from "lucide-react";
+import { aramaSuzgeci } from "@/components/liste/arama";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { Zaman } from "@/components/liste/zaman";
 import { tekDeger } from "@/lib/arama";
-import { tarih, tarihSaat } from "@/lib/bicim";
+import { tarih } from "@/lib/bicim";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -41,6 +45,9 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
   const isg = kullanici.rol === "isg";
   const parametre = await searchParams;
   const goster = tekDeger(parametre.goster) === "tumu" ? "tumu" : "eksik";
+  const bolgeSekmesi = tekDeger(parametre.sekme) === "bolge";
+  const araMetni = tekDeger(parametre.ara).slice(0, 100);
+  const uyar = aramaSuzgeci(araMetni);
 
   const supabase = await sunucuIstemcisi();
   const [durumlar, calisanlar, departmanSonucu, bolgeSonucu, yetkiSonucu, gecmisSonucu, liste] = await Promise.all([
@@ -69,10 +76,12 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
   // Belge zorunluluğu mavi yakada (sahada çalışan); beyaz yaka da listelenir ama uyarı üretmez
   const mavi = durumlar.filter((d) => d.yaka === "mavi");
   const say = (durum: Durum) => mavi.filter((d) => d.durum === durum).length;
-  const gosterilen = goster === "tumu" ? durumlar : durumlar.filter((d) => d.yaka === "mavi" && d.durum !== "gecerli");
+  const eksikler = durumlar.filter((d) => d.yaka === "mavi" && d.durum !== "gecerli");
+  // Ad / sicil araması ekranda yapılır
+  const gosterilen = (goster === "tumu" ? durumlar : eksikler).filter((d) => uyar(adById.get(d.calisan_id), d.sicil_no));
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">İSG</h1>
         <p className="text-sm text-muted-foreground">
@@ -88,25 +97,23 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
         <OzetKarti baslik="Geçerli" deger={say("gecerli")} ton="iyi" />
       </OzetIzgarasi>
 
-      <section aria-labelledby="belge-baslik" className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <h2 id="belge-baslik" className="text-lg font-semibold">Belgeler</h2>
-            <p className="text-sm text-muted-foreground">{gosterilen.length} satır</p>
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <SuzgecFormu className="flex items-end gap-2">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="goster" className="text-sm font-medium">Göster</label>
-                <Secim id="goster" name="goster" defaultValue={goster}>
-                  <option value="eksik">Eksik / dolan (mavi yaka)</option>
-                  <option value="tumu">Tümü</option>
-                </Secim>
-              </div>
-              <Button type="submit" size="sm">Göster</Button>
-            </SuzgecFormu>
+      <Sekmeler
+        etiket="İSG bölümleri"
+        sekmeler={[
+          { ad: "Belgeler", adres: "/isg", sayi: eksikler.length || undefined, sayiAciklama: "eksik ya da dolan belge", aktif: !bolgeSekmesi },
+          { ad: "Bölge yetkileri", adres: "/isg?sekme=bolge", aktif: bolgeSekmesi },
+        ]}
+      />
+
+      {!bolgeSekmesi && (
+        <section aria-labelledby="belge-baslik" className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <h2 id="belge-baslik" className="text-lg font-semibold">Belgeler</h2>
+              <p className="text-sm text-muted-foreground">{gosterilen.length} satır</p>
+            </div>
             {isg && (
-              <>
+              <div>
                 <IslemPenceresi
                   dugme="Belge gir"
                   dugmeTuru="default"
@@ -135,109 +142,137 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   </div>
                 </IslemPenceresi>
                 <CalisanListesi id="isg-calisanlar" calisanlar={liste} />
-              </>
+              </div>
             )}
           </div>
-        </div>
-        {gosterilen.length === 0 ? (
-          <BosDurum>{goster === "eksik" ? "Mavi yakada eksik ya da süresi dolan belge yok." : "Kayıt yok."}</BosDurum>
-        ) : (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Çalışan</TableHead>
-                  <TableHead>Departman</TableHead>
-                  <TableHead>Belge</TableHead>
-                  <TableHead>Geçerlilik</TableHead>
-                  <TableHead>Durum</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {gosterilen.map((d) => (
-                  <TableRow key={`${d.calisan_id}-${d.tur}`}>
-                    <TableCell>
-                      {adById.get(d.calisan_id) ?? "—"} <span className="font-mono text-xs text-muted-foreground">({d.sicil_no})</span>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {departmanAdi.get(d.departman_id) ?? "—"}
-                      <span className="ml-1 text-xs text-muted-foreground">({d.yaka} yaka)</span>
-                    </TableCell>
-                    <TableCell>{TUR_ADI[d.tur] ?? d.tur}</TableCell>
-                    <TableCell className="tabular-nums">{d.gecerlilik_bitis ? tarih(d.gecerlilik_bitis) : "—"}</TableCell>
-                    <TableCell><Badge variant={DURUM[d.durum].tur}>{DURUM[d.durum].ad}</Badge></TableCell>
+          <FiltreCubugu temizleAdres="/isg" suzgecVar={goster === "tumu" || Boolean(araMetni)}>
+            <FiltreAlani etiket="Göster" htmlFor="goster">
+              <Secim id="goster" name="goster" defaultValue={goster}>
+                <option value="eksik">Eksik / dolan (mavi yaka)</option>
+                <option value="tumu">Tümü</option>
+              </Secim>
+            </FiltreAlani>
+            <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+              <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+            </FiltreAlani>
+          </FiltreCubugu>
+          {gosterilen.length === 0 ? (
+            <BosDurum
+              aciklama={
+                araMetni ? "Aramaya uyan belge kaydı yok." : goster === "eksik" ? "Mavi yakada eksik ya da süresi dolan belge yok." : "Belge kaydı yok."
+              }
+            />
+          ) : (
+            <TabloKutusu>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Çalışan</TableHead>
+                    <TableHead className="w-full">Departman</TableHead>
+                    <TableHead>Belge</TableHead>
+                    <TableHead>Geçerlilik</TableHead>
+                    <TableHead>Durum</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </section>
-
-      <section aria-labelledby="bolge-baslik" className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 id="bolge-baslik" className="text-lg font-semibold">Bölge giriş yetkileri</h2>
-          <p className="text-sm text-muted-foreground">
-            Yetkisiz departmandan biri bölge kapısında okutursa İK ve İSG&apos;ye uyarı düşer. Verme ve kaldırma kim / ne zaman
-            bilgisiyle saklanır.
-          </p>
-        </div>
-        {bolgeler.length === 0 ? (
-          <BosDurum>Tanımlı bölge yok.</BosDurum>
-        ) : (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Departman</TableHead>
-                  {bolgeler.map((b) => (
-                    <TableHead key={b.id}>{b.ad}</TableHead>
+                </TableHeader>
+                <TableBody>
+                  {gosterilen.map((d) => (
+                    <TableRow key={`${d.calisan_id}-${d.tur}`}>
+                      <TableCell>
+                        {adById.get(d.calisan_id) ?? "—"} <span className="font-mono text-xs text-muted-foreground">{d.sicil_no}</span>
+                      </TableCell>
+                      <TableCell className="whitespace-normal text-sm">
+                        {departmanAdi.get(d.departman_id) ?? "—"}
+                        <span className="ml-1 text-xs text-muted-foreground">({d.yaka} yaka)</span>
+                      </TableCell>
+                      <TableCell>{TUR_ADI[d.tur] ?? d.tur}</TableCell>
+                      <TableCell className="tabular-nums">{d.gecerlilik_bitis ? tarih(d.gecerlilik_bitis) : "—"}</TableCell>
+                      <TableCell><Badge variant={DURUM[d.durum].tur}>{DURUM[d.durum].ad}</Badge></TableCell>
+                    </TableRow>
                   ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {departmanlar.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell className="text-sm">{d.ad}</TableCell>
-                    {bolgeler.map((b) => {
-                      const var_ = yetkiVar.has(`${b.id}|${d.id}`);
-                      return (
-                        <TableCell key={b.id}>
-                          <div className="flex items-center gap-2">
-                            {var_ ? <Badge variant="secondary">Yetkili</Badge> : <span className="text-muted-foreground">—</span>}
-                            {isg && (
-                              <HizliIslem
-                                dugme={var_ ? "Kaldır" : "Ver"}
-                                dugmeTuru="ghost"
-                                islem={bolgeYetkisi}
-                                gizli={{ bolge_id: b.id, departman_id: d.id, islem: var_ ? "kaldir" : "ver" }}
-                              />
-                            )}
-                          </div>
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                </TableBody>
+              </Table>
+            </TabloKutusu>
+          )}
+        </section>
+      )}
 
-        {gecmis.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">Son değişiklikler</h3>
-            <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-              {gecmis.map((g) => (
-                <li key={g.id}>
-                  <span className="tabular-nums">{tarihSaat(g.zaman)}</span> · {departmanAdi.get(g.departman_id) ?? "—"} →{" "}
-                  {bolgeAdi.get(g.bolge_id) ?? "—"}: {g.islem === "verildi" ? "verildi" : "kaldırıldı"} ({g.yapan?.ad_soyad ?? "sistem"})
-                </li>
-              ))}
-            </ul>
+      {bolgeSekmesi && (
+        <section aria-labelledby="bolge-baslik" className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 id="bolge-baslik" className="text-lg font-semibold">Bölge giriş yetkileri</h2>
+            <p className="text-sm text-muted-foreground">
+              Yetkisiz departmandan biri bölge kapısında okutursa İK ve İSG&apos;ye uyarı düşer. Verme ve kaldırma kim / ne zaman
+              bilgisiyle saklanır. ✓ yetkili, — yetkisiz.
+            </p>
           </div>
-        )}
-      </section>
+          {bolgeler.length === 0 ? (
+            <BosDurum aciklama="Tanımlı bölge yok." />
+          ) : (
+            <TabloKutusu>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Departman</TableHead>
+                    {bolgeler.map((b) => (
+                      <TableHead key={b.id} className="whitespace-normal">{b.ad}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {departmanlar.map((d) => (
+                    <TableRow key={d.id}>
+                      <TableCell className="text-sm">{d.ad}</TableCell>
+                      {bolgeler.map((b) => {
+                        const var_ = yetkiVar.has(`${b.id}|${d.id}`);
+                        return (
+                          <TableCell key={b.id}>
+                            <div className="flex items-center gap-2">
+                              {/* Her hücrede "Yetkili" rozeti yerine işaret; anlamı ekran okuyucuya yazıyla söylenir */}
+                              {var_ ? (
+                                <span className="inline-flex items-center gap-1 font-medium text-iyi" title="Yetkili">
+                                  <CheckIcon className="size-4" aria-hidden />
+                                  <span className="sr-only">Yetkili</span>
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground" title="Yetkisiz">
+                                  <span aria-hidden>—</span>
+                                  <span className="sr-only">Yetkisiz</span>
+                                </span>
+                              )}
+                              {isg && (
+                                <HizliIslem
+                                  dugme={var_ ? "Kaldır" : "Ver"}
+                                  dugmeTuru="ghost"
+                                  islem={bolgeYetkisi}
+                                  gizli={{ bolge_id: b.id, departman_id: d.id, islem: var_ ? "kaldir" : "ver" }}
+                                />
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabloKutusu>
+          )}
+
+          {gecmis.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold">Son değişiklikler</h3>
+              <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
+                {gecmis.map((g) => (
+                  <li key={g.id}>
+                    <Zaman deger={g.zaman} /> · {departmanAdi.get(g.departman_id) ?? "—"} →{" "}
+                    {bolgeAdi.get(g.bolge_id) ?? "—"}: {g.islem === "verildi" ? "verildi" : "kaldırıldı"} ({g.yapan?.ad_soyad ?? "sistem"})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

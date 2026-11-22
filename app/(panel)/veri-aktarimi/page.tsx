@@ -5,6 +5,14 @@ import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
+import { IslemMenusu } from "@/components/liste/islem-menusu";
+import { ListeKarti } from "@/components/liste/liste-karti";
+import { Sekmeler } from "@/components/liste/sekmeler";
+import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { Zaman } from "@/components/liste/zaman";
+import { tekDeger } from "@/lib/arama";
 import { KAYNAK_ADI, type Kaynak, type Okuyucu } from "@/lib/aktarim/denetim";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { bugun, gunEkle } from "@/lib/hafta";
@@ -68,8 +76,11 @@ function ozetMetni(ozet: GeceIsi["ozet"]): string {
   return parcalar.join(" · ") || "Değişiklik yok";
 }
 
-export default async function VeriAktarimiSayfasi() {
+export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/veri-aktarimi">) {
   const kullanici = await rolGerekli(["ik", "yonetici"]);
+  // Uzun sayfa üç sekmeye bölünür (?sekme=ariza | okuyucu); varsayılan aktarımlar
+  const istenenSekme = tekDeger((await searchParams).sekme);
+  const sekme = istenenSekme === "ariza" || istenenSekme === "okuyucu" ? istenenSekme : "aktarim";
   const supabase = await sunucuIstemcisi();
 
   const bugunTarih = bugun();
@@ -118,6 +129,9 @@ export default async function VeriAktarimiSayfasi() {
   const arizalar = (arizaSonucu.data ?? []) as unknown as Ariza[];
   const ik = kullanici.rol === "ik";
   const dun = gunEkle(bugunTarih, -1);
+  // Arıza şüpheleri İK kararı bekler: Uyarılar'daki "Karar gerekli" kartı düzeninde üstte gösterilir
+  const supheler = arizalar.filter((a) => a.durum === "suphe");
+  const kararliArizalar = arizalar.filter((a) => a.durum !== "suphe");
 
   // Bu ay gelmeyen dosyalar: ayın ilk gününden, gelen en son dosyanın gününe kadar her gün
   // her kaynaktan bir dosya beklenir. (Gece işi de eksik dosya için "dosya_gelmedi" uyarısı üretir.)
@@ -129,7 +143,7 @@ export default async function VeriAktarimiSayfasi() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Veri aktarımı</h1>
         <p className="text-sm text-muted-foreground">
@@ -138,6 +152,17 @@ export default async function VeriAktarimiSayfasi() {
         </p>
       </div>
 
+      <Sekmeler
+        etiket="Veri aktarımı bölümleri"
+        sekmeler={[
+          { ad: "Aktarımlar", adres: "/veri-aktarimi", sayi: eksikler.length || undefined, sayiAciklama: "eksik dosya", aktif: sekme === "aktarim" },
+          { ad: "Okuyucu arızaları", adres: "/veri-aktarimi?sekme=ariza", sayi: supheler.length || undefined, sayiAciklama: "karar bekliyor", aktif: sekme === "ariza" },
+          { ad: "Okuyucular", adres: "/veri-aktarimi?sekme=okuyucu", aktif: sekme === "okuyucu" },
+        ]}
+      />
+
+      {sekme === "aktarim" && (
+        <div className="flex flex-col gap-8">
       {kullanici.rol === "ik" && (
         <section aria-labelledby="yukle-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
@@ -185,16 +210,16 @@ export default async function VeriAktarimiSayfasi() {
           )}
         </div>
         {geceIsleri.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Gece işi henüz hiç çalışmadı.</div>
+          <BosDurum aciklama="Gece işi henüz hiç çalışmadı." />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>İşlenen gün</TableHead>
                   <TableHead>Çalışma zamanı</TableHead>
                   <TableHead>Durum</TableHead>
-                  <TableHead>Sonuç</TableHead>
+                  <TableHead className="w-full">Sonuç</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -203,14 +228,14 @@ export default async function VeriAktarimiSayfasi() {
                     <TableCell className="tarih-hucre">{tarih(g.islenen_gun)}</TableCell>
                     <TableCell className="tarih-hucre">{tarihSaat(g.baslangic)}</TableCell>
                     <TableCell><Badge variant={GECE_ISI_DURUMU[g.durum].tur}>{GECE_ISI_DURUMU[g.durum].ad}</Badge></TableCell>
-                    <TableCell className="min-w-80 max-w-[32rem] whitespace-normal text-sm">
+                    <TableCell className="min-w-64 whitespace-normal text-sm">
                       {g.durum === "hatali" ? <span className="text-destructive">{g.hata_mesaji ?? "—"}</span> : ozetMetni(g.ozet)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
 
@@ -222,7 +247,7 @@ export default async function VeriAktarimiSayfasi() {
           </p>
         </div>
         {sonGun && eksikler.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Eksik dosya yok.</div>
+          <BosDurum baslik="Eksik dosya yok" aciklama="Bu ay beklenen bütün dosyalar geldi." />
         ) : (
           <ul className="flex flex-wrap gap-2">
             {eksikler.map((e) => (
@@ -237,15 +262,15 @@ export default async function VeriAktarimiSayfasi() {
       <section aria-labelledby="son-baslik" className="flex flex-col gap-3">
         <h2 id="son-baslik" className="text-lg font-semibold">Son aktarımlar</h2>
         {sonAktarimlar.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Henüz aktarım yok.</div>
+          <BosDurum aciklama="Henüz dosya aktarılmadı." />
         ) : (
-          <div className="rounded-lg border">
+          <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Verinin günü</TableHead>
                   <TableHead>Tür</TableHead>
-                  <TableHead>Dosya</TableHead>
+                  <TableHead className="w-full">Dosya</TableHead>
                   <TableHead className="text-right">Satır</TableHead>
                   <TableHead>Aktarım zamanı</TableHead>
                 </TableRow>
@@ -262,11 +287,15 @@ export default async function VeriAktarimiSayfasi() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </TabloKutusu>
         )}
       </section>
 
-      <section aria-labelledby="ariza-baslik" className="flex flex-col gap-3">
+        </div>
+      )}
+
+      {sekme === "ariza" && (
+      <section aria-labelledby="ariza-baslik" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-1">
             <h2 id="ariza-baslik" className="text-lg font-semibold">Okuyucu arızaları</h2>
@@ -305,58 +334,109 @@ export default async function VeriAktarimiSayfasi() {
             </IslemPenceresi>
           )}
         </div>
-        {arizalar.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Kayıtlı arıza yok.</div>
-        ) : (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Okuyucu</TableHead>
-                  <TableHead>Başlangıç</TableHead>
-                  <TableHead>Bitiş</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Açıklama</TableHead>
-                  {ik && <TableHead><span className="sr-only">İşlem</span></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {arizalar.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell className="font-mono">{a.okuyucu?.kod ?? "—"}</TableCell>
-                    <TableCell className="tarih-hucre">{tarihSaat(a.baslangic)}</TableCell>
-                    <TableCell className="tabular-nums">{a.bitis ? tarihSaat(a.bitis) : "Sürüyor"}</TableCell>
-                    <TableCell>
-                      <Badge variant={ARIZA_DURUMU[a.durum].tur}>{ARIZA_DURUMU[a.durum].ad}</Badge>
-                      <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}</div>
-                    </TableCell>
-                    <TableCell className="min-w-60 max-w-96 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
-                    {ik && (
-                      <TableCell>
-                        {a.durum === "suphe" && (
-                          <div className="flex justify-end gap-2">
-                            <HizliIslem dugme="Arıza" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
-                            <HizliIslem dugme="Arıza değil" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "ret" }} />
-                          </div>
-                        )}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+        {supheler.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h3 className="flex items-center gap-2 text-base font-semibold">
+              Karar gerekli
+              <DurumRozeti ton="dikkat">{supheler.length}</DurumRozeti>
+            </h3>
+            {supheler.map((a) => (
+              <ListeKarti
+                key={a.id}
+                vurgu="karar"
+                baslik="Okuyucu arıza şüphesi"
+                kisi={
+                  a.okuyucu ? (
+                    <span>
+                      Okuyucu <span className="font-mono font-medium">{a.okuyucu.kod}</span>
+                      <span className="text-muted-foreground"> · {a.okuyucu.ad}</span>
+                    </span>
+                  ) : undefined
+                }
+                // Olayın zamanı (arızanın başladığı an) öne çıkar
+                zaman={
+                  <>
+                    <Zaman deger={a.baslangic} etiket="Başlangıç" />
+                    {a.bitis ? <> · <Zaman deger={a.bitis} etiket="Bitiş" /></> : " · sürüyor"}
+                  </>
+                }
+                alt={a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}
+                eylemler={
+                  ik ? (
+                    <>
+                      <HizliIslem dugme="Arıza" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
+                      <IslemMenusu>
+                        {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
+                        <IslemPenceresi
+                          dugme="Arıza değil"
+                          baslik="Arıza şüphesini reddet"
+                          aciklama="Okuyucu arızası reddedilecek; eksik okutmalar normal soru akışına girecek."
+                          onay="Arıza değil"
+                          onayTuru="destructive"
+                          islem={arizaKarari}
+                          gizli={{ ariza_id: a.id, karar: "ret" }}
+                        />
+                      </IslemMenusu>
+                    </>
+                  ) : undefined
+                }
+              >
+                {a.aciklama ?? "Açıklama yok."}
+              </ListeKarti>
+            ))}
           </div>
         )}
-      </section>
 
+        <div className="flex flex-col gap-3">
+          {supheler.length > 0 && <h3 className="text-base font-semibold">Kararı verilmiş arızalar</h3>}
+          {kararliArizalar.length === 0 ? (
+            <BosDurum aciklama={supheler.length > 0 ? "Kararı verilmiş arıza kaydı yok." : "Kayıtlı arıza yok."} />
+          ) : (
+            <TabloKutusu>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Başlangıç</TableHead>
+                    <TableHead>Bitiş</TableHead>
+                    <TableHead>Okuyucu</TableHead>
+                    <TableHead className="w-full">Açıklama</TableHead>
+                    <TableHead>Durum</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {kararliArizalar.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell className="tarih-hucre">{tarihSaat(a.baslangic)}</TableCell>
+                      <TableCell className="tabular-nums">{a.bitis ? tarihSaat(a.bitis) : "Sürüyor"}</TableCell>
+                      <TableCell className="font-mono">{a.okuyucu?.kod ?? "—"}</TableCell>
+                      <TableCell className="min-w-56 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant={ARIZA_DURUMU[a.durum].tur}>{ARIZA_DURUMU[a.durum].ad}</Badge>
+                        <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}</div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabloKutusu>
+          )}
+        </div>
+      </section>
+      )}
+
+      {sekme === "okuyucu" && (
       <section aria-labelledby="okuyucu-baslik" className="flex flex-col gap-3">
-        <h2 id="okuyucu-baslik" className="text-lg font-semibold">Okuyucular</h2>
-        <div className="rounded-lg border">
+        <div className="flex flex-col gap-1">
+          <h2 id="okuyucu-baslik" className="text-lg font-semibold">Okuyucular</h2>
+          <p className="text-sm text-muted-foreground">{okuyucular.length} okuyucu · {okuyucular.filter((o) => !o.aktif).length} pasif</p>
+        </div>
+        <TabloKutusu>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Kod</TableHead>
-                <TableHead>Ad</TableHead>
+                <TableHead className="w-full">Ad</TableHead>
                 <TableHead>Sistem</TableHead>
                 <TableHead>Durum</TableHead>
               </TableRow>
@@ -367,13 +447,14 @@ export default async function VeriAktarimiSayfasi() {
                   <TableCell className="font-mono">{o.kod}</TableCell>
                   <TableCell>{o.ad}</TableCell>
                   <TableCell>{KAYNAK_ADI[o.sistem]}</TableCell>
-                  <TableCell>{o.aktif ? <Badge variant="secondary">Aktif</Badge> : <Badge variant="outline">Pasif</Badge>}</TableCell>
+                  <TableCell>{o.aktif ? "Aktif" : <DurumRozeti ton="notr">Pasif</DurumRozeti>}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TabloKutusu>
       </section>
+      )}
     </div>
   );
 }
