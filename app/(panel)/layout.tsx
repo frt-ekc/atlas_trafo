@@ -143,10 +143,6 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
               />
             </form>
           )}
-          <span className="hidden items-center gap-2 rounded-full border bg-card/60 px-3 py-1.5 text-xs sm:flex">
-            <span className="size-2 rounded-full bg-[#7fb3b8]" aria-hidden />
-            {ROL_ADI[kullanici.rol]}
-          </span>
           <TemaDugmesi tema={tema} />
         </header>
 

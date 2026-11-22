@@ -8,7 +8,7 @@ import { SuzgecFormu } from "@/components/panel/suzgec-formu";
 import { Secim } from "@/components/panel/secim";
 import { tekDeger } from "@/lib/arama";
 import { tarihSaat } from "@/lib/bicim";
-import { UYARI_TURU } from "@/lib/etiketler";
+import { UYARI_KONULARI, UYARI_TURU } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -56,6 +56,26 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
   const turSayisi = new Map<string, number>();
   for (const u of uyarilar) turSayisi.set(u.tur, (turSayisi.get(u.tur) ?? 0) + 1);
 
+  // Özet tablosu: konu başına bir satır; yalnızca uyarısı olan konu ve türler
+  const konusuOlanlar = new Set(UYARI_KONULARI.flatMap((k) => k.turler));
+  const ozet = [...UYARI_KONULARI, { ad: "Diğer", turler: [...turSayisi.keys()].filter((t) => !konusuOlanlar.has(t)) }]
+    .map((k) => {
+      const turler = k.turler
+        .map((t) => ({ tur: t, sayi: turSayisi.get(t) ?? 0 }))
+        .filter((t) => t.sayi > 0)
+        .sort((a, b) => b.sayi - a.sayi);
+      return { ad: k.ad, turler, toplam: turler.reduce((n, t) => n + t.sayi, 0) };
+    })
+    .filter((k) => k.toplam > 0)
+    .sort((a, b) => b.toplam - a.toplam);
+  const adres = (t: string) => {
+    const p = new URLSearchParams();
+    if (tumu) p.set("goster", "tumu");
+    if (t) p.set("tur", t);
+    const sorgu = p.toString();
+    return sorgu ? `/uyarilar?${sorgu}` : "/uyarilar";
+  };
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -85,9 +105,51 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
 
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {uyarilar.length} uyarı
-        {!gecerliTur && turSayisi.size > 1 &&
-          ` · ${[...turSayisi.entries()].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${UYARI_TURU[t] ?? t}: ${n}`).join(", ")}`}
+        {gecerliTur && (
+          <>
+            {" "}· {UYARI_TURU[gecerliTur]} ·{" "}
+            <Link href={adres("")} scroll={false} className="text-foreground underline underline-offset-4">Tüm türleri göster</Link>
+          </>
+        )}
       </p>
+
+      {!gecerliTur && turSayisi.size > 1 && (
+        <div className="overflow-hidden rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20 sm:w-40">Konu</TableHead>
+                <TableHead>Uyarı türü</TableHead>
+                <TableHead className="w-14 text-right sm:w-20">Toplam</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {ozet.map((k) => (
+                <TableRow key={k.ad}>
+                  <TableCell className="font-medium whitespace-normal">{k.ad}</TableCell>
+                  <TableCell className="whitespace-normal">
+                    {/* Türe tıklayınca aşağıdaki liste o türe süzülür */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {k.turler.map((t) => (
+                        <Link
+                          key={t.tur}
+                          href={adres(t.tur)}
+                          scroll={false}
+                          className="inline-flex items-center gap-2 rounded-lg border bg-secondary/60 px-2.5 py-1 text-[0.8125rem] transition-colors hover:border-ring/50 hover:bg-secondary"
+                        >
+                          {UYARI_TURU[t.tur] ?? t.tur}
+                          <span className="font-semibold tabular-nums text-vurgu">{t.sayi}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right text-base font-semibold tabular-nums">{k.toplam}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {uyarilar.length === 0 ? (
         <BosDurum>{tumu ? "Hiç uyarı yok." : "Görülmemiş uyarı yok."} Uyarılar gece işi çalıştığında oluşur.</BosDurum>
@@ -107,7 +169,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
               {uyarilar.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="tarih-hucre">{tarihSaat(u.olusturma_zamani)}</TableCell>
-                  <TableCell className="font-medium">{UYARI_TURU[u.tur] ?? u.tur}</TableCell>
+                  <TableCell className="min-w-36 font-medium whitespace-normal">{UYARI_TURU[u.tur] ?? u.tur}</TableCell>
                   <TableCell>
                     {u.calisan ? (
                       <Link href={`/calisanlar/${u.calisan.id}`} className="underline-offset-4 hover:underline">

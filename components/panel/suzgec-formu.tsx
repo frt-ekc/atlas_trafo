@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useTransition, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useTransition, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 // Liste ekranlarındaki süzgeç formu. Açılır liste, tarih ya da onay kutusu değişince süzgeç
@@ -12,6 +12,16 @@ export function SuzgecFormu({ className, children }: { className?: string; child
   const router = useRouter();
   const adres = usePathname();
   const [bekliyor, gecis] = useTransition();
+  const sorguMetni = useSearchParams().toString();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // defaultValue yalnızca ilk çizimde işe yarar. Adres başka yoldan değişirse (özet tablosundaki
+  // bağlantı, tarayıcının geri tuşu) açılır listeler sunucunun kullandığı değere uydurulur.
+  useEffect(() => {
+    for (const liste of formRef.current?.querySelectorAll<HTMLSelectElement>("select[data-varsayilan]") ?? []) {
+      liste.value = liste.dataset.varsayilan ?? "";
+    }
+  }, [sorguMetni, children]);
 
   function uygula(form: HTMLFormElement) {
     const parametreler = new URLSearchParams();
@@ -36,6 +46,7 @@ export function SuzgecFormu({ className, children }: { className?: string; child
 
   return (
     <form
+      ref={formRef}
       method="get"
       onSubmit={gonder}
       onChange={degisti}

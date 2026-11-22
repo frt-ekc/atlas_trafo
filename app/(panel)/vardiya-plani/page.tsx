@@ -190,11 +190,11 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
           </nav>
         </div>
 
-        <SuzgecFormu className="flex items-end gap-2">
+        <SuzgecFormu className="flex w-full items-end gap-2 sm:w-auto">
           <input type="hidden" name="hafta" value={pazartesi} />
-          <div className="flex flex-col gap-1.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <label htmlFor="departman" className="text-sm font-medium">Bölüm</label>
-            <Secim id="departman" name="departman" defaultValue={departmanId ?? ""}>
+            <Secim id="departman" name="departman" defaultValue={departmanId ?? ""} className="w-full min-w-0">
               <option value="">Tümü</option>
               {bolumler.map((b) => (
                 <option key={b.id} value={b.id}>{b.ad}</option>

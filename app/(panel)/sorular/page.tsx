@@ -126,7 +126,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                 <TableHead>Gün</TableHead>
                 <TableHead>Çalışan</TableHead>
                 <TableHead>Soru</TableHead>
-                <TableHead>Kanıttaki saat</TableHead>
+                <TableHead className="min-w-20 whitespace-normal">Kanıttaki saat</TableHead>
                 <TableHead>Son gün</TableHead>
                 <TableHead>Durum</TableHead>
                 {!amir && <TableHead>Atanan</TableHead>}
@@ -143,14 +143,14 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                     <TableCell>
                       {c ? (
                         <Link href={`/calisanlar/${c.id}?ay=${s.gun!.is_gunu.slice(0, 7)}`} className="underline-offset-4 hover:underline">
-                          {c.ad} {c.soyad} <span className="font-mono text-xs text-muted-foreground">({c.sicil_no})</span>
+                          {c.ad} {c.soyad} <span className="block font-mono text-xs font-normal text-muted-foreground">{c.sicil_no}</span>
                         </Link>
                       ) : (
                         // Eskale edilen üst amir, başka bölümün gün kaydını RLS yüzünden göremeyebilir
                         <span className="text-muted-foreground">Görüntülenemiyor</span>
                       )}
                     </TableCell>
-                    <TableCell className="min-w-72 max-w-[28rem] whitespace-normal">
+                    <TableCell className="min-w-64 max-w-[28rem] whitespace-normal">
                       <div className="font-medium">{SORU_TURU[s.soru_turu] ?? s.soru_turu}</div>
                       <div className="text-sm text-muted-foreground">{s.aciklama.replace(/^\d{2}\.\d{2}\.\d{4}:\s*/, "")}</div>
                       {s.cevap && (
@@ -171,7 +171,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                       <Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>
                     </TableCell>
                     {!amir && (
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="min-w-24 whitespace-normal text-muted-foreground">
                         {s.atanan?.ad_soyad ?? "—"}
                         {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
                       </TableCell>
