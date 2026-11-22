@@ -7,9 +7,11 @@ import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-l
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
 import { Secim } from "@/components/panel/secim";
+import { vardiyaAdi } from "@/components/panel/vardiya-etiketi";
 import { aramaSuzgeci } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { DurumIslem } from "@/components/liste/durum-islem";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { Sekmeler } from "@/components/liste/sekmeler";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
@@ -17,6 +19,7 @@ import { Zaman } from "@/components/liste/zaman";
 import { tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
 import { bugun } from "@/lib/hafta";
+import type { Ton } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -44,6 +47,7 @@ type Plan = {
   calisan: Kisi;
   vardiya: { kod: string } | null;
   talep_eden: { ad_soyad: string } | null;
+  karar_veren_id: number | null; // dolu ama ad okunamıyorsa (amir İK kullanıcısını göremez) ekranda "İK" yazar
   karar_veren: { ad_soyad: string } | null;
 };
 
@@ -66,10 +70,10 @@ const HAVUZ_TURU: Record<HavuzKaydi["tur"], string> = {
   tatil_calismasi: "Pazar / tatil çalışması",
 };
 
-const HAVUZ_DURUMU: Record<HavuzKaydi["durum"], { ad: string; tur: "default" | "secondary" | "destructive" }> = {
-  inceleme_bekliyor: { ad: "İK kararı bekliyor", tur: "default" },
-  onaylandi: { ad: "Onaylandı", tur: "secondary" },
-  reddedildi: { ad: "Reddedildi", tur: "destructive" },
+const HAVUZ_DURUMU: Record<HavuzKaydi["durum"], { ad: string; ton: Ton }> = {
+  inceleme_bekliyor: { ad: "İK kararı bekliyor", ton: "dikkat" },
+  onaylandi: { ad: "Onaylandı", ton: "iyi" },
+  reddedildi: { ad: "Reddedildi", ton: "kotu" },
 };
 
 type Onay = {
@@ -82,11 +86,11 @@ type Onay = {
 
 type Calisan = { id: number; sicil_no: string; ad: string; soyad: string; departman: { ad: string } | null };
 
-const DURUM: Record<Plan["durum"], { ad: string; tur: "default" | "secondary" | "destructive" | "outline" }> = {
-  talep: { ad: "İK kararı bekliyor", tur: "default" },
-  onaylandi: { ad: "Onaylandı", tur: "secondary" },
-  reddedildi: { ad: "Reddedildi", tur: "destructive" },
-  iptal: { ad: "İptal", tur: "outline" },
+const DURUM: Record<Plan["durum"], { ad: string; ton: Ton }> = {
+  talep: { ad: "İK kararı bekliyor", ton: "dikkat" },
+  onaylandi: { ad: "Onaylandı", ton: "iyi" },
+  reddedildi: { ad: "Reddedildi", ton: "kotu" },
+  iptal: { ad: "İptal", ton: "notr" },
 };
 
 const saat = (dk: number) => `${Math.round((dk / 60) * 10) / 10} sa`.replace(".", ",");
@@ -113,7 +117,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       supabase
         .from("fazla_mesai_plani")
         .select(
-          "id, calisan_id, is_gunu, planli_dk, gerekce, durum, talep_zamani, karar_zamani, karar_aciklama, " +
+          "id, calisan_id, is_gunu, planli_dk, gerekce, durum, talep_zamani, karar_zamani, karar_aciklama, karar_veren_id, " +
             "calisan:calisan_id(sicil_no, ad, soyad), vardiya:vardiya_id(kod), " +
             "talep_eden:kullanici!talep_eden_id(ad_soyad), karar_veren:kullanici!karar_veren_id(ad_soyad)",
         )
@@ -321,7 +325,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                     <TableRow key={p.id}>
                       <TableCell className="tarih-hucre">{tarih(p.is_gunu)}</TableCell>
                       <TableCell><KisiAdi kisi={p.calisan} /></TableCell>
-                      <TableCell>{p.vardiya?.kod === "GUNDUZ" ? "Gündüz" : (p.vardiya?.kod ?? "—")}</TableCell>
+                      <TableCell>{p.vardiya ? vardiyaAdi(p.vardiya.kod) : "—"}</TableCell>
                       <TableCell className="text-right tabular-nums">{saat(p.planli_dk)}</TableCell>
                       <TableCell className="min-w-56 whitespace-normal">
                         {p.gerekce}
@@ -332,10 +336,10 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                         <div className="text-xs"><Zaman deger={p.talep_zamani} /></div>
                       </TableCell>
                       <TableCell>
-                        <DurumIslem durum={<Badge variant={DURUM[p.durum].tur}>{DURUM[p.durum].ad}</Badge>}>
+                        <DurumIslem durum={<DurumRozeti ton={DURUM[p.durum].ton}>{DURUM[p.durum].ad}</DurumRozeti>}>
                           {p.karar_zamani && (
                             <span className="text-xs text-muted-foreground">
-                              {p.karar_veren?.ad_soyad ?? "Sistem"} · {tarih(p.karar_zamani)}
+                              {p.karar_veren?.ad_soyad ?? (!p.karar_veren_id ? "Sistem" : p.durum === "iptal" ? "—" : "İK")} · {tarih(p.karar_zamani)}
                             </span>
                           )}
                           {ik && p.durum === "talep" && (
@@ -402,10 +406,10 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{h.dakika} dk</TableCell>
                       <TableCell>
-                        <DurumIslem durum={<Badge variant={HAVUZ_DURUMU[h.durum].tur}>{HAVUZ_DURUMU[h.durum].ad}</Badge>}>
+                        <DurumIslem durum={<DurumRozeti ton={HAVUZ_DURUMU[h.durum].ton}>{HAVUZ_DURUMU[h.durum].ad}</DurumRozeti>}>
                           {h.karar_zamani && (
                             <span className="text-xs text-muted-foreground">
-                              {h.karar_veren?.ad_soyad ?? "—"} · {tarih(h.karar_zamani)}
+                              {h.karar_veren?.ad_soyad ?? "İK"} · {tarih(h.karar_zamani)}
                               {h.fark_satiri && " · sonraki aya fark"}
                             </span>
                           )}

@@ -1,18 +1,15 @@
 import type { ReactNode } from "react";
+import type { Ton } from "@/lib/etiketler";
 import { cn } from "@/lib/utils";
 
 // Listelerdeki durum rozeti. Renk anlamı destekler; anlamı her zaman yazı taşır.
-//   iyi    → tamamlandı, sorun yok
-//   dikkat → karar ya da işlem bekliyor
-//   kotu   → çalışan aleyhine sonuç, ret, kayıp
-//   notr   → bilgi, pasif, iptal
-export type Ton = "iyi" | "dikkat" | "kotu" | "notr";
+// Tonların anlamı: lib/etiketler.ts (Ton)
 
 export function DurumRozeti({ ton = "notr", children, className }: { ton?: Ton; children: ReactNode; className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.8125rem] font-medium whitespace-nowrap",
         ton === "iyi" && "bg-iyi-zemin text-iyi",
         ton === "dikkat" && "bg-dikkat-zemin text-dikkat",
         ton === "kotu" && "bg-kotu-zemin text-kotu",

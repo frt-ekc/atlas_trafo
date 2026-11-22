@@ -16,6 +16,7 @@ import { tekDeger } from "@/lib/arama";
 import { KAYNAK_ADI, type Kaynak, type Okuyucu } from "@/lib/aktarim/denetim";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { bugun, gunEkle } from "@/lib/hafta";
+import type { Ton } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -40,10 +41,10 @@ type Ariza = {
   okuyucu: { kod: string; ad: string } | null;
 };
 
-const ARIZA_DURUMU: Record<Ariza["durum"], { ad: string; tur: "default" | "secondary" | "outline" }> = {
-  suphe: { ad: "Şüphe · İK kararı bekliyor", tur: "default" },
-  onaylandi: { ad: "Arıza", tur: "secondary" },
-  reddedildi: { ad: "Reddedildi", tur: "outline" },
+const ARIZA_DURUMU: Record<Ariza["durum"], { ad: string; ton: Ton }> = {
+  suphe: { ad: "Şüphe · İK kararı bekliyor", ton: "dikkat" },
+  onaylandi: { ad: "Arıza", ton: "notr" },
+  reddedildi: { ad: "Reddedildi", ton: "notr" },
 };
 
 type GeceIsi = {
@@ -56,10 +57,10 @@ type GeceIsi = {
   hata_mesaji: string | null;
 };
 
-const GECE_ISI_DURUMU: Record<GeceIsi["durum"], { ad: string; tur: "default" | "secondary" | "destructive" }> = {
-  calisiyor: { ad: "Çalışıyor", tur: "default" },
-  basarili: { ad: "Başarılı", tur: "secondary" },
-  hatali: { ad: "Hatalı", tur: "destructive" },
+const GECE_ISI_DURUMU: Record<GeceIsi["durum"], { ad: string; ton: Ton }> = {
+  calisiyor: { ad: "Çalışıyor", ton: "dikkat" },
+  basarili: { ad: "Başarılı", ton: "iyi" },
+  hatali: { ad: "Hatalı", ton: "kotu" },
 };
 
 // Özetteki sayılardan kısa bir metin: "31 gün kaydı · 2 soru · 1 uyarı"
@@ -227,7 +228,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                   <TableRow key={g.id}>
                     <TableCell className="tarih-hucre">{tarih(g.islenen_gun)}</TableCell>
                     <TableCell className="tarih-hucre">{tarihSaat(g.baslangic)}</TableCell>
-                    <TableCell><Badge variant={GECE_ISI_DURUMU[g.durum].tur}>{GECE_ISI_DURUMU[g.durum].ad}</Badge></TableCell>
+                    <TableCell><DurumRozeti ton={GECE_ISI_DURUMU[g.durum].ton}>{GECE_ISI_DURUMU[g.durum].ad}</DurumRozeti></TableCell>
                     <TableCell className="min-w-64 whitespace-normal text-sm">
                       {g.durum === "hatali" ? <span className="text-destructive">{g.hata_mesaji ?? "—"}</span> : ozetMetni(g.ozet)}
                     </TableCell>
@@ -412,7 +413,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                       <TableCell className="font-mono">{a.okuyucu?.kod ?? "—"}</TableCell>
                       <TableCell className="min-w-56 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
                       <TableCell>
-                        <Badge variant={ARIZA_DURUMU[a.durum].tur}>{ARIZA_DURUMU[a.durum].ad}</Badge>
+                        <DurumRozeti ton={ARIZA_DURUMU[a.durum].ton}>{ARIZA_DURUMU[a.durum].ad}</DurumRozeti>
                         <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}</div>
                       </TableCell>
                     </TableRow>

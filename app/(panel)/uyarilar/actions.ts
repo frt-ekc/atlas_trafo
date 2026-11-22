@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { rpcCagir, sayiAl } from "@/lib/supabase/rpc";
+import { TOPLU_SINIR } from "./toplu-sinir";
 
 // Uyarıyı "görüldü" yapar (yalnızca İK). Kim, ne zaman gördü veritabanında tutulur.
 export async function uyariGoruldu(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
@@ -20,8 +21,6 @@ export async function uyariGoruldu(_onceki: IslemSonucu, form: FormData): Promis
 // Seçilen uyarıları toplu "görüldü" yapar. Yeni veritabanı fonksiyonu yoktur: aynı
 // uyari_goruldu RPC'si her uyarı için sırayla çağrılır; yetkiyi ve "kim, ne zaman gördü"
 // kaydını her çağrıda veritabanı kendisi yapar.
-const TOPLU_SINIR = 200;
-
 export async function uyarilarGoruldu(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const idler = [
     ...new Set(

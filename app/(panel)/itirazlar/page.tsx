@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { HizliIslem } from "@/components/panel/hizli-islem";
@@ -8,6 +7,7 @@ import { KararAlanlari } from "@/components/panel/karar-alanlari";
 import { aralikta, aramaSuzgeci, tarihParametresi } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { DurumIslem } from "@/components/liste/durum-islem";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { IslemMenusu } from "@/components/liste/islem-menusu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
@@ -87,10 +87,10 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
         </FiltreAlani>
         <div className="flex gap-3">
           <FiltreAlani etiket="Gün, başlangıç" htmlFor="bas">
-            <Input id="bas" name="bas" type="date" defaultValue={basGun} className="w-40" />
+            <Input id="bas" name="bas" type="date" defaultValue={basGun} className="w-36 sm:w-40" />
           </FiltreAlani>
           <FiltreAlani etiket="Bitiş" htmlFor="bit">
-            <Input id="bit" name="bit" type="date" defaultValue={bitGun} className="w-40" />
+            <Input id="bit" name="bit" type="date" defaultValue={bitGun} className="w-36 sm:w-40" />
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
@@ -144,13 +144,13 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
                     </div>
                     {i.karar_zamani && (
                       <div className="mt-1 text-sm text-muted-foreground">
-                        Karar: {i.karar_aciklama ?? "—"} · {i.karar_veren?.ad_soyad ?? "—"}, <Zaman deger={i.karar_zamani} />
+                        Karar: {i.karar_aciklama ?? "—"} · {i.karar_veren?.ad_soyad ?? "İK"}, <Zaman deger={i.karar_zamani} />
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
                     <DurumIslem
-                      durum={<Badge variant={ITIRAZ_DURUMU[i.durum]?.tur ?? "outline"}>{ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}</Badge>}
+                      durum={<DurumRozeti ton={ITIRAZ_DURUMU[i.durum]?.ton}>{ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}</DurumRozeti>}
                     >
                       {ik && (i.durum === "acik" || i.durum === "inceleniyor") && <KararPenceresi itiraz={i} />}
                       {ik && i.durum === "acik" && (

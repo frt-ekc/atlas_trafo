@@ -13,12 +13,16 @@ const SecimBaglami = createContext<Baglam | null>(null);
 
 export function TopluSecim({
   idler,
+  hepsiIdler = idler,
+  hepsiEtiketi = "Tümünü seç",
   alanAdi,
   dugme,
   islem,
   children,
 }: {
   idler: number[]; // seçilebilir kayıtlar (ekranda görünenler)
+  hepsiIdler?: number[]; // "Tümünü seç" kutusunun seçtikleri; verilmezse idler'in hepsi
+  hepsiEtiketi?: string;
   alanAdi: string; // Server Action'ın okuduğu form alanı, ör. "uyari_id"
   dugme: string; // ör. "Seçilenleri görüldü yap"
   islem: Islem;
@@ -39,7 +43,7 @@ export function TopluSecim({
   }, BOS_SONUC);
 
   const hepsiRef = useRef<HTMLInputElement>(null);
-  const hepsi = idler.length > 0 && secili.size === idler.length;
+  const hepsi = hepsiIdler.length > 0 && hepsiIdler.every((id) => secili.has(id));
   const biraz = secili.size > 0 && !hepsi;
   useEffect(() => {
     if (hepsiRef.current) hepsiRef.current.indeterminate = biraz;
@@ -59,7 +63,7 @@ export function TopluSecim({
       <form
         action={gonder}
         // Aşağıdaki kartları seçerken düğme görünür kalsın diye sayfanın üstüne yapışır
-        className="sticky top-3 z-20 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border bg-card px-4 py-2.5 shadow-sm"
+        className="sticky top-0 z-20 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border bg-card px-4 py-2.5 shadow-sm"
       >
         {[...secili].map((id) => (
           <input key={id} type="hidden" name={alanAdi} value={id} />
@@ -70,9 +74,10 @@ export function TopluSecim({
             type="checkbox"
             className="size-4 accent-primary"
             checked={hepsi}
-            onChange={(e) => setHam(e.target.checked ? new Set(idler) : new Set())}
+            disabled={hepsiIdler.length === 0}
+            onChange={(e) => setHam(e.target.checked ? new Set([...secili, ...hepsiIdler]) : new Set())}
           />
-          Tümünü seç
+          {hepsiEtiketi}
         </label>
         <span className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
           {secili.size} seçili

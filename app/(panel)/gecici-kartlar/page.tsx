@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
@@ -6,6 +5,7 @@ import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { aramaSuzgeci } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { Zaman } from "@/components/liste/zaman";
@@ -195,9 +195,9 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                       {z.iade_zamani ? (
                         tarihSaat(z.iade_zamani)
                       ) : (
-                        <Badge variant={gecikti(z) ? "destructive" : "default"}>
+                        <DurumRozeti ton={gecikti(z) ? "kotu" : "dikkat"}>
                           {gecikti(z) ? "İade edilmedi" : "Zimmetli"}
-                        </Badge>
+                        </DurumRozeti>
                       )}
                     </TableCell>
                     <TableCell className="tabular-nums">{sure(z.verilis_zamani, z.iade_zamani, simdi)}</TableCell>
@@ -253,10 +253,10 @@ function IadeAlPenceresi({ kartNo, zimmet }: { kartNo: string; zimmet: ZimmetSat
 }
 
 function KartDurumu({ durum, zimmetli, gecikti }: { durum: string; zimmetli: boolean; gecikti: boolean }) {
-  if (durum === "kayip") return <Badge variant="destructive">Kayıp</Badge>;
-  if (durum === "iptal") return <Badge variant="outline">İptal</Badge>;
-  if (zimmetli) return <Badge variant={gecikti ? "destructive" : "default"}>{gecikti ? "İade edilmedi" : "Zimmetli"}</Badge>;
-  return <Badge variant="secondary">Boşta</Badge>;
+  if (durum === "kayip") return <DurumRozeti ton="kotu">Kayıp</DurumRozeti>;
+  if (durum === "iptal") return <DurumRozeti ton="notr">İptal</DurumRozeti>;
+  if (zimmetli) return <DurumRozeti ton={gecikti ? "kotu" : "dikkat"}>{gecikti ? "İade edilmedi" : "Zimmetli"}</DurumRozeti>;
+  return <DurumRozeti ton="iyi">Boşta</DurumRozeti>;
 }
 
 function KisiAdi({ kisi }: { kisi: Kisi }) {
