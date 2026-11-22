@@ -12,6 +12,7 @@ import { Secim } from "@/components/panel/secim";
 import { KAYNAK_ADI, dosyaOzeti, dosyayiDenetle, type DenetimSonucu, type Kaynak, type Okuyucu } from "@/lib/aktarim/denetim";
 import { tarih, tarihSaat } from "@/lib/bicim";
 import { tarayiciIstemcisi } from "@/lib/supabase/client";
+import { hataMesaji } from "@/lib/supabase/hata";
 
 const EN_BUYUK_DOSYA = 20 * 1024 * 1024; // 20 MB
 const ONIZLEME_SATIRI = 10;
@@ -70,10 +71,14 @@ export function AktarimFormu({ okuyucular }: { okuyucular: Okuyucu[] }) {
         .eq("kaynak", secilenKaynak)
         .eq("dosya_ozeti", ozet)
         .maybeSingle();
-      if (error) throw new Error(error.message);
+      if (error) {
+        setDurum({ tur: "hata", mesaj: hataMesaji(error) });
+        return;
+      }
       setDurum({ tur: "hazir", dosyaAdi: secilen.name, sonuc, ozet, onceki: data });
-    } catch (e) {
-      setDurum({ tur: "hata", mesaj: `Dosya okunamadı: ${e instanceof Error ? e.message : String(e)}` });
+    } catch {
+      // Tarayıcının hatası İngilizce ve teknik gelir; kullanıcıya ne yapacağı söylenir
+      setDurum({ tur: "hata", mesaj: "Dosya okunamadı. Dosya başka bir programda açıksa kapatın ve yeniden seçin." });
     }
   }
 
@@ -97,7 +102,7 @@ export function AktarimFormu({ okuyucular }: { okuyucular: Okuyucu[] }) {
       p_dosya_ozeti: hazir.ozet,
     });
     if (error) {
-      setYukleme({ tur: "hata", mesaj: error.message });
+      setYukleme({ tur: "hata", mesaj: hataMesaji(error) });
       return;
     }
 
