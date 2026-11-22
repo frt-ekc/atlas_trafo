@@ -282,7 +282,7 @@ begin
     perform test.dogrula('S21 servis dosyası gelmedi uyarısı',
         exists (select 1 from pdks.uyari where tur = 'dosya_gelmedi' and tekillik_anahtari = 'servis:2026-11-27'));
     perform test.dogrula('S22 amirin kendi sorusu üst amiri Levent''e gitti',
-        (select atanan_id = test.k('levent.sari@atlastrafo.test') from test.soru('1001', '2026-11-26', 'giris_yok')));
+        (select atanan_id = test.k('levent.sari@atlastrafo.example.com') from test.soru('1001', '2026-11-26', 'giris_yok')));
     perform test.dogrula('S23 zimmetsiz geçici kart uyarısı',
         exists (select 1 from pdks.uyari where tur = 'gecici_kart_zimmetsiz'));
     perform test.dogrula('sistem hiçbir günü devamsız yapmadı (karar İK''da)',

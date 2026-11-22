@@ -1,6 +1,6 @@
 # Backend Test Raporu — Atlas Trafo PDKS
 
-> Not: Bu rapordaki kullanıcı e-postaları testin yapıldığı tarihteki adreslerdir (rol@example.com). 22 Kasım'da adresler ad.soyad@atlastrafo.test biçimine çevrildi; eşleme için docs/demo_akisi.md → Demo kullanıcıları.
+> Not: Bu rapordaki kullanıcı e-postaları testin yapıldığı tarihteki adreslerdir (rol@example.com). 22 Kasım'da adresler ad.soyad@atlastrafo.example.com biçimine çevrildi; eşleme için docs/demo_akisi.md → Demo kullanıcıları.
 
 Plan: `BACKEND_TEST_PLANI.md` · Ortam: yalnızca yerel Supabase (`supabase db reset`), canlıya bağlanılmadı.
 Deneme sorguları ve ham çıktılar `scratch/` klasöründe (git'e girmez).
