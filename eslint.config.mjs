@@ -12,8 +12,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Proje dışı klasörler (Python sanal ortamı, Supabase dosyaları)
-    ".venv/**",
+    // Proje dışı klasörler (Supabase dosyaları)
     "supabase/**",
   ]),
 ]);

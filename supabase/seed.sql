@@ -254,8 +254,11 @@ join dp on dp.kisa = v.kisa join pdks.departman d on d.ad = dp.ad;
 -- İSG eğitimi ve sağlık muayenesi: mavi yaka herkesin geçerli kaydı var (yalnızca tarih)
 insert into pdks.isg_belge (calisan_id, tur, gecerlilik_bitis, belge_no, giren_id)
 select x.id, t.tur,
-       case t.tur when 'isg_egitimi' then date '2027-01-15' else date '2027-02-01' end
-           + pg_temp.sayi(x.sicil_no || t.tur, 0, 300),
+       case -- S25 Uğur'un İSG eğitimi 10 Kasım'da doldu; S26 Taner'in sağlık muayenesi 15 Aralık'ta doluyor
+            when x.sicil_no = '5303' and t.tur = 'isg_egitimi'      then date '2026-11-10'
+            when x.sicil_no = '5302' and t.tur = 'saglik_muayenesi' then date '2026-12-15'
+            else case t.tur when 'isg_egitimi' then date '2027-01-15' else date '2027-02-01' end
+                 + pg_temp.sayi(x.sicil_no || t.tur, 0, 300) end,
        'ISG-' || x.sicil_no || '-' || t.kisa, pg_temp.kid('isg.uzmani@example.com')
 from pdks.calisan x
 join pdks.departman d on d.id = x.departman_id and d.yaka = 'mavi'
@@ -290,6 +293,8 @@ where extract(isodow from g) <= 5;
 
 -- Senaryo S13: Okan 13 Kasım'da V3 yerine V2'de çalıştı; plan ertesi gün geriye dönük düzeltildi
 update p set vardiya = 'V2' where sicil = '2005' and tarih = '2026-11-13';
+-- S29 Mehmet (yazılı onaylı) 22 Kasım Pazar, S30 Erkan (yazılı onay yok) 29 Kasım Pazar çalıştı
+insert into p values ('1002', '2026-11-22', 'GUNDUZ'), ('5102', '2026-11-29', 'GUNDUZ_8');
 
 insert into pdks.vardiya_plani (calisan_id, tarih, vardiya_id, giren_id, giris_zamani, geriye_donuk, ik_onay_durumu, aciklama)
 select pg_temp.cid(p.sicil), p.tarih, v.id, pg_temp.giren(pg_temp.cid(p.sicil)),
@@ -299,6 +304,13 @@ select pg_temp.cid(p.sicil), p.tarih, v.id, pg_temp.giren(pg_temp.cid(p.sicil)),
        case when p.sicil = '2005' and p.tarih = '2026-11-13' then 'bekliyor' else 'gerekmez' end,
        case when p.sicil = '2005' and p.tarih = '2026-11-13' then 'V3 yerine V2 (ihtiyaç değişikliği)' end
 from p join pdks.vardiya_tanim v on v.kod = p.vardiya;
+
+-- Demo günü 7 Aralık (Pazartesi): yalnızca Montaj'ın 10 kişisi planlı (okutmaları demo/ klasöründeki
+-- CSV'lerle demoda yüklenir; bu yüzden p tablosuna eklenmez, seed okutma üretmez)
+insert into pdks.vardiya_plani (calisan_id, tarih, vardiya_id, giren_id, giris_zamani)
+select pg_temp.cid(c.sicil), date '2026-12-07', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ'),
+       pg_temp.giren(pg_temp.cid(c.sicil)), timestamptz '2026-11-16 10:00'
+from c where c.dep = 'Montaj';
 
 -- ---------------------------------------------------------------------
 -- 5. İzinler
@@ -406,9 +418,9 @@ from o where sicil = '1006' and tarih = '2026-11-06' and sistem = 'pdks' and yon
 --     13:05'te asıl kartı kapıda okutuldu (kartı başkası kullanıyor olabilir)
 update o set kart = 'GK-01' where sicil = '1007' and tarih = '2026-11-10';
 insert into o values ('1007', '2026-11-10', 'kapi', 'KAPI-1', 'K1007', pg_temp.saat('2026-11-10', '13:05'), 'giris');
--- S7  Osman 11, 17 ve 24 Kasım: kartını unuttu, geçici kartla okuttu (ayda 3 kez)
+-- S7  Osman 11, 17 ve 19 Kasım: kartını unuttu, geçici kartla okuttu (ayda 3 kez)
 update o set kart = 'GK-03' where sicil = '1008' and tarih in ('2026-11-11', '2026-11-17');
-update o set kart = 'GK-01' where sicil = '1008' and tarih = '2026-11-24';
+update o set kart = 'GK-01' where sicil = '1008' and tarih = '2026-11-19';
 -- S8  Emre 12 Kasım: kartını kaybetti; o gün geçici kart, ertesi günden yeni kart.
 --     16 Kasım'da iptal edilen eski kartı PDKS'de okutuldu
 update o set kart = 'GK-04' where sicil = '1009' and tarih = '2026-11-12';
@@ -451,6 +463,14 @@ insert into o values (null, '2026-11-26', 'pdks', 'PDKS-1', 'K9999', pg_temp.saa
 delete from o where sicil = '1001' and tarih = '2026-11-26' and yon = 'giris';
 -- S23 27 Kasım: kimseye zimmetli olmayan geçici kart GK-05 okutuldu
 insert into o values (null, '2026-11-27', 'pdks', 'PDKS-1', 'GK-05', pg_temp.saat('2026-11-27', '08:10'), 'giris');
+-- S25 Uğur (Bakım, YG Lab'a yetkili) 12 Kasım 10:15'te YG Test Lab kapısından geçti
+insert into o values ('5303', '2026-11-12', 'kapi', 'YG-KAPI', 'K5303', pg_temp.saat('2026-11-12', '10:15'), 'giris');
+-- S27 Selim (Depo, yetkisiz) 19 Kasım 14:10'da Boyahane kapısından geçti; Hakan (Boyahane) 09:00'da
+insert into o values ('5402', '2026-11-19', 'kapi', 'BOYA-KAPI', 'K5402', pg_temp.saat('2026-11-19', '14:10'), 'giris'),
+                     ('5202', '2026-11-19', 'kapi', 'BOYA-KAPI', 'K5202', pg_temp.saat('2026-11-19', '09:00'), 'giris');
+-- S32 İrem (esnek) 18 Kasım: PDKS girişi yok, kapı girişi 09:12
+delete from o where sicil = '6202' and tarih = '2026-11-18' and sistem = 'pdks' and yon = 'giris';
+update o set zaman = pg_temp.saat('2026-11-18', '09:12') where sicil = '6202' and tarih = '2026-11-18' and sistem = 'kapi' and yon = 'giris';
 
 -- ---------------------------------------------------------------------
 -- 8. Kart iptali (S8) ve geçici kartlar
@@ -474,7 +494,7 @@ begin
             ('GK-04', '1009', date '2026-11-12', time '07:25', 'Kartını kaybetti'),
             ('GK-03', '1008', date '2026-11-17', time '07:25', 'Kartını evde unuttu'),
             ('GK-02', '1010', date '2026-11-18', time '07:25', 'Kartını evde unuttu'),
-            ('GK-01', '1008', date '2026-11-24', time '07:25', 'Kartını evde unuttu')) v(kart, sicil, gun, saat, aciklama)
+            ('GK-01', '1008', date '2026-11-19', time '07:25', 'Kartını evde unuttu')) v(kart, sicil, gun, saat, aciklama)
         order by gun
     loop
         insert into pdks.gecici_kart_zimmet (gecici_kart_id, calisan_id, verilis_zamani, veren_id, aciklama)
@@ -493,13 +513,16 @@ end $$;
 -- 9. Dosya aktarımları: her kaynak için günde bir dosya
 --    S21: 27 Kasım servis dosyası gelmedi
 -- ---------------------------------------------------------------------
+--    1 Aralık: yalnızca PDKS ve kapı (30 Kasım gece vardiyalarının sabaha kadarki okutmaları;
+--    bu dosyalar olmadan 30 Kasım'ın V2 / V3 / 16-24 vardiyaları işlenemez)
 insert into pdks.aktarim (kaynak, dosya_adi, dosya_ozeti, veri_tarihi, satir_sayisi, aktarim_zamani)
 select k, k || '_' || to_char(g, 'YYYYMMDD') || '.csv', md5(k || g::date), g::date,
        (select count(*) from o where o.sistem = k and (o.zaman at time zone 'Europe/Istanbul')::date = g::date),
        (g::date + 1 + time '00:30') at time zone 'Europe/Istanbul'
 from unnest(array['pdks', 'kapi', 'yemekhane', 'servis']) k,
-     generate_series(date '2026-11-01', date '2026-11-30', interval '1 day') g
-where not (k = 'servis' and g::date = '2026-11-27');
+     generate_series(date '2026-11-01', date '2026-12-01', interval '1 day') g
+where not (k = 'servis' and g::date = '2026-11-27')
+  and not (k in ('yemekhane', 'servis') and g::date = '2026-12-01');
 
 delete from o where sistem = 'servis' and (zaman at time zone 'Europe/Istanbul')::date = '2026-11-27';
 

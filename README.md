@@ -46,7 +46,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 | Excel çıktısı | SheetJS | Bordroya hazır puantaj |
 | Gece işi zamanlama | pg_cron | Her gece kendiliğinden çalışır; demoda ekrandaki butonla da tetiklenir |
 | Test | SQL testleri (`supabase/tests`) | Testler sonda ROLLBACK ile iz bırakmaz |
-| Raporlama | Power BI — **karar bekliyor** | Power BI Desktop yalnızca Windows'ta çalışır; zorunlu değilse grafikler Streamlit'te |
+| Raporlama | Yönetici paneli + Excel / CSV / PDF çıktıları | Ayrı raporlama aracı kullanılmaz |
 | Yayın | Vercel | |
 | Kod | GitHub | |
 
@@ -103,7 +103,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 |---|---|
 | `20261114000100_tablolar.sql` | Şema ve 24 tablo |
 | `20261114000200_kurallar.sql` | Trigger'lar, fonksiyonlar, görünümler |
-| `20261114000300_roller_ve_yetkiler.sql` | `pdks_uygulama` ve `pdks_gece_isi` rolleri |
+| `20261114000300_roller_ve_yetkiler.sql` | `pdks_uygulama` ve `pdks_gece_isi` rolleri (20261118030000'de kaldırıldı) |
 | `20261114000400_varsayilan_ayarlar.sql` | Varsayılan ayarlar ve 4 vardiya |
 | `20261115000500_fazla_mesai.sql` | Yazılı onay, plan, 11 / 270 saat sınırı |
 | `20261117010000_kiosk_kaldir.sql` | Şema düzenlemesi: PIN alanları ve ilgili fonksiyonlar |
@@ -126,6 +126,12 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261128010000_dosya_yukle_duzeltmesi.sql` | `dosya_yukle`: dosyanın SHA-256 özeti, doğru satır sayısı, satır satır sunucu denetimi |
 | `20261129010000_esnek_kanit.sql` | Esnek mesaide PDKS girişi eksikse kanıt saati (kapı / servis + yürüme payı) doğrudan yazılır |
 | `20261129020000_zimmet_cakisma_mesaji.sql` | Geçici kart zimmeti çakışınca hata, çakışan zimmeti söyler (kart, kişi, tarih, saat) |
+| `20261130010000_ise_giris_cikis.sql` | İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`; yalnızca İK); gece işi çalışanı tarihe göre süzer |
+| `20261201010000_ay_kilidi_ve_aninda_hesap.sql` | Gün hesabı tek yerde (`gun_hesapla`); soru cevabı, İK kararı ve düzeltme günü hemen hesaplar; işlenmemiş planlı gün varken ay kilitlenmez |
+| `20261201020000_kilit_ozeti.sql` | Onay bekleyen geriye dönük plan kilidi durdurur (zorla geçilir); `ay_kilitle` kilit özeti döner |
+| `20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu yapılınca eski dakikalar temizlenir, gün "bekleyen" sayılmaz |
+| `20261203010000_plan_onayi.sql` | Geriye dönük plan onayı: bekleyen / reddedilmiş plan kullanılmaz, onay günü düzeltir ya da işletir, kendi planını onaylama yok |
+| `20261204010000_dosya_yukle_where.sql` | `dosya_yukle` ekrandan (HTTP) çalışır: WHERE'siz `UPDATE`'e koşul eklendi (T-31) |
 
 ---
 
@@ -153,6 +159,8 @@ npm run dev                         # http://localhost:3000
 
 **Testler:** `supabase/tests` altındaki her dosya `psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f <dosya>` ile çalıştırılır; sonda "... GEÇTİ" yazmalı. Testler veritabanında iz bırakmaz ve örnek veri yüklü olsa da olmasa da çalışır. `ornek_veri_testi.sql` örnek verinin yüklü olmasını bekler.
 
+> **Dikkat:** Testler psql ile doğrudan bağlanır. Ekrandan gelen (HTTP) isteklerde Supabase `safeupdate` eklentisini yükler ve WHERE'siz `UPDATE` / `DELETE`'i reddeder; psql'de bu kural yoktur. Bu yüzden bir fonksiyon testlerde geçip ekranda düşebilir. `where_siz_guncelleme_testi.sql` bütün `pdks` fonksiyonlarını bu açıdan tarar.
+
 ---
 
 ## 6. Ortam değişkenleri
@@ -176,7 +184,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 |---|---|
 | Veritabanı şeması ve kurallar (27 test) | ✅ |
 | Fazla mesai (34 test) | ✅ |
-| Geçici kart ve zimmet (35 test, kart paylaşımıyla birlikte) | ✅ |
+| Geçici kart ve zimmet (39 test, kart paylaşımıyla birlikte) | ✅ |
 | Kart paylaşımı şüphe kuralı (testli) | ✅ |
 | Giriş ve yetki: Supabase Auth bağlantısı, RLS politikaları (29 test) | ✅ |
 | Görevler ayrılığı: kimse kendi kaydında işlem yapamaz (20 test) | ✅ |
@@ -190,21 +198,23 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Yeni vardiyalar (08-16, 16-24, 00-08, 08:30-18:00), esnek mesai, otomatik vardiya tanıma, mola (28 test) | ✅ |
 | Esnek mesaide PDKS girişi eksikse amire soru yerine kanıt saatini (kapı / servis + yürüme payı) doğrudan yazmak | ✅ |
 | Geçici kart zimmeti çakışma hatasında çakışan zimmeti göstermek | ✅ |
-| Örnek veri: Kasım 2026, 19 departman, 76 çalışan, 23 senaryo (37 test) | ✅ |
+| Örnek veri: Kasım 2026, 19 departman, 76 çalışan, 32 senaryo; 1 Aralık sabah dosyaları ve 7 Aralık demo planı (59 kontrol) | ✅ |
 | Mavi / beyaz yaka, İSG uzmanı ve sistem yöneticisi rolleri, kullanıcı ve ayar yönetimi (35 test) | ✅ |
 | İSG: bölge yetkisi (verilme / kaldırılma izi dahil), eğitim / muayene geçerliliği, yalnızca uyarı (30 test) | ✅ |
 | CSV içe aktarma (Papa Parse): ekranda denetim ve Yükle düğmesi `dosya_yukle`'ye bağlı (24 test) | ✅ |
 | Gece işi fonksiyonu (işaretleme → günlük kayıt → kanıtla düzeltme → amire soru → uyarı) ve pg_cron zamanlaması | ✅ |
-| Amir ekranı (sorular, itiraz girişi) | ⬜ Yapılacak |
-| İK ekranı (uyarılar, kararlar, ay kilidi) | ⬜ Yapılacak |
-| Güvenlik ekranı (geçici kart ver / iade al) | ⬜ Yapılacak |
+| Amir ekranı (sorular, itiraz girişi) | ✅ |
+| İK ekranı (uyarılar, kararlar, ay kilidi) | ✅ |
+| Güvenlik ekranı (geçici kart ver / iade al) | ✅ |
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
+| İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (35 test) | ✅ |
+| Geriye dönük plan onayı: bekleyen plan kullanılmaz, onay günü düzeltir / işletir, ret ya da onay bekleyen + işlenmemiş gün kilidi durdurur, kendi planını onaylama yok (20 test) | ✅ |
+| Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
+| Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
+| Ekrandan dosya yükleme (T-31): dört kaynak HTTP'den yazılıyor; fonksiyonlarda WHERE'siz `UPDATE` / `DELETE` taraması (9 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
-| Raporlama (Power BI veya Streamlit) | ⬜ Karar bekliyor |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
-
-**Karar bekleyenler:** Power BI zorunlu mu.
 
 ---
 
@@ -215,6 +225,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 - Her PR en az 1 onay alır.
 - Commit mesajları Türkçe ve kısa: `feat(db): ...`, `fix: ...`, `docs: ...`, `test: ...`.
 - `supabase/migrations` altındaki mevcut dosyalar **asla değiştirilmez**; her değişiklik yeni numaralı dosyadır ve testiyle gelir.
+- Fonksiyonlarda her `UPDATE` / `DELETE` bir `WHERE` koşulu taşır (geçici tablolarda da). Ekrandan gelen isteklerde Supabase WHERE'siz olanları reddeder.
 - Gizli bilgiler (şifre, anahtar, bağlantı adresi) koda, loglara, ekran görüntülerine yazılmaz; yalnızca `.env.local` dosyasında ve Vercel ortam değişkenlerinde tutulur.
 - `SUPABASE_SECRET_KEY` yalnızca sunucu tarafı kodda kullanılır, tarayıcıya gönderilmez.
 - Her tabloda RLS açıktır; yetki kontrolü veritabanında yapılır.

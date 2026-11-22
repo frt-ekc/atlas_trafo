@@ -135,6 +135,9 @@ select test.dogrula('düzeltme Kasım''a fark olarak yönlendirildi',
      where d.gun_kaydi_id = (test.gk('PT02', '2026-10-06')).id and d.alan = 'giris_zamani'));
 
 -- Kasım kilitlenince fark satırı yazılır (örnek veri yüklüyse Kasım'da soru olabilir: zorla)
+-- Örnek veri yüklüyse onun Kasım planları bu testte gece işinden geçmez; ay kilidi (20261201010000)
+-- işlenmemiş planlı günü zorla bile kabul etmez. Test yalnızca kendi verisine bakar (ROLLBACK geri alır).
+delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('pt_ik@ornek.test');
 select pdks.ay_kilitle(2026::smallint, 11::smallint, true);
