@@ -46,7 +46,7 @@ select test.dogrula('25 kullanıcı: 2 İK, 19 amir, 1 güvenlik, 1 yönetici, 1
     and (select count(*) from pdks.kullanici where rol = 'admin') = 1);
 select test.dogrula('her kullanıcı bir çalışana bağlı', not exists (select 1 from pdks.kullanici where calisan_id is null));
 select test.dogrula('kullanıcı e-postaları yalnızca örnek alan adında (example.com)',
-    not exists (select 1 from pdks.kullanici where eposta not like '%@example.com'));
+    not exists (select 1 from pdks.kullanici where eposta not like '%@atlastrafo.test'));
 select test.dogrula('her departmanın amiri var', not exists (select 1 from pdks.departman where amir_id is null));
 select test.dogrula('her çalışanın tam olarak bir aktif kartı var',
     not exists (select 1 from pdks.calisan c

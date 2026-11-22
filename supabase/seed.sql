@@ -191,55 +191,55 @@ create function pg_temp.cid(p text) returns bigint language sql stable as $$
     select id from pdks.calisan where sicil_no = p $$;
 
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id) values
-    ('Elif Şen',      'ik.uzmani@example.com',     'ik',       pg_temp.cid('4001')),
-    ('Ahmet Er',      'ik.muduru@example.com',     'ik',       pg_temp.cid('4002')),
-    ('Recep Bayram',  'guvenlik@example.com',      'guvenlik', pg_temp.cid('4003')),
-    ('Nur Tekin',     'fabrika.muduru@example.com','yonetici', pg_temp.cid('4004')),
-    ('Levent Sarı',   'uretim.muduru@example.com', 'amir',     pg_temp.cid('4006'));
+    ('Elif Şen',      'elif.sen@atlastrafo.test',     'ik',       pg_temp.cid('4001')),
+    ('Ahmet Er',      'ahmet.er@atlastrafo.test',     'ik',       pg_temp.cid('4002')),
+    ('Recep Bayram',  'recep.bayram@atlastrafo.test',      'guvenlik', pg_temp.cid('4003')),
+    ('Nur Tekin',     'nur.tekin@atlastrafo.test','yonetici', pg_temp.cid('4004')),
+    ('Levent Sarı',   'levent.sari@atlastrafo.test', 'amir',     pg_temp.cid('4006'));
 
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id, ust_amir_id)
-select a, e, 'amir', pg_temp.cid(s), (select id from pdks.kullanici where eposta = 'uretim.muduru@example.com')
-from (values ('Hasan Yılmaz',  'montaj.amiri@example.com',  '1001'),
-             ('Serkan Öztürk', 'bobinaj.amiri@example.com', '2001'),
-             ('Zeynep Acar',   'kalite.amiri@example.com',  '3001')) v(a, e, s);
+select a, e, 'amir', pg_temp.cid(s), (select id from pdks.kullanici where eposta = 'levent.sari@atlastrafo.test')
+from (values ('Hasan Yılmaz',  'hasan.yilmaz@atlastrafo.test',  '1001'),
+             ('Serkan Öztürk', 'serkan.ozturk@atlastrafo.test', '2001'),
+             ('Zeynep Acar',   'zeynep.acar@atlastrafo.test',  '3001')) v(a, e, s);
 
 create function pg_temp.kid(p text) returns bigint language sql stable as $$
     select id from pdks.kullanici where eposta = p $$;
 
 -- Yeni departmanların amirleri: mavi yakada üst amir üretim müdürü, beyaz yakada genel müdür
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id)
-values ('Rıza Kalkan', 'genel.mudur@example.com', 'amir', pg_temp.cid('6901'));
+values ('Rıza Kalkan', 'riza.kalkan@atlastrafo.test', 'amir', pg_temp.cid('6901'));
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id, ust_amir_id)
 select c.ad || ' ' || c.soyad, v.e, 'amir', pg_temp.cid(v.s),
        (select id from pdks.kullanici
-        where eposta = case when dp.yaka = 'mavi' then 'uretim.muduru@example.com' else 'genel.mudur@example.com' end)
-from (values ('5001', 'nuve.amiri@example.com'),        ('5101', 'kazan.amiri@example.com'),
-             ('5201', 'boyahane.amiri@example.com'),    ('5301', 'bakim.amiri@example.com'),
-             ('5401', 'depo.amiri@example.com'),        ('6001', 'arge.amiri@example.com'),
-             ('6101', 'planlama.amiri@example.com'),    ('6201', 'satis.amiri@example.com'),
-             ('6301', 'dis.ticaret.amiri@example.com'), ('6401', 'satin.alma.amiri@example.com'),
-             ('6501', 'insan.kaynaklari.amiri@example.com'), ('6601', 'isg.amiri@example.com'),
-             ('6701', 'finans.amiri@example.com'),      ('6801', 'bilgi.islem.amiri@example.com')) v(s, e)
+        where eposta = case when dp.yaka = 'mavi' then 'levent.sari@atlastrafo.test' else 'riza.kalkan@atlastrafo.test' end)
+from (values ('5001', 'baris.yalcin@atlastrafo.test'),        ('5101', 'sinan.guler@atlastrafo.test'),
+             ('5201', 'cengiz.sezer@atlastrafo.test'),    ('5301', 'volkan.simsek@atlastrafo.test'),
+             ('5401', 'ramazan.cetin@atlastrafo.test'),        ('6001', 'aylin.kaplan@atlastrafo.test'),
+             ('6101', 'cansu.akin@atlastrafo.test'),    ('6201', 'serdar.coskun@atlastrafo.test'),
+             ('6301', 'gamze.yuksel@atlastrafo.test'), ('6401', 'nihat.uysal@atlastrafo.test'),
+             ('6501', 'filiz.oral@atlastrafo.test'), ('6601', 'mert.alkan@atlastrafo.test'),
+             ('6701', 'hulya.gundogdu@atlastrafo.test'),      ('6801', 'tamer.oguz@atlastrafo.test')) v(s, e)
 join c on c.sicil = v.s join dp on dp.kisa = c.dep;
 
 -- İSG uzmanı ve sistem yöneticisi
 insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id) values
-    ('Tuba Erkoç',  'isg.uzmani@example.com',        'isg',   pg_temp.cid('6602')),
-    ('Alper Çınar', 'sistem.yoneticisi@example.com', 'admin', pg_temp.cid('6802'));
+    ('Tuba Erkoç',  'tuba.erkoc@atlastrafo.test',        'isg',   pg_temp.cid('6602')),
+    ('Alper Çınar', 'alper.cinar@atlastrafo.test', 'admin', pg_temp.cid('6802'));
 
 -- Her departmanın amiri: grubun ilk sicili (İdari İşler: üretim müdürü)
 update pdks.departman d
-set amir_id = case when dp.kisa = 'Montaj'  then pg_temp.kid('montaj.amiri@example.com')
-                   when dp.kisa = 'Bobinaj' then pg_temp.kid('bobinaj.amiri@example.com')
-                   when dp.kisa = 'Kalite'  then pg_temp.kid('kalite.amiri@example.com')
-                   when dp.kisa = 'İdari'   then pg_temp.kid('uretim.muduru@example.com')
+set amir_id = case when dp.kisa = 'Montaj'  then pg_temp.kid('hasan.yilmaz@atlastrafo.test')
+                   when dp.kisa = 'Bobinaj' then pg_temp.kid('serkan.ozturk@atlastrafo.test')
+                   when dp.kisa = 'Kalite'  then pg_temp.kid('zeynep.acar@atlastrafo.test')
+                   when dp.kisa = 'İdari'   then pg_temp.kid('levent.sari@atlastrafo.test')
                    else (select k.id from pdks.kullanici k
                          join pdks.calisan x on x.id = k.calisan_id
                          where x.departman_id = d.id and k.rol = 'amir'
                          order by x.sicil_no limit 1) end
 from dp
 where d.ad = dp.ad;
-update pdks.departman set vekil_amir_id = pg_temp.kid('montaj.amiri@example.com') where ad = 'Bobinaj';
+update pdks.departman set vekil_amir_id = pg_temp.kid('hasan.yilmaz@atlastrafo.test') where ad = 'Bobinaj';
 
 -- İSG: bölgeler, bölge kapıları ve giriş yetkileri (İSG uzmanı verir)
 insert into pdks.bolge (kod, ad) values ('YG-LAB', 'Yüksek Gerilim Test Laboratuvarı'), ('BOYAHANE', 'Boyahane');
@@ -247,7 +247,7 @@ insert into pdks.okuyucu (kod, ad, sistem, konum, bolge_id) values
     ('YG-KAPI',   'YG Test Lab kapısı', 'kapi', 'Kalite binası', (select id from pdks.bolge where kod = 'YG-LAB')),
     ('BOYA-KAPI', 'Boyahane kapısı',    'kapi', 'Boyahane',      (select id from pdks.bolge where kod = 'BOYAHANE'));
 insert into pdks.bolge_yetkisi (bolge_id, departman_id, veren_id)
-select (select id from pdks.bolge where kod = v.b), d.id, pg_temp.kid('isg.uzmani@example.com')
+select (select id from pdks.bolge where kod = v.b), d.id, pg_temp.kid('tuba.erkoc@atlastrafo.test')
 from (values ('YG-LAB', 'Kalite'), ('YG-LAB', 'Bakım'), ('BOYAHANE', 'Boya'), ('BOYAHANE', 'Bakım')) v(b, kisa)
 join dp on dp.kisa = v.kisa join pdks.departman d on d.ad = dp.ad;
 
@@ -259,7 +259,7 @@ select x.id, t.tur,
             when x.sicil_no = '5302' and t.tur = 'saglik_muayenesi' then date '2026-12-15'
             else case t.tur when 'isg_egitimi' then date '2027-01-15' else date '2027-02-01' end
                  + pg_temp.sayi(x.sicil_no || t.tur, 0, 300) end,
-       'ISG-' || x.sicil_no || '-' || t.kisa, pg_temp.kid('isg.uzmani@example.com')
+       'ISG-' || x.sicil_no || '-' || t.kisa, pg_temp.kid('tuba.erkoc@atlastrafo.test')
 from pdks.calisan x
 join pdks.departman d on d.id = x.departman_id and d.yaka = 'mavi'
 cross join (values ('isg_egitimi', 'E'), ('saglik_muayenesi', 'M')) t(tur, kisa)
@@ -268,8 +268,8 @@ order by x.sicil_no, t.tur;
 
 -- İK kayıtlarını İK uzmanı girer; kendi kayıtlarını İK müdürü (görevler ayrılığı)
 create function pg_temp.giren(p_calisan bigint) returns bigint language sql stable as $$
-    select case when p_calisan = pg_temp.cid('4001') then pg_temp.kid('ik.muduru@example.com')
-                else pg_temp.kid('ik.uzmani@example.com') end $$;
+    select case when p_calisan = pg_temp.cid('4001') then pg_temp.kid('ahmet.er@atlastrafo.test')
+                else pg_temp.kid('elif.sen@atlastrafo.test') end $$;
 
 -- ---------------------------------------------------------------------
 -- 4. Vardiya planı: 1-30 Kasım 2026, hafta içi
@@ -330,9 +330,9 @@ from c where sicil < '4000' and sicil <> '3005';
 
 insert into pdks.fazla_mesai_plani (calisan_id, is_gunu, vardiya_id, planli_dk, gerekce, talep_eden_id)
 values (pg_temp.cid('3003'), '2026-11-20', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ'), 120,
-        'Sevkiyat öncesi son kontroller', pg_temp.kid('kalite.amiri@example.com'));
+        'Sevkiyat öncesi son kontroller', pg_temp.kid('zeynep.acar@atlastrafo.test'));
 update pdks.fazla_mesai_plani
-set durum = 'onaylandi', karar_veren_id = pg_temp.kid('ik.muduru@example.com'), karar_zamani = now(),
+set durum = 'onaylandi', karar_veren_id = pg_temp.kid('ahmet.er@atlastrafo.test'), karar_zamani = now(),
     karar_aciklama = 'Uygun'
 where calisan_id = pg_temp.cid('3003') and is_gunu = '2026-11-20';
 
@@ -476,7 +476,7 @@ update o set zaman = pg_temp.saat('2026-11-18', '09:12') where sicil = '6202' an
 -- 8. Kart iptali (S8) ve geçici kartlar
 -- ---------------------------------------------------------------------
 update pdks.kart set durum = 'iptal', iptal_nedeni = 'kayip', iptal_zamani = pg_temp.saat('2026-11-12', '09:00'),
-                     iptal_eden_id = pg_temp.kid('ik.uzmani@example.com')
+                     iptal_eden_id = pg_temp.kid('elif.sen@atlastrafo.test')
 where kart_no = 'K1009';
 insert into pdks.kart (kart_no, calisan_id, verilis_tarihi) values ('K1009B', pg_temp.cid('1009'), '2026-11-12');
 
@@ -499,11 +499,11 @@ begin
     loop
         insert into pdks.gecici_kart_zimmet (gecici_kart_id, calisan_id, verilis_zamani, veren_id, aciklama)
         values ((select id from pdks.gecici_kart where kart_no = r.kart), pg_temp.cid(r.sicil),
-                pg_temp.saat(r.gun, r.saat), pg_temp.kid('guvenlik@example.com'), r.aciklama)
+                pg_temp.saat(r.gun, r.saat), pg_temp.kid('recep.bayram@atlastrafo.test'), r.aciklama)
         returning id into v_id;
         if r.kart <> 'GK-02' then
             update pdks.gecici_kart_zimmet
-            set iade_zamani = pg_temp.saat(r.gun, '17:25'), iade_alan_id = pg_temp.kid('guvenlik@example.com')
+            set iade_zamani = pg_temp.saat(r.gun, '17:25'), iade_alan_id = pg_temp.kid('recep.bayram@atlastrafo.test')
             where id = v_id;
         end if;
     end loop;

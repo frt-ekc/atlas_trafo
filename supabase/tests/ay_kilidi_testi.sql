@@ -263,9 +263,9 @@ select exists (select 1 from pdks.calisan where sicil_no = '1001') as ornek_var 
 \if :ornek_var
 -- Test yalnızca örnek veriye bakar: A bölümünün Kasım'a yazdığı fark düzeltmesi Aralık kilidini etkilemez
 update pdks.kullanici set auth_kullanici_id = v.u::uuid
-from (values ('uretim.muduru@example.com', '00000000-0000-0000-0000-0000000000b1'),
-             ('ik.uzmani@example.com',     '00000000-0000-0000-0000-0000000000b2'),
-             ('ik.muduru@example.com',     '00000000-0000-0000-0000-0000000000b3')) v(e, u)
+from (values ('levent.sari@atlastrafo.test', '00000000-0000-0000-0000-0000000000b1'),
+             ('elif.sen@atlastrafo.test',     '00000000-0000-0000-0000-0000000000b2'),
+             ('ahmet.er@atlastrafo.test',     '00000000-0000-0000-0000-0000000000b3')) v(e, u)
 where eposta = v.e;
 do $$ declare d date; begin
     for d in select g::date from generate_series(date '2026-11-01', date '2026-11-30', interval '1 day') g loop
@@ -278,11 +278,11 @@ select test.dogrula('uçtan uca hazırlık: Kasım işlendi, 4 soru üst amirde 
     and pdks.kullanici_rolu((test.soru('1001', '2026-11-26')).eskale_edilen_id) = 'ik');
 
 set local role authenticated;
-select test.oturum('uretim.muduru@example.com');
+select test.oturum('levent.sari@atlastrafo.test');
 select pdks.soru_cevapla((test.soru('1003', '2026-11-04')).id, 'geldi_saat_dogru');   -- S2
 select pdks.soru_cevapla((test.soru('1005', '2026-11-05')).id, 'bilmiyorum');         -- S4
 select pdks.soru_cevapla((test.soru('2009', '2026-11-25')).id, 'gelmedi');            -- S19
-select test.oturum('ik.uzmani@example.com');
+select test.oturum('elif.sen@atlastrafo.test');
 select pdks.soru_ik_karari((test.soru('1005', '2026-11-05')).id, false, 'Vardiya sonuna kadar çalıştı', null, '2026-11-05 17:00+03');
 select pdks.soru_ik_karari((test.soru('2009', '2026-11-25')).id, true, 'Haber vermeden gelmedi');
 select pdks.soru_ik_karari((test.soru('1001', '2026-11-26')).id, false, 'Üretim müdürü teyit etti', '2026-11-26 08:00+03'); -- S22 (İK'ya eskale)
@@ -292,10 +292,10 @@ select test.hata('uçtan uca: Okan''ın (S13) onay bekleyen planının günü i�
     '11/2026 döneminde gece işinden geçmemiş 1 planlı gün var (1 çalışan; ilk gün 13.11.2026); 1 günün geriye dönük planı İK onayı bekliyor',
     $$select pdks.ay_kilitle(2026::smallint, 11::smallint, true)$$);
 -- Planı İK uzmanı girdi; görevler ayrılığı gereği İK müdürü onaylar
-select test.oturum('ik.muduru@example.com');
+select test.oturum('ahmet.er@atlastrafo.test');
 select pdks.vardiya_plani_onayla((select id from pdks.vardiya_plani where calisan_id = test.c('2005') and tarih = '2026-11-13'), true);
 -- Hemen kilit (arada gece işi yok)
-select test.oturum('ik.uzmani@example.com');
+select test.oturum('elif.sen@atlastrafo.test');
 select test.dogrula('uçtan uca: Kasım kilit özeti — zorla yok, geçilen kalem yok, kodsuz gün yok',
     (select r ->> 'kodsuz_gun' = '0' and r -> 'zorla_gecilen' = '{"acik_soru_gun": 0, "acik_itiraz": 0, "bekleyen_fazla_mesai": 0, "bekleyen_plan_onayi": 0}'::jsonb
      from (select pdks.ay_kilitle(2026::smallint, 11::smallint) as r) x));
@@ -320,7 +320,7 @@ select test.dogrula('uçtan uca: ERP''de izin kodları (Can RPR 3, Deniz Yİ 2, 
 
 -- Kilitten sonra itiraz: Selin 9 Kasım 08:35 girişine itiraz, İK kabul edip 08:00 yazar
 set local role authenticated;
-select test.oturum('ik.uzmani@example.com');
+select test.oturum('elif.sen@atlastrafo.test');
 select pdks.itiraz_gir((test.gk('3002', '2026-11-09')).id, 'Servis geç geldi, 08:00''de fabrikadaydım');
 select pdks.itiraz_karar((select id from pdks.itiraz where gun_kaydi_id = (test.gk('3002', '2026-11-09')).id), true, 'Servis kaydı doğruluyor');
 select pdks.kayit_duzelt((test.gk('3002', '2026-11-09')).id, 'giris_zamani', '2026-11-09 08:00+03', 'İtiraz kabulü',
@@ -333,14 +333,14 @@ select test.dogrula('uçtan uca: kilitli Kasım günü değişmedi, düzeltme Ar
 
 -- Aralık: 7 Aralık demo planı işlenmediği için kilit reddedilir; plan kaldırılınca fark satırı yazılır
 set local role authenticated;
-select test.oturum('ik.uzmani@example.com');
+select test.oturum('elif.sen@atlastrafo.test');
 select test.hata('uçtan uca: Aralık kilidi 7 Aralık''ın işlenmemiş 10 planlı günü yüzünden reddedilir (zorla da)',
     '12/2026 döneminde gece işinden geçmemiş 10 planlı gün var (10 çalışan; ilk gün 07.12.2026)',
     $$select pdks.ay_kilitle(2026::smallint, 12::smallint, true)$$);
 reset role;
 delete from pdks.vardiya_plani where tarih = '2026-12-07';
 set local role authenticated;
-select test.oturum('ik.uzmani@example.com');
+select test.oturum('elif.sen@atlastrafo.test');
 select pdks.ay_kilitle(2026::smallint, 12::smallint, true);
 reset role;
 select test.dogrula('uçtan uca: Aralık ERP''sinde Selin için Kasım kaynaklı fark satırı (NÇ dakika arttı)',
