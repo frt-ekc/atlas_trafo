@@ -31,6 +31,12 @@ export function bugun(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
 }
 
+// Ay ("2026-11") bitti mi? Ayın son günü geçmeden bitmiş sayılmaz: 30 Kasım'da hayır, 1 Aralık'ta evet.
+// Metin karşılaştırması yeterli: ikisi de "YYYY-MM".
+export function ayBittiMi(ay: string, bugunTarih: string): boolean {
+  return ay < bugunTarih.slice(0, 7);
+}
+
 export type HaftaGunu = { tarih: string; ad: string; gunAy: string; haftaSonu: boolean };
 
 export function haftaninGunleri(pazartesi: string): HaftaGunu[] {

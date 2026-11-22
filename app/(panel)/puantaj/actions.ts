@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ayBittiMi, bugun } from "@/lib/hafta";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { metinAl, rpcCagir } from "@/lib/supabase/rpc";
 
@@ -16,9 +17,11 @@ type KilitOzeti = {
 // Ayı kilitler ve puantajı yazar (ay_kilitle). Kilit GERİ AÇILAMAZ; sonradan gelen düzeltme
 // sonraki aya fark satırı olur. Açık soru / itiraz ya da kararı bekleyen onaysız fazla mesai varsa
 // veritabanı reddeder; "zorla" işaretlenirse yine de kilitler.
+// Bitmemiş ay burada da reddedilir (T-89: veritabanı şimdilik ileri ayı bile kilitleyebiliyor).
 export async function ayKilitle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const ay = metinAl(form, "ay");
   if (!ay || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ay)) return { durum: "hata", mesaj: "Ay seçilmedi." };
+  if (!ayBittiMi(ay, bugun())) return { durum: "hata", mesaj: "Bu ay henüz bitmedi; yalnızca bitmiş ay kilitlenebilir." };
   if (metinAl(form, "onay") !== "evet") return { durum: "hata", mesaj: "Kilidin geri açılamayacağını onaylayın." };
   const [yil, ayNo] = ay.split("-").map(Number);
 
