@@ -18,26 +18,28 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-103 bulgu çıktı: 1 Kritik, 16 Yüksek, 33 Orta, 34 Düşük, 19 Görüş. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Yüksek bulgular 15 kök neden grubunda toplandı; 25 Kasım'a kadar düzeltilip canlı kurulumdan önce `main`'e alınması planlandı. Kalanlar ya düzeltme listesinde ya da "Bilinen sınırlılıklar" bölümünde.
+104 bulgu çıktı (103'ü test adımlarında, T-104 ekran PR'larının incelemesinde): 1 Kritik, 17 Yüksek, 33 Orta, 34 Düşük, 19 Görüş. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34 ve T-89'un ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40, #39). Bulgular 16 kök neden grubunda toplandı; 25 Kasım'a kadar düzeltilip canlı kurulumdan önce `main`'e alınması planlandı. Kalanlar ya düzeltme listesinde ya da "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 16 | 16 | 0 | 16 (25 Kasım'a kadar) | 0 |
-| Orta | 33 | 33 | 0 | 25 | 8 |
-| Düşük | 34 | 34 | 0 | 21 | 13 |
+| Yüksek | 17 | 17 | 0 | 17 (25 Kasım'a kadar; T-104 demo öncesi) | 0 |
+| Orta | 33 | 32 | 1 (T-38) | 24 | 8 |
+| Düşük | 34 | 33 | 1 (T-37) | 20 | 13 |
 | Görüş | 19 | 19 | 0 | 9 | 10 |
-| **Toplam** | **103** | **102** | **1** | **71** | **31** |
+| **Toplam** | **104** | **101** | **3** | **70** | **31** |
+
+"Açık" sütununda T-34 (Düşük) ve T-89 (Yüksek) de var: ekran tarafları düzeltildi, veritabanı tarafları açık.
 
 **Tutarlılık denetimi (22 Kasım):**
 - Her bulgunun önemi başlığında, adım sonundaki "Bulgular önem sırasıyla" listesinde ve metindeki atıflarda aynı (otomatik karşılaştırma: 0 fark).
-- Numaralar T-01'den T-103'e kadar; atlanan ve tekrar eden yok.
+- Numaralar T-01'den T-104'e kadar; atlanan ve tekrar eden yok. T-104, 22 Kasım'daki ekran PR'larının (#37, #39–#41) incelemesinde bulundu (raporun sonundaki "PR incelemesi" bölümü).
 - Adımlar raporda 1 → 13 sırasıyla duruyor; Endpoint testi 6 ile 7 arasında.
 - Numaralar adım sırasında değil: Adım 10, 11'den sonra yapıldığı için Adım 9'da T-76–78, Adım 11'de T-79–80, Adım 10'da T-81–88 var. Bu bilinçli; numara değiştirilmedi.
 
-**Yüksek bulgular (16):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90.
+**Yüksek bulgular (17):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104.
 
 ### Kök neden grupları
 
@@ -151,19 +153,23 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
   - İncelemeye alma ve arıza kararına "kim, ne zaman" yazılır (T-35, zaman kalırsa).
 - **Sınırlılık:** T-52 (düzeltmesiz kabul edilen itiraz izlenmiyor), T-53 (`ariza_kaniti_yok` üretilmiyor), T-55 (arıza süre tutarlılığı).
 
-#### K13 · Hata mesajları — T-37, T-16 · en yüksek: Düşük
+#### K13 · Hata mesajları — T-37 (✅ PR #40), T-16 · en yüksek: Düşük
 - **Tek düzeltme:** Ekran, PostgreSQL'in kendi hata kodlarını (23505, 23503, 23514, 22P02) sade Türkçe cümleye çevirir (T-37, Gökalp). Sık görülen kısıt hataları fonksiyonun içinde Türkçe `raise` ile önden yakalanır (T-16, Yusuf). T-21, T-75 ve T-86'nın mesaj kısımları da bununla kapanır.
 
 #### K14 · Şema ve altyapı — T-01, T-02, T-03, T-06, T-08 · en yüksek: Orta
 - **Tek düzeltme (zaman kalırsa):** Tek migration'da `search_path`'e `pg_temp` (T-03), `alter default privileges … revoke execute from public` (T-08) ve 55 yabancı anahtar index'i (T-02).
 - **Sınırlılık:** T-01 (tablo sahibi `gun_kaydi`'nın bazı alanlarını izsiz değiştirebilir; CLAUDE.md ile `veritabani.md` kural 3 aynı kapsama indirilir), T-06 (`auth.users` yabancı anahtarı yok).
 
-#### K15 · Belge ve ekran — T-38, T-07, T-11, T-05, T-22, T-103 · en yüksek: Orta
+#### K15 · Belge ve ekran — T-38 (✅ PR #37), T-07, T-11, T-05, T-22, T-103 · en yüksek (açık olanlar): Düşük
 - **Tek düzeltme:**
-  - İşe giriş ve işten çıkış ekranı (T-38, Gökalp; zaman kalırsa).
+  - İşe giriş ve işten çıkış ekranı (T-38, Gökalp): ✅ PR #37 ile yapıldı.
   - Ekrandaki eskimiş not (T-11, Gökalp).
   - `v_izin_amir` açıklaması (T-07, Yusuf).
   - README test sayısı (T-05), `ornek_veri.md` S18 (T-22) ve `demo_akisi.md`'nin üç eksiği (T-103). Mehmet, Fırat onayıyla.
+
+#### K16 · Görünüm ve RLS hızı — T-104 · en yüksek: Yüksek · **demo öncesi**
+- **Kök:** `security_invoker` görünümler (`v_esnek_mesai`, `v_departman_ozet`) amirin oturumunda RLS politikalarıyla çalışıyor; aynı sorgu RLS'siz 6 ms, amirde 1–4,4 saniye. Bağlantı: T-24 (gece işi hızı), T-02 (eksik index).
+- **Tek düzeltme:** Ekranın okuduğu özet görünümleri, rolü ve departmanı bir kez çözen `security definer` fonksiyonlara çevir (ör. `pdks.departman_ozeti(yil, ay)`, `pdks.esnek_mesai_ozeti(yil, ay)`); ya da RLS politikalarındaki oturum fonksiyonlarını `(select pdks.oturum_...())` kalıbıyla bir kez değerlendirilir hale getir. Kalıcı test: amir oturumunda `explain analyze` süresi örnek veriyle 500 ms'nin altında.
 
 ### Düzeltme listesi
 
@@ -174,44 +180,45 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
 | Sıra | Grup | Bulgu(lar) | Önem | Kime | Tahmini süre | Not |
 |---:|---|---|---|---|---|---|
 | 1 | K1 | T-45 (+ T-59, T-04) | Yüksek | Yusuf | 3 saat | **İlk iş, öğretici.** Bir kalıp, birkaç fonksiyon, UTC testi |
-| 2 | K3 | T-89 | Yüksek | Yusuf | 1–2 saat | `ay_kilitle` başına tek kontrol. Canlıyı en çok koruyan değişiklik |
-| 3 | K3 | T-90 (+ T-101) | Yüksek | Yusuf | 4 saat | Kodsuz gün engel ve liste. Ekran (Gökalp) sonra |
-| 4 | K2 | T-39 | Yüksek | Yusuf | 4 saat | İkinci eskalasyon İK'ya; İK her açık soruya karar verir |
-| 5 | K6 | T-71 | Yüksek | Yusuf | 2 saat | `oturum_kullanici_id` + `kullanici_guncelle` |
-| 6 | K6 | T-74 | Yüksek | Yusuf | 3 saat | `ayar.en_az` / `en_cok` + test |
-| 7 | K4 | T-56 | Yüksek | Yusuf | 2 saat | Havuz onayında yazılı onay şartı |
-| 8 | K5 | T-47 | Yüksek | Yusuf | 2 saat | Çakışan izin ret |
-| 9 | K7 | T-65 | Yüksek | Yusuf | 2 saat | Çıkış kontrolü `ham_okutma` üzerinden |
-| 10 | K5 | T-46 | Yüksek | Yusuf | 4 saat | İşlenmiş güne izin: gün yeniden yazılır, soru kapanır |
-| 11 | K10 | T-28 | Yüksek | Yusuf | 4 saat | Arife 13:00 sonrası tatil |
-| 12 | K9 | T-12 | Yüksek | Yusuf + Mehmet | 4 saat | Amire özel görünüm; "raporlu" belgelenir |
-| 13 | K8 | T-13 (+ T-17, T-18) | Yüksek | Yusuf + Mehmet | 4 saat | Yükleyen `aktarim`'de; tarih kuralları; sınırlılık metni |
-| 14 | K6 | T-33 + T-72 | Yüksek | Yusuf | 5 saat | `kullanici_gecmisi` + iki adımlı rol yükseltme |
-| 15 | K4 | T-57 | Yüksek | Yusuf | 3 saat | Yıllık sınıra havuz ve FM100 |
-| 16 | K4 | T-79 | Yüksek | Yusuf | 3 saat | Plansız gün çalışması: uyarı ve havuz |
+| 2 | K16 | T-104 | Yüksek | Yusuf | 4 saat | **Demo öncesi.** Amirin Departmanlar sayfası 8 sn'de düşüyor; özet görünümleri fonksiyona çevir |
+| 3 | K3 | T-89 | Yüksek | Yusuf | 1–2 saat | `ay_kilitle` başına tek kontrol. Canlıyı en çok koruyan değişiklik. Ekran tarafı PR #39 ile main'de; veritabanı tarafı açık |
+| 4 | K3 | T-90 (+ T-101) | Yüksek | Yusuf | 4 saat | Kodsuz gün engel ve liste. Ekran (Gökalp) sonra |
+| 5 | K2 | T-39 | Yüksek | Yusuf | 4 saat | İkinci eskalasyon İK'ya; İK her açık soruya karar verir |
+| 6 | K6 | T-71 | Yüksek | Yusuf | 2 saat | `oturum_kullanici_id` + `kullanici_guncelle` |
+| 7 | K6 | T-74 | Yüksek | Yusuf | 3 saat | `ayar.en_az` / `en_cok` + test |
+| 8 | K4 | T-56 | Yüksek | Yusuf | 2 saat | Havuz onayında yazılı onay şartı |
+| 9 | K5 | T-47 | Yüksek | Yusuf | 2 saat | Çakışan izin ret |
+| 10 | K7 | T-65 | Yüksek | Yusuf | 2 saat | Çıkış kontrolü `ham_okutma` üzerinden |
+| 11 | K5 | T-46 | Yüksek | Yusuf | 4 saat | İşlenmiş güne izin: gün yeniden yazılır, soru kapanır |
+| 12 | K10 | T-28 | Yüksek | Yusuf | 4 saat | Arife 13:00 sonrası tatil |
+| 13 | K9 | T-12 | Yüksek | Yusuf + Mehmet | 4 saat | Amire özel görünüm; "raporlu" belgelenir |
+| 14 | K8 | T-13 (+ T-17, T-18) | Yüksek | Yusuf + Mehmet | 4 saat | Yükleyen `aktarim`'de; tarih kuralları; sınırlılık metni |
+| 15 | K6 | T-33 + T-72 | Yüksek | Yusuf | 5 saat | `kullanici_gecmisi` + iki adımlı rol yükseltme |
+| 16 | K4 | T-57 | Yüksek | Yusuf | 3 saat | Yıllık sınıra havuz ve FM100 |
+| 17 | K4 | T-79 | Yüksek | Yusuf | 3 saat | Plansız gün çalışması: uyarı ve havuz |
 
-- **Toplam:** yaklaşık 50 saat, yani 6 iş günü. 23–25 Kasım'a (3 gün) ancak günde 4–5 PR ile sığar.
-- **Önerilen kesme çizgisi:** 1–10. sıra 25 Kasım'a kadar mutlaka (yaklaşık 27 saat). Bunlar veri bütünlüğünü, ay kilidini ve çalışan aleyhine sonuçları koruyor. 11–16. sıra sığmazsa 26 Kasım'dan sonra ikinci bir canlı güncellemeyle (Fırat) gider. O zamana kadar raporda "açık, düzeltiliyor" olarak kalır.
+- **Toplam:** yaklaşık 54 saat, yani 7 iş günü. 23–25 Kasım'a (3 gün) ancak günde 4–5 PR ile sığar.
+- **Önerilen kesme çizgisi:** 1–11. sıra 25 Kasım'a kadar mutlaka (yaklaşık 31 saat; T-104 demo öncesi de olmalı). Bunlar veri bütünlüğünü, ay kilidini ve çalışan aleyhine sonuçları koruyor. 12–17. sıra sığmazsa 26 Kasım'dan sonra ikinci bir canlı güncellemeyle (Fırat) gider. O zamana kadar raporda "açık, düzeltiliyor" olarak kalır.
 - Bu, planın "Yüksek'ler 25 Kasım'a kadar" kuralından bir sapmadır; kararı Fırat verir.
 
 **2. Orta ve Düşük — 26 Kasım – 3 Aralık, zaman kalırsa** (grup sırasıyla; Yüksek'ten kalan grup parçaları önce)
 
 | Sıra | Grup | Bulgular (öneri: düzelt) | En yüksek önem | Kime | Tahmini süre |
 |---:|---|---|---|---|---|
-| 17 | K2 | T-40, T-32, T-41, T-42, T-44 (`soru_kapat`) | Orta | Yusuf (+ Gökalp: T-41 ekranı) | 1 gün |
-| 18 | K3 | T-91, T-92, T-93, T-95 | Orta | Yusuf (+ Gökalp: T-92, T-96 ekranı) | 1 gün |
-| 19 | K4 | T-58, T-61, T-62, T-63, T-76, T-102, T-60 | Orta | Yusuf | 1,5 gün |
-| 20 | K5 | T-48, T-49, T-50, T-94, T-54 | Orta | Yusuf | 1 gün |
-| 21 | K7 | T-67, T-68, T-70, T-69, T-75 | Orta | Yusuf | 1 gün |
-| 22 | K6 | T-82, T-80 | Orta | Yusuf (+ Fırat: CLAUDE.md) | 3 saat |
-| 23 | K9 | T-15 | Düşük | Yusuf | 1 saat |
-| 24 | K10 | T-27, T-29 | Düşük | Yusuf | 3 saat |
-| 25 | K8 | T-21 | Düşük | Yusuf | 1 saat |
-| 26 | K11 | T-84, T-86, T-87, T-85, T-81 | Orta | Yusuf (+ Gökalp: T-81 ekranı) | 1 gün |
-| 27 | K12 | T-34, T-51, T-35 | Düşük | Yusuf | 3 saat |
-| 28 | K13 | T-37, T-16 | Düşük | Gökalp, Yusuf | 3 saat |
-| 29 | K14 | T-03, T-08, T-02 | Görüş | Yusuf | 3 saat |
-| 30 | K15 | T-38, T-11 / T-07 / T-05, T-22, T-103 | Orta | Gökalp / Yusuf / Mehmet | ekran 1 gün; belge 2 saat |
+| 18 | K2 | T-40, T-32, T-41, T-42, T-44 (`soru_kapat`) | Orta | Yusuf (+ Gökalp: T-41 ekranı) | 1 gün |
+| 19 | K3 | T-91, T-92, T-93, T-95 | Orta | Yusuf (+ Gökalp: T-92, T-96 ekranı) | 1 gün |
+| 20 | K4 | T-58, T-61, T-62, T-63, T-76, T-102, T-60 | Orta | Yusuf | 1,5 gün |
+| 21 | K5 | T-48, T-49, T-50, T-94, T-54 | Orta | Yusuf | 1 gün |
+| 22 | K7 | T-67, T-68, T-70, T-69, T-75 | Orta | Yusuf | 1 gün |
+| 23 | K6 | T-82, T-80 | Orta | Yusuf (+ Fırat: CLAUDE.md) | 3 saat |
+| 24 | K9 | T-15 | Düşük | Yusuf | 1 saat |
+| 25 | K10 | T-27, T-29 | Düşük | Yusuf | 3 saat |
+| 26 | K8 | T-21 | Düşük | Yusuf | 1 saat |
+| 27 | K11 | T-84, T-86, T-87, T-85, T-81 | Orta | Yusuf (+ Gökalp: T-81 ekranı) | 1 gün |
+| 28 | K12 | T-34 (veritabanı tarafı; ekranı PR #40), T-51, T-35 | Düşük | Yusuf | 3 saat |
+| 29 | K13 | T-16 (T-37 ✅ PR #40) | Düşük | Yusuf | 2 saat |
+| 30 | K14 | T-03, T-08, T-02 | Görüş | Yusuf | 3 saat |
+| 31 | K15 | T-11 / T-07 / T-05, T-22, T-103 (T-38 ✅ PR #37) | Düşük | Gökalp / Yusuf / Mehmet | ekran 1 saat; belge 2 saat |
 
 **3. Karar bekleyenler (İK ile, Fırat):**
 - T-64: 11 saate mola dahil mi.
@@ -222,7 +229,7 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
 
 Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 
-### Bulgu dizini (103)
+### Bulgu dizini (104)
 
 Önem, adım ve kısa başlık bulgunun kendi başlığından alındı. "Grup" yukarıdaki kök neden grubu; "Öneri" düzeltme listesindeki karar.
 
@@ -261,11 +268,11 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-31 | Kritik | Endpoint | `dosya_yukle` ekrandan (HTTP) hiç çalışmıyor: "UPDATE requires a WHERE clause" | K8 | Yusuf | Düzeltildi (PR #35) |
 | T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | Düzelt |
 | T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | Düzelt (T-72 ile, 25 Kas) |
-| T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | Düzelt |
+| T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | Ekran ✅ PR #40; veritabanı: Düzelt |
 | T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | Düzelt (zaman kalırsa) |
 | T-36 | Düşük | Endpoint | `kart_tanimla` kart numarasının biçimini denetlemiyor | K11 | — | Sınırlılık |
-| T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | Düzelt |
-| T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | Düzelt (zaman kalırsa) |
+| T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | ✅ Düzeltildi (PR #40) |
+| T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | ✅ Düzeltildi (PR #37) |
 | T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | Düzelt (25 Kas) |
 | T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | Düzelt |
 | T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | Düzelt |
@@ -316,7 +323,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-86 | Düşük | 10 | Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar | K11 | Yusuf | Düzelt |
 | T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | Düzelt |
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | Sınırlılık |
-| T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | Düzelt (25 Kas) |
+| T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | Ekran ✅ PR #39; veritabanı: Düzelt (25 Kas) |
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | Düzelt (25 Kas) |
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | Düzelt |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
@@ -331,6 +338,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-101 | Görüş | 12 (ek; Adım 12 şüphesinden) | Kilit, kodsuz kalan günlerin listesini vermiyor | K3 | Yusuf + Gökalp | Düzelt |
 | T-102 | Orta | 13 | Reddedilen tatil çalışması puantajda "FM100 1 gün / 0 dk" kodlanıyor | K4 | Yusuf | Düzelt |
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | Belge |
+| T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | Düzelt (demo öncesi) |
 
 ### Bilinen sınırlılıklar
 
@@ -1649,7 +1657,7 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** `e3_ek b) duzeltme satırı: gün çalışanı=1004 · itirazın çalışanı=1006 · itirazın günü=2026-11-06`.
 - **Sade dille:** Düzeltme kaydında "bu düzeltme şu itiraz üzerine yapıldı" yazıyor, ama o itiraz başka birinin başka bir gününe ait olabilir. Denetimde iz yanıltıcı olur.
 - **Öneri:** `duzeltme_hazirla`'ya `itiraz.gun_kaydi_id = new.gun_kaydi_id` denetimi (yeni migration ve test). Ekran için Gökalp: G3.
-- **Durum:** Açık
+- **Durum:** Ekran tarafı düzeltildi (PR #40: reddedilmiş itiraz düzeltme penceresinde listelenmez). Veritabanı tarafı açık (`kayit_duzelt` hâlâ kabul ediyor), Yusuf.
 
 ### T-35 · İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik
 - **Adım:** Endpoint · **Önem:** Görüş
@@ -1685,7 +1693,7 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** e4_http madde 4 ilk satır ve madde 5'in `dosya_yukle` satırları (ekran sütunu = ham mesaj).
 - **Sade dille:** İK, dosya yüklerken İngilizce teknik bir cümle görür ve ne yapacağını bilemez.
 - **Öneri:** Gökalp: G1.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi — PR #40 (`lib/supabase/hata.ts`: yükleme formu ve `rpcCagir` aynı Türkçe çeviriyi kullanır).
 
 ### T-38 · İşe giriş ve işten çıkış için ekran yok
 - **Adım:** Endpoint · **Önem:** Orta (Gökalp için)
@@ -1695,7 +1703,7 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** Ekranda `rpcCagir` / `.rpc(` geçen 33 çağrı listesi; ikisi yok (`docs/endpoint_testi.md` madde 1).
 - **Sade dille:** İK yeni başlayan birini ya da ayrılan birini sisteme giremez; bunu ancak veritabanından elle yapabiliriz. Demoda bu akış gösterilemez.
 - **Öneri:** Gökalp: G2. Parametreler ve mesajlar `docs/ekran_fonksiyonlari.md` satır 98–99'da hazır.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi — PR #37 (Çalışanlar: "Çalışan ekle"; çalışan sayfası: "İşten çıkış").
 
 ### Gökalp için
 - **G1 (T-37):** `aktarim-formu.tsx` hataları `rpcCagir`'deki Türkçe çeviriden geçirsin.
@@ -3202,7 +3210,7 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** İ#1 `ay_kilitle 2027/1 | OK {"donem": "2027-01", "mesaj": "1/2027 kilitlendi.", "zorla": false, "kodsuz_gun": 0, …}` · İ#3 `vardiya_plani_gir 05.01.2027 | HATA … kilitli bir döneme ait.` · İ#5 `postgres: 2027/1 kilidini aç | HATA … 1/2027 dönemi kilitli; değiştirilemez.` · #97 Aralık: ret (seed'in 7 Aralık planları yüzünden).
 - **Sade dille:** İK ekranında ay listesinden yanlış ayı seçip "kilitle"ye basarsa, gelecekteki bir ay sonsuza kadar kapanır. O ay için vardiya planı girilemez, gece işi o ayın günlerini işleyemez. Sistem bunu geri alamadığı için tek çare veritabanına el ile müdahaledir; bu da "kilitli ay açılamaz" kuralını çiğner.
 - **Öneri:** `ay_kilitle` başında: `if make_date(p_yil, p_ay, 1) + interval '1 month' > (now() at time zone 'Europe/Istanbul')::date then raise exception 'Ay bitmeden kilitlenemez.'`. Kalıcı test: içinde bulunulan ay ve ileri ay reddedilir.
-- **Durum:** Açık
+- **Durum:** Ekran tarafı düzeltildi (PR #39: bitmemiş ay ekrandan kilitlenemez). Veritabanı tarafı açık (`ay_kilitle` doğrudan çağrılınca ileri ayı yine kilitliyor), Yusuf.
 
 ### T-90 · Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor; zorlamadan kilit de buna izin veriyor
 - **Adım:** 12 · **Önem:** Yüksek
@@ -3518,6 +3526,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | T-86 | 2.4 | Aynı kişiye ikinci geçici kart denenirse mesaj başka kartı anlatır | Çakışmayı belgedeki gibi **başka bir kişiyle** (ör. Burak) ve 2.2 ile 2.3 arasında göster |
 | T-89 | 9. adım, Puantaj | Canlıda yanlış ay seçilip "Ayı kilitle"ye basılırsa ay (gelecek ay bile) kalıcı kilitlenir | Belgedeki kural: canlıda kilit düğmesine basılmaz. Puantaj ekranında ay seçici kurcalanmasın |
 | T-90 / T-91 / T-92 | 9. adım görüntüleri | Zorla kilitlenirse kodsuz gün, satır / kalem çelişkisi ve izsiz zorla kilit görüntüye girer | Görüntüler A'daki sırayla, zorlamadan kilitle alınsın (kodsuz 0) |
+| T-104 | 8. adım, yönetici paneli | Amir hesabıyla Departmanlar açılırsa sayfa 8 sn'de "Sayfa açılamadı"ya düşer (İK ve yönetici 3,5–4 sn) | Düzeltilene kadar Departmanlar yalnızca yönetici ya da İK hesabıyla gösterilsin; amir hesabıyla açılmasın |
 | T-24 | 3. adım | Gece işi ekrandan çok günle çalıştırılırsa 8 sn zaman aşımı | Yalnızca 07.12 – 07.12 çalıştırılsın (belgedeki gibi). Kasım canlı kurulumda SQL Editor'den işlenir |
 | T-45 | 3. adım | Demo İstanbul 00:00–03:00 arasında yapılmaz; risk yok | — |
 | T-99 | 3. adım | Demo CSV'leri saniyeli; risk yok | Dosyalar değiştirilmesin |
@@ -3582,3 +3591,57 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 - **Canlı:** Canlı kurulumun Kasım'ı nasıl işlediği (`docs/canli_kurulum.md` 6. adım) ve `cron.unschedule`'ün yapılıp yapılmadığı.
 - **8 sn zaman aşımı:** 7 Aralık gece işinin ve dosya yüklemenin ekrandan süresi.
 - **Kasım'ı zorla kilitleme:** A'da gerek kalmadı; Adım 12'de denenmişti.
+
+---
+
+## PR incelemesi — ekran PR'ları #37, #39, #40, #41 (22 Kasım 2026)
+
+**Kapsam:** Gökalp'in dört ekran PR'ı birleştirilmeden önce incelendi; #37 o sırada zaten birleşmişti. Migration yok. Kural ihlali yok:
+- `.env` commit edilmemiş;
+- `SUPABASE_SECRET_KEY` uygulama kodunda kullanılmıyor ve tarayıcıya giden dosyalarda yok;
+- SQL metnine kullanıcı girdisi eklenmiyor;
+- sayfaların rol kontrolleri korunmuş.
+
+`main`'den ayrı bir çalışma klasöründe #39 → #40 → #41 çakışmasız birleşti. `npm run build` ve ESLint hatasız. Yerel Supabase ile İK, amir, güvenlik ve yönetici menülerindeki sayfalar açıldı. Bulunan tek yeni sorun aşağıda. Ardından #39, #40, #41 bu sırayla `main`'e birleştirildi.
+
+Durumu değişen bulgular:
+- T-37 ✅ (PR #40);
+- T-38 ✅ (PR #37);
+- T-34 ve T-89: ekran tarafı düzeltildi (PR #40 / #39), veritabanı tarafı açık.
+
+### T-104 · Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 saniyede zaman aşımına düşüyor
+- **Adım:** PR incelemesi · **Önem:** Yüksek
+- **Yer:** `pdks.v_esnek_mesai` ve `pdks.v_departman_ozet` (`security_invoker = true`, son sürüm: `20261124010000_vardiya_kurallari.sql` ve `20261122010000_izin_iptal_ve_departman_ozeti.sql`). Bu görünümler `gun_kaydi`, `calisan` ve `amir_sorusu` gibi tabloların RLS politikalarıyla çalışıyor. Ekran: `app/(panel)/departmanlar/page.tsx` (PR #37). `authenticated` rolünün sorgu süresi sınırı 8 saniye (`statement_timeout = 8s`, Supabase varsayılanı; canlıda da aynı).
+- **Ne oldu:**
+  - Yerel Supabase'te Kasım gece işinden geçirildi (76 çalışan, 1597 gün kaydı). `npm run dev` ile dört rolün sayfaları istendi.
+  - **Amir (montaj.amiri):** Departmanlar sayfası **iki denemenin ikisinde de** 8,1 saniyede "canceling statement due to statement timeout" ile düştü; ekranda "Sayfa açılamadı".
+  - **İK ve yönetici:** Aynı sayfa 3,5 ve 3,8 saniyede açıldı. Diğer bütün sayfalar 1,5 saniyenin altında.
+  - Aynı sorgular SQL'de, rol taklidiyle ölçüldü (tablo aşağıda). Yavaşlık veride değil, RLS'li değerlendirmede: aynı sorgu RLS'siz 6 ms.
+  - Sayfa iki görünümü ve çalışan listesini birlikte okuduğu için amirde süreler toplanıp 8 saniyeyi aşıyor.
+- **Ne olmalıydı:** Yönetici paneli 2000 çalışanda da her rolde birkaç saniyede açılmalı. Bugün 76 çalışanla bile amirde açılmıyor; İK ve yönetici sınıra yarı yarıya yakın. Çalışan sayısı arttıkça bu rollerde de zaman aşımı beklenir (T-24 ile aynı ölçek sorunu).
+- **Kanıt:** SQL, rol taklidiyle, Kasım 2026 (`statement_timeout` ölçüm için 60 s'ye çıkarıldı):
+
+  | Oturum | Sorgu | Satır | Süre |
+  |---|---|---:|---:|
+  | amir (montaj.amiri) | `select count(*) from pdks.v_departman_ozet where yil = 2026 and ay = 11` | 2 | 1092 ms |
+  | amir (montaj.amiri) | `select count(*) from pdks.v_esnek_mesai where yil = 2026 and ay = 11` | 0 | 4397 ms |
+  | İK (ik.uzmani) | `v_departman_ozet` (aynı süzgeç) | 19 | 788 ms |
+  | RLS'siz (`postgres`) | `v_departman_ozet` (aynı süzgeç) | 19 | 6 ms |
+
+  Geliştirme sunucusu günlüğü (amir, iki deneme):
+  ```
+  ⨯ Error: canceling statement due to statement timeout
+      at tumSatirlar (lib/supabase/sayfali.ts:14:22)
+      at async DepartmanlarSayfasi (app/(panel)/departmanlar/page.tsx:60:58)
+   GET /departmanlar 200 in 8.1s (application-code: 8.1s)
+  ```
+  İK: `GET /departmanlar 200 in 3.5s`; yönetici: `GET /departmanlar 200 in 3.8s`.
+- **Sade dille:** Bir departman amiri yönetici panelinde "Departmanlar" sayfasını açınca sayfa 8 saniye bekleyip hata veriyor. Sebep sayfanın kendisi değil: veritabanı, amirin yalnızca kendi departmanını görmesi için her satırda yetki denetimi yapıyor ve bu denetim çok yavaş. Örnek veride 76 kişi var; gerçek fabrikada 2000 kişi olunca İK ve fabrika müdürü de aynı hatayı görür. Demoda amir hesabıyla bu sayfa açılırsa hata ekrana gelir.
+- **Öneri:**
+  - Özet görünümleri, rolü ve departmanı bir kez çözen `security definer` fonksiyonlara çevir: `pdks.departman_ozeti(p_yil, p_ay)` ve `pdks.esnek_mesai_ozeti(p_yil, p_ay)`. İçeride `tum_veriyi_gorur()` ise hepsi, amir ise `oturum_departmanlari()`; ekran `rpc` ile çağırır (Gökalp için küçük değişiklik).
+  - Ya da RLS politikalarındaki oturum fonksiyonlarını `(select pdks.oturum_...())` kalıbıyla bir kez değerlendirilir hale getir.
+  - Önce `explain analyze` ile hangi politikanın yavaş olduğu çıkarılmalı.
+  - Kalıcı test: amir oturumunda iki özetin süresi örnek veriyle 500 ms'nin altında, satırlar bugünkü görünümle aynı.
+  - Kime: Yusuf (veritabanı), ardından Gökalp (sayfa çağrısı). Demo öncesi.
+- **Durum:** Açık
+
