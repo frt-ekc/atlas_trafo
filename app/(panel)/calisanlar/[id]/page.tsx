@@ -55,7 +55,8 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
         | null)
     : null;
 
-  // Düzeltme bir itiraza bağlanabilsin diye bu ayın itirazları (gün kaydına göre)
+  // Düzeltme bir itiraza bağlanabilsin diye bu ayın itirazları (gün kaydına göre).
+  // Reddedilmiş itiraz listelenmez: düzeltme reddedilmiş bir itiraza dayanamaz (T-34).
   const itirazByGun = new Map<number, DuzeltmeItirazi[]>();
   if (duzeltebilir) {
     const ids = dokum.gunler.map((g) => g.gunKaydiId).filter((x): x is number => x !== null);
@@ -64,6 +65,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
         .from("itiraz")
         .select("id, metin, durum, gun_kaydi_id")
         .in("gun_kaydi_id", ids)
+        .in("durum", ["acik", "inceleniyor", "kabul"])
         .order("id");
       for (const i of (data ?? []) as (DuzeltmeItirazi & { gun_kaydi_id: number })[]) {
         const liste = itirazByGun.get(i.gun_kaydi_id) ?? [];
