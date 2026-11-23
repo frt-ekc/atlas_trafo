@@ -32,6 +32,7 @@ Demo canlı sistemde (atlas-pdks) yalnızca **sahte veriyle** yapılır. Kasım 
   - kart paylaşımı şüphesi (S11);
   - zimmetsiz geçici kart (S23).
 - **Sorular:** Kasım'ın 4 açık sorusu (S2, S4, S19, S22). S22'de soru Montaj amiri Hasan'ın kendi kaydı olduğu için ona değil, üst amiri Levent Sarı'ya gitti (görevler ayrılığı).
+  - **Ekranda "eskale" görünür:** Kasım'ın tamamı gece işinden geçtiği için dördünün de cevap süresi dolmuştur. S2, S4 ve S19 Levent Sarı'ya, S22 İK'ya (Elif Şen) eskale olmuş görünür. "Kime atanmış" sütunu bu yüzden yukarıdaki cümleden farklı görünebilir; anlatırken önce "ilk kime gitti", sonra "süresi dolunca kime geçti" söylenir.
 
 ### 2. Kart unutma (Kasım verisi + Güvenlik ekranı)
 Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici kart yoktur.
@@ -43,8 +44,8 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 **Güvenlik hesabı, Geçici kartlar ekranı:**
 1. Burak Kurt'un (1010) 18 Kasım'dan beri iade etmediği **GK-02**'yi **iade al** (S9 kapanır).
 2. Osman'a **GK-01**'i ver: kart o anın saatiyle zimmetlenir.
-3. Hemen **iade al**. Demo bitmeden açık zimmet bırakılmaz.
-4. Gösterilebilir bir kural: zimmetteyken aynı kart ikinci kişiye verilmeye çalışılırsa hata mesajı çakışan zimmeti söyler, örneğin "GK-01 kartı Osman Doğan'a … verilmiş zimmetle çakışıyor (henüz iade edilmedi)."
+3. **Kart Osman'dayken** aynı GK-01'i başka bir çalışana vermeyi dene: hata mesajı çakışan zimmeti söyler, örneğin "GK-01 kartı Osman Doğan'a … verilmiş zimmetle çakışıyor (henüz iade edilmedi)." Bu adım iade almadan önce yapılmalıdır; kart iade edildikten sonra mesaj çıkmaz.
+4. Osman'dan GK-01'i **iade al**. Demo bitmeden açık zimmet bırakılmaz.
 
 ### 3. 7 Aralık dosyalarını yükleme ve gece işi (İK, Veri aktarımı)
 1. **Dosya yükle:** dört dosya sırayla yüklenir. Gün dosya adından okunur (07.12.2026). Ekran yüklemeden önce satırları denetler ve özet gösterir.
@@ -102,15 +103,28 @@ Canlıda kilit yapılmaz. Yerelde alınmış görüntülerle anlatılır:
 2. **Ayı kilitle** onayı.
 3. Kilitli ayda ERP için CSV ve XML düğmeleri.
 4. Excel'in "Puantaj kodları" sayfası.
-5. Kilitten sonra gelen bir düzeltmenin sonraki aya fark satırı olarak yazılması.
+5. Kilitten sonra gelen bir düzeltmenin sonraki aya fark satırı olarak yazılması (aşağıdaki nota bakın).
 
 **Görüntüler nasıl alınır (yerelde, Fırat):**
 - Kasım'ı zorlamadan kilitlemek için önce bekleyenler kapatılır: 4 soru (S2, S4, S19, S22), havuzdaki 3 fazla mesai ve Okan'ın (S13) onay bekleyen geriye dönük planı. Bu planı İK uzmanı girdiği için İK müdürü onaylar. Zorla kilitlenirse kilit sonucu, geçilen kalemleri ve puantaja kodsuz giren gün sayısını gösterir. S13 (Okan) planı zorla da geçilmez; kilitten önce İK müdürü planı onaylamalı ya da reddetmeli.
+- **4 soruyu kim kapatır:** soruyu yalnızca atandığı amir ya da eskale edildiği kişi cevaplayabilir. İK, kendisine eskale olmayan soruyu kapatamaz (T-39).
+
+  | Soru | Kim kapatır |
+  |---|---|
+  | S2 (Ali Demir, 4 Kas) | Montaj amiri Hasan Yılmaz ya da Levent Sarı |
+  | S4 (Mustafa Şahin, 5 Kas) | Montaj amiri Hasan Yılmaz ya da Levent Sarı |
+  | S19 (Kaan Bulut, 25 Kas) | Bobinaj amiri Serkan Öztürk ya da Levent Sarı. Hasan Bobinaj vekili olsa da bu soruyu cevaplayamaz (T-43) |
+  | S22 (Hasan Yılmaz, 26 Kas) | Levent Sarı ya da İK (Elif Şen) |
+
 1. `supabase db reset` (örnek veriyle).
 2. Kasım'ı gece işinden geçir.
 3. Ekranları yerel Supabase'e bağlayıp aç.
 4. Görüntüleri al.
 5. Bitince yine `supabase db reset`.
+
+> **5. görüntü (fark satırı) ekrandan alınamaz.** Fark satırı, düzeltmenin yazıldığı sonraki ay (Aralık) kilitlenince puantajda oluşur. Ay, son günü geçmeden kilitlenemez (T-89, zorla da). Bu yüzden Aralık, 1 Ocak 2027'den önce ekrandan kilitlenemez. Seçenekler (karar Fırat'ın):
+> - Görüntüyü çıkarıp fark satırını sözlü anlatmak: Kasım kilitlendikten sonra Kasım'daki bir güne yapılan düzeltme `duzeltme` tablosuna `fark_satiri = true` ve hedef dönem Aralık olarak yazılır; Aralık kilitlenince puantaja fark satırı olarak girer.
+> - Aralık'ı yerelde, doğrudan veritabanı bağlantısıyla (psql) test tarihi ayarıyla kilitlemek (`set local pdks.test_bugun = '2027-01-05'`). Bu ayar yalnızca doğrudan bağlantıda geçerlidir, ekrandan çalışmaz; canlıda asla yapılmaz.
 
 ## Demodan sonra
 - Açık geçici kart zimmeti kalmadığı Güvenlik ekranından kontrol edilir.

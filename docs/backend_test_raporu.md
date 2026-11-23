@@ -29,9 +29,9 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 17 | 14 | 3 (T-45, T-89, T-104) | 14 (25 Kasım'a kadar) | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
-| Düşük | 34 | 33 | 1 (T-37) | 20 | 13 |
+| Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 18 | 1 (T-04) | 8 | 10 |
-| **Toplam** | **104** | **96** | **8** | **65** | **31** |
+| **Toplam** | **104** | **93** | **11** | **65** | **31** |
 
 "Açık" sütununda T-34 (Düşük) ve T-89 (Yüksek) de var: ekran tarafları düzeltildi, veritabanı tarafları açık.
 
@@ -349,8 +349,8 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
 - **Veritabanı sahibi bazı gün alanlarını izsiz değiştirebilir (T-01).** Uygulama ve ekranlar gün kaydına doğrudan yazamaz; yalnızca veritabanının sahibi (canlıda yalnızca proje sorumlusu) bazı alanları düzeltme kaydı bırakmadan değiştirebilir. Gerçek kurulumda bu erişim tek kişiyle sınırlıdır.
 - **Giriş hesabı ile kullanıcı kaydı arasında veritabanı bağı yok (T-06).** Bağ e-postayla kuruluyor; silinen bir giriş hesabı kullanıcı kaydını kendiliğinden kapatmaz.
 - **Ayarlar okunabilir (T-09).** Giriş yapmış ama sisteme bağlı olmayan bir hesap tolerans gibi ayarları okuyabilir. Canlıda yeni hesap açma kapalıdır; çalışan verisine erişim yoktur.
-- **Ayarları sistem yöneticisi değiştirir (T-10, T-100).** Değişiklik izlenir ve değerler belirli aralıklarla sınırlıdır (T-74 düzeltmesiyle). Ay kilitlendikten sonra ayar değişirse, o aya sonradan gelen düzeltmenin farkı yeni ayarla hesaplanır. Bu yüzden ayarlar ay ortasında değil, ay başında değiştirilir.
-- **Veri aktarımını yapan kişi (T-13, kısmen).** Yükleyen kaydedilir; ama gerçek kurulumda dosyalar bir sistem hesabıyla otomatik yüklenmelidir. Prototipte İK yükler.
+- **Ayarları sistem yöneticisi değiştirir (T-10, T-100).** Değişiklik `ayar_gecmisi`'nde izlenir. Bugün yalnızca 0'dan küçük değer reddedilir; yasal sınırları aşan değerler için aralık kontrolü T-74 düzeltmesiyle gelecek. Ay kilitlendikten sonra ayar değişirse, o aya sonradan gelen düzeltmenin farkı yeni ayarla hesaplanır. Bu yüzden ayarlar ay ortasında değil, ay başında değiştirilir.
+- **Veri aktarımını yapan kişi (T-13, kısmen).** Bugün yükleyen kaydedilmiyor; T-13 düzeltmesiyle `aktarim`'e yazılacak. Gerçek kurulumda ise dosyalar bir sistem hesabıyla otomatik yüklenmelidir. Prototipte İK yükler.
 - **Vekil amir her zaman yetkilidir (T-14).** Vekillik için tarih aralığı tutulmaz; vekil atandığı sürece amirle aynı yetkiye sahiptir.
 - **Geç gelen dosya (T-19, T-23).** Gece işi bir günü bir kez işler. Kapı, yemekhane ve servis dosyaları PDKS'den sonra yüklenirse o günün kanıtları kullanılmaz ve amire gereksiz soru gidebilir. İşletme kuralı: o günün dört dosyası yüklenir, gece işi en son çalışır.
 - **Dosya özeti ekrandan gelir (T-20).** Aynı satırlar ikinci kez yazılmaz; ama aynı dosya farklı bir özetle "yeni dosya" gibi kaydedilebilir.
@@ -364,14 +364,14 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
   - Günlük 11 saat sınırına mola dahil sayılır (yasadan katı).
   - 15 dakikanın altındaki plansız kalış fazla mesai incelemesine düşmez; Fazla Çalışma Yönetmeliği'ndeki yuvarlama kuralı ile mevzuat kontrol edilecek.
   - Pazar günü için girilen vardiya planı İK onayı istemez.
-- **Yanlış girilen işten çıkış (T-66).** Sistemde geri alma yoktur; yalnızca veritabanı yöneticisi, kayıt altına alınan bir düzeltmeyle geri alır.
+- **Yanlış girilen işten çıkış (T-66).** Sistemde geri alma yoktur; yalnızca veritabanı yöneticisi, kayıt altına alınan bir düzeltmeyle geri alabilir. Bu düzeltmenin adımları henüz yazılı bir prosedür değildir.
 - **Üst amir zinciri (T-73).** Üst amir döngüsü ve amir olmayan üst amir denetlenmez; kullanıcıları sistem yöneticisi doğru tanımlar.
 - **Geçici kart saati (T-83).** Geçici kart zimmeti kaydın girildiği andan başlar; geriye dönük zimmet girilemez. Kart önce sisteme kaydedilip sonra verilir.
 - **İSG uyarısı (T-88).** Eğitimi ya da muayenesi dolmuş çalışanın okutması bir kez uyarı üretir; riskli bölgeye giriş ayrıca işaretlenmez. Kapı hiçbir durumda kilitlenmez (proje kararı).
 - **Kilitli döneme sistem yoluyla satır (T-97).** Ekrandan yapılamaz; yalnızca veritabanı sahibi kilitli aya ek satır yazabilir.
 - **Panelde açık soru sayısı (T-98).** Amir yönetici panelinde yalnızca kendisine atanmış açık soruları sayar; departmanın bütün açık soruları İK ve yönetici panelinde görünür.
 - **PDKS saat biçimi (T-99, varsayım).** Sistem PDKS kayıtlarının saniyeli geldiğini varsayar. Kart paylaşımı denetimi saniyeye dayanır; gerçek kurulumda PDKS çıktısının biçimi teyit edilir.
-- **"Raporlu" durumu amire görünür (T-12, kısmen; karar verildi).** Amir, çalışanının o gün raporlu olduğunu görür (gün planlaması için gerekli). Rapor gerekçesi ve izin türünün ayrıntısı gizlidir.
+- **"Raporlu" durumu amire görünür (T-12, kısmen; karar verildi).** Amir, çalışanının o gün raporlu olduğunu görür (gün planlaması için gerekli). Rapor gerekçesi ve izin türünün ayrıntısı gizli olacak; bugün amir izin türünü üç yoldan görebiliyor ve bu T-12 düzeltmesiyle kapanacak.
 - **Yalnızca örnek veri (genel).** Bütün test sahte veriyle, yerel veritabanında yapıldı; gerçek Atlas Trafo verisiyle ve ekranlardan (HTTP) yük testi yapılmadı.
 
 ---
@@ -485,7 +485,7 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
 - **Kanıt:** Örnek veriyle çalıştırmada `GEÇTİ` satırı sayısı 33; diğer 20 dosyanın README'deki sayıları gerçek sayılarla aynı.
 - **Sade dille:** Belgede yazan test sayısı gerçekte olandan 2 fazla. Sistemi etkilemiyor, ama rapordaki rakamlar güvenilir olmalı.
 - **Öneri:** README'de 35 → 33.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (belge, `feature/T103-belge-duzeltmeleri`). README ilerleme tablosunda 33 test yazıyor.
 
 ### T-06 · `kullanici.auth_kullanici_id`'nin `auth.users`'a yabancı anahtarı yok
 - **Adım:** 1 · **Önem:** Görüş
@@ -1349,7 +1349,7 @@ Hepsi tek işlem ve sonda `ROLLBACK`. Not: test sırasında Docker kapalıydı; 
 - **Kanıt:** `S18 | 2007 23=raporlu, 2007 24=raporlu, 2007 25=raporlu, 2008 26=izinli, 2008 27=izinli | ❌`
 - **Sade dille:** Örnek veri belgesi, sistemin rapor gününü "izinli" diye kaydettiğini söylüyor; sistem ise "raporlu" diye kaydediyor. Belgeyi okuyan, sağlık bilgisinin hiç saklanmadığını sanabilir.
 - **Öneri:** T-12'nin kararından sonra S18 satırı güncellensin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (belge, `feature/T103-belge-duzeltmeleri`). S18 satırı rapor (`raporlu`) ve yıllık izin (`izinli`) ayrımını ve T-12 bağlantısını yazıyor; yerelde Kasım gece işinden geçirilerek doğrulandı.
 
 ### T-23 · Kapı / servis dosyası PDKS'den sonra gelirse kanıt kullanılmıyor; amire gereksiz soru gidiyor
 - **Adım:** 5 · **Önem:** Orta
@@ -3577,7 +3577,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
   - 5. görüntü için "7 Aralık'ı işle, sorularını kapat, Aralık'ı yerelde kilitle" adımları.
 
   Kod değişikliği gerekmez (Fırat onaylarsa belge düzeltmesi).
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (belge, `feature/T103-belge-duzeltmeleri`). Çakışma mesajı iade almadan önceki adıma taşındı; 1. bölüme eskale notu, 9. bölüme soru başına kapatan hesap eklendi. 5. görüntü: T-89 düzeltmesinden sonra Aralık, 1 Ocak 2027'den önce ekrandan kilitlenemiyor; seçenekler belgede, karar Fırat'ın.
 
 ### Bilinen bulgulara takılanlar (yeniden numara verilmedi)
 - **T-39 ile aynı:** Kasım soruları ayın tamamı tek seferde işlenince üst amire, S22 İK'ya eskale oluyor. Atanan amir yine cevaplayabildiği için A'da sorun çıkmadı.
