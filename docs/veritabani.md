@@ -72,6 +72,7 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/giris_ve_yetki_testi.sql` | Rol bazında görünürlük (RLS) ve görünüm fonksiyonu yetkileri için 29 test |
 | `supabase/tests/ekran_fonksiyonlari_testi.sql` | Ekran fonksiyonlarının rol, departman ve görevler ayrılığı kontrolleri için 42 test |
 | `supabase/seed.sql` | Örnek (sahte) veri: Kasım 2026, 19 departman, 76 çalışan, 23 senaryo. Ayrıntı: `docs/ornek_veri.md` |
+| `scripts/sentetik_veri.mjs` | Sentetik veri seti üreticisi: 180 çalışan, Ekim 2026, gerçeğe benzer sicil / kart / hata oranları. Ayrıntı: `docs/sentetik_veri.md` |
 | `supabase/tests/ornek_veri_testi.sql` | Örnek verinin büyüklüğü ve senaryoları için 37 test (seed'den sonra çalışır) |
 | `supabase/tests/sema_temizligi_testi.sql` | Şemada kullanılmayan özelliklere ait kalıntı olmadığını doğrulayan 8 test |
 | `supabase/tests/where_siz_guncelleme_testi.sql` | `pdks` fonksiyonlarında WHERE'siz `UPDATE` / `DELETE` taraması (tarayıcının kendi sınaması dahil) için 9 test |
