@@ -699,7 +699,7 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
   ```
 - **Sade dille:** Ekran bir hatayı aşmak için hesabı kendisi yapıyor, ama o hata artık yok. Şimdilik sonuç aynı; kural değişirse iki hesap birbirinden ayrılabilir.
 - **Öneri:** Gökalp'e not: görünümü kullansın ve kodu sadeleştirsin. Sayıların karşılaştırması Adım 9'da.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (ekran notu, `feature/53-t41-t11-ekran`). Eskimiş not doğru gerekçeyle değiştirildi; hesap ekranda kalıyor, çünkü ekran bekleyen talepleri de gösteriyor. `v_fazla_mesai_yillik` görünümü ekranlarda kullanılmıyor (`fazla_mesai_testi.sql` ve `giris_ve_yetki_testi.sql` kullanıyor); silinmesi migration ister.
 
 ### Denediklerim
 - 41 açık fonksiyonun hepsi × 8 oturum, ayrıca 14 kapalı iç fonksiyon × 8 oturum: 440 çağrı (`scratch/a2_ham.txt`).
@@ -1890,7 +1890,7 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** Amir aceleyle yalnızca bir saati yazarsa soru kapanıyor ama gün hesaplanamıyor. Kimse bunu fark etmiyor, çünkü artık açık soru da yok. Ay sonunda bu gün puantaja kodsuz giriyor.
 - **Öneri:** `soru_cevapla` / `soru_ik_karari` soru türüne göre gerekli saati denetlesin ("Bu soru için giriş saatini de girin."). Ekran da aynı denetimi yapsın (Gökalp). Yeni migration ve test.
-- **Durum:** Açık
+- **Durum:** Kısmen düzeltildi (ekran, `feature/53-t41-t11-ekran`). Veritabanı tarafı açık (Yusuf, K2).
 
 ### T-42 · Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor; "saat doğru" cevabı kanıt saatini değil plan saatini yazıyor
 - **Adım:** 7 · **Önem:** Orta (T-23 ile aynı kök)

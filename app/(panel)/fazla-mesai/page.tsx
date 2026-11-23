@@ -175,8 +175,8 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
   const yaklasmaYuzde = ayar.get("fm_yaklasma_uyari_yuzde") ?? VARSAYILAN_YAKLASMA_YUZDE;
 
   // Yıllık durum: onaylı planların toplamı (veritabanı da 270 saat sınırını bu toplamla denetler).
-  // v_fazla_mesai_yillik görünümü kullanılmıyor: içindeki pdks.ayar_al() fonksiyonunu
-  // giriş yapmış kullanıcı çalıştıramıyor (42501 permission denied). Düzelene kadar burada hesaplanır.
+  // v_fazla_mesai_yillik görünümü burada kullanılmaz: yalnızca onaylı planları verir, bu ekran
+  // bekleyen talepleri de gösterir. Toplam, zaten okunmuş planlardan hesaplanır.
   const yillik = new Map<number, { kisi: Kisi; onayliDk: number; bekleyenDk: number }>();
   for (const p of planlar) {
     const satir = yillik.get(p.calisan_id) ?? { kisi: p.calisan, onayliDk: 0, bekleyenDk: 0 };
