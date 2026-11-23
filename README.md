@@ -211,7 +211,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Güvenlik ekranı (geçici kart ver / iade al) | ✅ |
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
-| İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (35 test) | ✅ |
+| İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (33 test) | ✅ |
 | Geriye dönük plan onayı: bekleyen plan kullanılmaz, onay günü düzeltir / işletir, ret ya da onay bekleyen + işlenmemiş gün kilidi durdurur, kendi planını onaylama yok (20 test) | ✅ |
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
 | Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
