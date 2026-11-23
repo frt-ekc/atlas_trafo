@@ -4,21 +4,25 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SORU_CEVABI } from "@/lib/etiketler";
+import { zorunluSaatler } from "./zorunlu-saatler";
 
 // Soru cevaplama penceresinin alanları. Saat alanları yalnızca "saat farklı" seçilince görünür;
 // bu yüzden tarayıcıda çalışan küçük bir bileşen.
 export function CevapAlanlari({
+  soruTuru,
   girisVarsayilan,
   cikisVarsayilan,
   kayitliGiris,
   kayitliCikis,
 }: {
+  soruTuru: string;
   girisVarsayilan: string;
   cikisVarsayilan: string;
   kayitliGiris: string | null; // "07:45": kayıtta zaten olan saat
   kayitliCikis: string | null;
 }) {
   const [cevap, setCevap] = useState("");
+  const zorunlu = zorunluSaatler(soruTuru);
 
   return (
     <>
@@ -35,15 +39,22 @@ export function CevapAlanlari({
       {cevap === "geldi_saat_farkli" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="giris" className="text-sm font-medium">Giriş{kayitliGiris && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliGiris})</span>}</label>
-            <Input id="giris" name="giris" type="datetime-local" defaultValue={girisVarsayilan} />
+            <label htmlFor="giris" className="text-sm font-medium">Giriş{zorunlu.giris && <span className="text-destructive"> (zorunlu)</span>}{kayitliGiris && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliGiris})</span>}</label>
+            <Input id="giris" name="giris" type="datetime-local" defaultValue={girisVarsayilan} required={zorunlu.giris} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="cikis" className="text-sm font-medium">Çıkış{kayitliCikis && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliCikis})</span>}</label>
-            <Input id="cikis" name="cikis" type="datetime-local" defaultValue={cikisVarsayilan} />
+            <label htmlFor="cikis" className="text-sm font-medium">Çıkış{zorunlu.cikis && <span className="text-destructive"> (zorunlu)</span>}{kayitliCikis && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliCikis})</span>}</label>
+            <Input id="cikis" name="cikis" type="datetime-local" defaultValue={cikisVarsayilan} required={zorunlu.cikis} />
           </div>
           <p className="text-xs text-muted-foreground sm:col-span-2">
-            Yalnızca düzeltilecek saati girin; boş bırakılan değişmez. Gece vardiyasında çıkış ertesi gündür.
+            {zorunlu.giris && zorunlu.cikis
+              ? "Giriş ve çıkış saatini birlikte yazın."
+              : zorunlu.giris
+                ? "Giriş saatini yazın; çıkış boş bırakılırsa değişmez."
+                : zorunlu.cikis
+                  ? "Çıkış saatini yazın; giriş boş bırakılırsa değişmez."
+                  : "Yalnızca düzeltilecek saati girin; boş bırakılan değişmez."}{" "}
+            Gece vardiyasında çıkış ertesi gündür.
           </p>
         </div>
       )}
