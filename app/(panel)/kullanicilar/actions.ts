@@ -8,11 +8,10 @@ const ROLLER = ["amir", "ik", "guvenlik", "yonetici", "isg", "admin"];
 
 // Sistem yöneticisi sisteme girecek kişiyi tanımlar. Giriş hesabı Supabase Auth'ta aynı e-postayla
 // açılır; hesap zaten varsa hemen bağlanır. Admin kendine hesap açamaz (görevler ayrılığı).
+// Ad soyad yazılmaz: veritabanı onu çalışan kaydından alır (T-105).
 export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
-  const adSoyad = metinAl(form, "ad_soyad");
   const eposta = metinAl(form, "eposta");
   const rol = metinAl(form, "rol");
-  if (!adSoyad || adSoyad.length < 3) return { durum: "hata", mesaj: "Ad soyad yazın." };
   if (!eposta) return { durum: "hata", mesaj: "E-posta yazın." };
   if (!rol || !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Rolü seçin." };
 
@@ -20,7 +19,6 @@ export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promi
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
 
   const sonuc = await rpcCagir<number>("kullanici_ekle", {
-    p_ad_soyad: adSoyad,
     p_eposta: eposta,
     p_rol: rol,
     p_calisan_id: bulunan.calisan.id,
@@ -28,7 +26,7 @@ export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promi
   });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/kullanicilar");
-  return { durum: "tamam", mesaj: `${adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı Supabase Auth'ta aynı e-postayla açılmalı.` };
+  return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı Supabase Auth'ta aynı e-postayla açılmalı.` };
 }
 
 // Rol, üst amir ya da aktiflik değişir; gönderilmeyen alan değişmez. Admin kendi hesabını değiştiremez.

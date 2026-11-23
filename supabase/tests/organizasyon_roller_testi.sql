@@ -110,7 +110,7 @@ select test.hata('admin gece işini tetikleyemez', 'yetkiniz yok', $$select pdks
 
 -- 4) Admin: kullanıcı ve ayar yönetimi ------------------------------------------------------
 select test.dogrula('admin yeni kullanıcı tanımlar',
-    pdks.kullanici_ekle('OR Yeni Amir', 'OR_Yeni@Ornek.test', 'amir', test.c('ORN1'), test.k('or_amir@ornek.test')) > 0);
+    pdks.kullanici_ekle('OR_Yeni@Ornek.test', 'amir', test.c('ORN1'), test.k('or_amir@ornek.test')) > 0);
 reset role;
 select test.dogrula('yeni kullanıcı: e-posta küçük harfe çevrildi, rol ve üst amir yazıldı',
     (select rol = 'amir' and ust_amir_id = test.k('or_amir@ornek.test') and aktif and auth_kullanici_id is null
@@ -118,15 +118,15 @@ select test.dogrula('yeni kullanıcı: e-posta küçük harfe çevrildi, rol ve 
 set local role authenticated;
 select test.oturum('or_admin@ornek.test');
 select test.hata('aynı e-posta ikinci kez kullanılamaz', 'başka bir kullanıcıda',
-    format($$select pdks.kullanici_ekle('OR İkinci', 'or_yeni@ornek.test', 'amir', %s)$$, test.c('OR01')));
+    format($$select pdks.kullanici_ekle('or_yeni@ornek.test', 'amir', %s)$$, test.c('OR01')));
 select test.hata('hesabı olan çalışana ikinci hesap açılamaz', 'zaten bir kullanıcı hesabı',
-    format($$select pdks.kullanici_ekle('OR İkinci', 'or_ikinci@ornek.test', 'amir', %s)$$, test.c('ORN1')));
+    format($$select pdks.kullanici_ekle('or_ikinci@ornek.test', 'amir', %s)$$, test.c('ORN1')));
 select test.hata('admin kendine hesap açamaz', 'Görevler ayrılığı',
-    format($$select pdks.kullanici_ekle('OR Kendim', 'or_kendim@ornek.test', 'ik', %s)$$, test.c('ORA1')));
+    format($$select pdks.kullanici_ekle('or_kendim@ornek.test', 'ik', %s)$$, test.c('ORA1')));
 select test.hata('geçersiz e-posta reddedilir', 'Geçerli bir e-posta',
-    format($$select pdks.kullanici_ekle('OR Hatalı', 'hatali-eposta', 'amir', %s)$$, test.c('OR01')));
+    format($$select pdks.kullanici_ekle('hatali-eposta', 'amir', %s)$$, test.c('OR01')));
 select test.hata('geçersiz rol reddedilir', 'Geçersiz rol',
-    format($$select pdks.kullanici_ekle('OR Hatalı', 'or_hatali@ornek.test', 'mudur', %s)$$, test.c('OR01')));
+    format($$select pdks.kullanici_ekle('or_hatali@ornek.test', 'mudur', %s)$$, test.c('OR01')));
 
 select pdks.kullanici_guncelle(test.k('or_yeni@ornek.test'), p_rol => 'isg', p_aktif => false);
 reset role;
@@ -164,7 +164,7 @@ select test.hata('eksi ayar değeri girilemez', '0 ya da daha büyük', $$select
 -- 5) Kullanıcı ve ayar yönetimi yalnızca admin'de ----------------------------------------------
 select test.oturum('or_ik@ornek.test');
 select test.hata('İK kullanıcı tanımlayamaz', 'yetkiniz yok',
-    format($$select pdks.kullanici_ekle('OR X', 'or_x@ornek.test', 'amir', %s)$$, test.c('OR01')));
+    format($$select pdks.kullanici_ekle('or_x@ornek.test', 'amir', %s)$$, test.c('OR01')));
 select test.hata('İK ayar değiştiremez', 'yetkiniz yok', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', 20)$$);
 select test.oturum('or_isg@ornek.test');
 select test.hata('İSG uzmanı kullanıcı güncelleyemez', 'yetkiniz yok',
@@ -173,7 +173,7 @@ reset role;
 select test.dogrula('iç yardımcı uygulamaya kapalı, ekran fonksiyonları açık',
     not has_function_privilege('authenticated', 'pdks.auth_hesabi_bagla(bigint)', 'execute')
     and has_function_privilege('authenticated', 'pdks.ayar_guncelle(text, integer)', 'execute')
-    and not has_function_privilege('anon', 'pdks.kullanici_ekle(text, text, text, bigint, bigint)', 'execute'));
+    and not has_function_privilege('anon', 'pdks.kullanici_ekle(text, text, bigint, bigint)', 'execute'));
 
 do $$ begin raise notice 'ORGANİZASYON VE ROL TESTLERİ GEÇTİ'; end $$;
 rollback;

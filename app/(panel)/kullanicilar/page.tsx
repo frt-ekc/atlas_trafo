@@ -91,11 +91,12 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
           onay="Ekle"
           islem={kullaniciEkle}
         >
-          <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+          <Alan
+            etiket="Çalışanın sicil numarası"
+            htmlFor="sicil"
+            ipucu="Yazmaya başlayınca liste açılır. Ad soyad çalışan kaydından gelir."
+          >
             <Input id="sicil" name="sicil" list="k-calisanlar" required autoComplete="off" inputMode="numeric" />
-          </Alan>
-          <Alan etiket="Ad soyad" htmlFor="ad_soyad">
-            <Input id="ad_soyad" name="ad_soyad" required minLength={3} maxLength={100} />
           </Alan>
           <Alan etiket="E-posta" htmlFor="eposta">
             <Input id="eposta" name="eposta" type="email" required maxLength={200} />
