@@ -9,6 +9,8 @@
 \pset tuples_only on
 \pset format unaligned
 begin;
+-- Bu test Kasım / Aralık 2026'yı kilitler; ay bitmeden kilit olmadığı için (T-89) bugün 15.01.2027 kabul edilir
+set local pdks.test_bugun = '2027-01-15';
 set local timezone = 'Europe/Istanbul';
 
 create schema test;

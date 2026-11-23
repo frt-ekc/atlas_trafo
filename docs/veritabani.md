@@ -79,6 +79,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/istanbul_tarihi_testi.sql` | Aynı işlemler UTC−12 ve UTC+14 oturumla: plan, fazla mesai iptali ve onay geri alma, gece işi, İSG durumu, kart tarihi için 24 test (gece işi sınırının 3 testi yalnızca örnek veri yokken çalışır) |
 | `supabase/migrations/20261206010000_rls_hizi.sql` | `gun_kaydi`, `calisan`, `amir_sorusu`, `itiraz`, `departman`, `vardiya_tanim`, `vardiya_plani`, `kanit_kaydi`, `ham_okutma` okuma politikaları `(select pdks.f())` kalıbında; amirin çalışanları için `pdks.oturum_calisanlari()` (T-104). Kim neyi görür değişmedi |
 | `supabase/tests/rls_hizi_testi.sql` | RLS hızı: politika yapısı, 8 oturumda görünen satırların eski politikalarla eşdeğerliği, Montaj amirinin Departmanlar ve Vardiya planı okumaları 500 ms altında (örnek veriyle) için 28 test |
+| `supabase/migrations/20261207010000_ay_kilidi_zamani.sql` | `ay_kilitle`: ayın son günü İstanbul tarihiyle bugünden önce değilse ret, zorla da (T-89). `pdks.bugun()`: testler için `pdks.test_bugun` ayarı, yalnızca `session_user = 'postgres'` iken |
+| `supabase/tests/ay_kilidi_zamani_testi.sql` | Ay kilidi zamanı: içinde bulunulan, gelecek ve iki ay sonraki ay ret; bitmiş ay kabul; ayın son günü sınırı; tarih ayarının yalnızca doğrudan bağlantıda geçerliliği için 10 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -98,7 +100,8 @@ olarak veritabanının içinde çalışır.
 5. **Çalışan aleyhine kararı İK verir.** "devamsız" kararı, itirazın reddi ve ayın kilitlenmesi yalnızca
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
    Sistem en fazla `devamsiz_suphesi` der.
-6. **Ay sonu kilidi (sorun 11).** Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
+6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
+   Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
    gelen düzeltme sonraki açık aya `fark_satiri = true` olarak yazılır. Puantaj (`puantaj_satiri`)
    yalnızca kilitli aya yazılır ve sonra değiştirilemez. Kilit önce ayın hesabı bekleyen günlerini hesaplar;
    gece işinden geçmemiş planlı gün varken (zorla bile) kilitlemez, çünkü kilitten sonra o güne gün kaydı açılamaz.

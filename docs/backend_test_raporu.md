@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 17 | 15 | 2 (T-45, T-104) | 15 (25 Kasım'a kadar) | 0 |
+| Yüksek | 17 | 14 | 3 (T-45, T-89, T-104) | 14 (25 Kasım'a kadar) | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 33 | 1 (T-37) | 20 | 13 |
 | Görüş | 19 | 18 | 1 (T-04) | 8 | 10 |
-| **Toplam** | **104** | **97** | **7** | **66** | **31** |
+| **Toplam** | **104** | **96** | **8** | **65** | **31** |
 
 "Açık" sütununda T-34 (Düşük) ve T-89 (Yüksek) de var: ekran tarafları düzeltildi, veritabanı tarafları açık.
 
@@ -325,7 +325,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-86 | Düşük | 10 | Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar | K11 | Yusuf | Düzelt |
 | T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | Düzelt |
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | Sınırlılık |
-| T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | Ekran ✅ PR #39; veritabanı: Düzelt (25 Kas) |
+| T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 |
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | Düzelt (25 Kas) |
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | Düzelt |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
@@ -3212,7 +3212,11 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** İ#1 `ay_kilitle 2027/1 | OK {"donem": "2027-01", "mesaj": "1/2027 kilitlendi.", "zorla": false, "kodsuz_gun": 0, …}` · İ#3 `vardiya_plani_gir 05.01.2027 | HATA … kilitli bir döneme ait.` · İ#5 `postgres: 2027/1 kilidini aç | HATA … 1/2027 dönemi kilitli; değiştirilemez.` · #97 Aralık: ret (seed'in 7 Aralık planları yüzünden).
 - **Sade dille:** İK ekranında ay listesinden yanlış ayı seçip "kilitle"ye basarsa, gelecekteki bir ay sonsuza kadar kapanır. O ay için vardiya planı girilemez, gece işi o ayın günlerini işleyemez. Sistem bunu geri alamadığı için tek çare veritabanına el ile müdahaledir; bu da "kilitli ay açılamaz" kuralını çiğner.
 - **Öneri:** `ay_kilitle` başında: `if make_date(p_yil, p_ay, 1) + interval '1 month' > (now() at time zone 'Europe/Istanbul')::date then raise exception 'Ay bitmeden kilitlenemez.'`. Kalıcı test: içinde bulunulan ay ve ileri ay reddedilir.
-- **Durum:** Ekran tarafı düzeltildi (PR #39: bitmemiş ay ekrandan kilitlenemez). Veritabanı tarafı açık (`ay_kilitle` doğrudan çağrılınca ileri ayı yine kilitliyor), Yusuf.
+- **Durum:** ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 (migration: `20261207010000_ay_kilidi_zamani.sql`, test: `ay_kilidi_zamani_testi.sql`).
+  - `ay_kilitle` en başta, ayın son günü İstanbul tarihiyle (`pdks.bugun()`) bugünden önce değilse "henüz bitmedi" hatası verir; zorla da geçilemez. Yerelde yeniden üretildi (23.11.2026'da Ocak 2027 kilitlendi), düzeltmeden sonra reddediliyor.
+  - Test: içinde bulunulan ay, gelecek ay ve iki ay sonrası reddedilir; bitmiş ay kilitlenir; ayın son günü sınırı (30.06 ret, 01.07 kabul).
+  - **Testler için tarih ayarı:** `pdks.bugun()`, doğrudan veritabanı bağlantısında (`session_user = 'postgres'`) `set local pdks.test_bugun = 'YYYY-MM-DD'` ayarını kullanır; ekrandan gelen istek (`authenticator`) ayarı görmez. Kasım / Aralık 2026'yı kilitleyen 5 test dosyası (`ay_kilidi`, `erp_aktarim`, `plan_onayi`, `puantaj_kurallari`, `puantaj`) bu ayarla (15.01.2027) tarihten bağımsız çalışır.
+  - Sistem yolu `donem_kilitle` (yalnızca `postgres` çalıştırır) değişmedi; T-97 ile birlikte sınırlılık.
 
 ### T-90 · Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor; zorlamadan kilit de buna izin veriyor
 - **Adım:** 12 · **Önem:** Yüksek
@@ -3526,7 +3530,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | T-81 | 1. adım, Uyarılar | Paylaşım uyarısında İK yalnızca "görüldü" diyebilir; "karar nerede?" sorusunun cevabı yok | "Sistem uyarır, karar İK'nın elle düzeltmesiyle olur" diye anlatılsın; "görüldü" butonu sonuç bekleniyormuş gibi gösterilmesin |
 | T-83 | 2. adım | Osman'a kart demo saatiyle verilir; geçmiş saat seçilemez | Belgedeki gibi "o anın saatiyle" anlatılsın |
 | T-86 | 2.4 | Aynı kişiye ikinci geçici kart denenirse mesaj başka kartı anlatır | Çakışmayı belgedeki gibi **başka bir kişiyle** (ör. Burak) ve 2.2 ile 2.3 arasında göster |
-| T-89 | 9. adım, Puantaj | Canlıda yanlış ay seçilip "Ayı kilitle"ye basılırsa ay (gelecek ay bile) kalıcı kilitlenir | Belgedeki kural: canlıda kilit düğmesine basılmaz. Puantaj ekranında ay seçici kurcalanmasın |
+| T-89 | 9. adım, Puantaj | Canlıda yanlış ay seçilip "Ayı kilitle"ye basılırsa ay (gelecek ay bile) kalıcı kilitlenir | ✅ Düzeltildi (PR #39 ekran, PR #49 veritabanı; canlıya 20261207010000 uygulandıktan sonra): bitmemiş ay kilitlenemez. Belgedeki kural yine geçerli: canlıda kilit düğmesine basılmaz (bitmiş ay kalıcı kilitlenir) |
 | T-90 / T-91 / T-92 | 9. adım görüntüleri | Zorla kilitlenirse kodsuz gün, satır / kalem çelişkisi ve izsiz zorla kilit görüntüye girer | Görüntüler A'daki sırayla, zorlamadan kilitle alınsın (kodsuz 0) |
 | T-104 | 8. adım, yönetici paneli | Amir hesabıyla Departmanlar açılırsa sayfa 8 sn'de "Sayfa açılamadı"ya düşer (İK ve yönetici 3,5–4 sn) | ✅ Düzeltildi (PR #48; canlıya 20261206010000 uygulandıktan sonra geçerli): Departmanlar ve Vardiya planı amir hesabıyla da gösterilebilir |
 | T-24 | 3. adım | Gece işi ekrandan çok günle çalıştırılırsa 8 sn zaman aşımı | Yalnızca 07.12 – 07.12 çalıştırılsın (belgedeki gibi). Kasım canlı kurulumda SQL Editor'den işlenir |
