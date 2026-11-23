@@ -3658,3 +3658,17 @@ Durumu değişen bulgular:
 - **Kalan (ayrı iş, 26 Kasım – 3 Aralık):** Diğer 26 tablonun 46 politikası hâlâ satır başına denetliyor. Bugün amirde her biri 0,2 sn'nin altında; 2000 çalışanda yavaşlayabilir. Aynı kalıpla çevrilecek; `rls_hizi_testi.sql`'deki tablo listesi genişletilecek.
 - **Not (test ortamı):** `gecici_kart_ve_paylasim_testi.sql`, Kasım gece işinden geçmiş bir veritabanında ("kart paylaşımı günlük kaydı değiştirmedi") düşüyor; eski kodda da aynı. Test temiz veritabanı bekliyor (`db reset` sonrası geçiyor). Bu PR ile ilgili değil.
 
+
+## Normalizasyon incelemesi — `kullanici` tablosu (23 Kasım 2026)
+
+### T-105 · `kullanici` tablosunda iki çift kayıt: `izinli_mi` hiç değişmiyor, `ad_soyad` çalışandan bağımsız
+- **Adım:** Normalizasyon · **Önem:** Orta (`izinli_mi`), Düşük (`ad_soyad`)
+- **Yer:** `pdks.kullanici.izinli_mi`, `pdks.soru_atanacak`; `pdks.kullanici.ad_soyad`, `pdks.kullanici_ekle`
+- **Ne oldu:**
+  - `izinli_mi`: izin bilgisi zaten `izin` tablosunda var. Bayrağı değiştiren hiçbir ekran ya da fonksiyon yoktu (`kullanici_guncelle`'de parametresi yok), bu yüzden uygulamada hep `false` kalıyordu. Amir `izin` tablosunda izinliyken bile sorular ona gidiyordu; "izinliyse vekile" kuralı fiilen çalışmıyordu.
+  - `ad_soyad`: kullanıcı `calisan_id` ile bir çalışana bağlı ve ad `calisan.ad` / `soyad`'da. `kullanici_ekle` ismi admin'den alıyor ve çalışanla tutup tutmadığına bakmıyordu (3NF: kullanıcı → çalışan → ad).
+- **Durum:** ✅ Düzeltildi — migration `20261208010000_kullanici_cift_kayit.sql`, test `kullanici_cift_kayit_testi.sql` (20 test).
+  - `izinli_mi` kolonu silindi. Yeni `pdks.kullanici_izinli_mi(kullanıcı, tarih = bugün)`: çalışan kaydı için iptal edilmemiş izin ya da rapor var mı. `soru_atanacak` bunu kullanır.
+  - `ad_soyad` kolonu kaldı (15 ekran okuyor), kaynağı çalışan: `kullanici_ad_soyad` trigger'ı yazarken, `calisan_adi_degisti` trigger'ı çalışanın adı değişince eşitler; var olan satırlar bir kez eşitlendi. `kullanici_ekle(p_eposta, p_rol, p_calisan_id, p_ust_amir_id?)` artık ad soyad almaz; Kullanıcılar ekranındaki "Ad soyad" alanı kalktı.
+  - `organizasyon_roller_testi.sql` yeni imzaya göre güncellendi (35 test geçiyor).
+- **İlgili açık maddeler:** T-14 (vekilin görünürlüğü) ve T-43 (izinden önce açılmış sorular) artık `izinli_mi` yerine `pdks.kullanici_izinli_mi()` üzerine kurulmalı.

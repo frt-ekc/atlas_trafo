@@ -135,6 +135,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261205010000_istanbul_tarihi.sql` | "Bugün" İstanbul'a göre (`pdks.bugun()`; ekran ve pg_cron UTC oturumla çalışsa da) (T-45); yazılı onayın geri alınması her zaman kaydedilir (T-59) |
 | `20261206010000_rls_hizi.sql` | Departmanlar ve Vardiya planı amirde zaman aşımına düşmez: 9 tablonun okuma politikaları oturumu sorgu başına bir kez denetler (T-104) |
 | `20261207010000_ay_kilidi_zamani.sql` | Ay bitmeden kilitlenemez, zorla da (T-89); testler için `pdks.test_bugun` tarih ayarı (yalnızca doğrudan bağlantı) |
+| `20261208010000_kullanici_cift_kayit.sql` | `kullanici` tablosunda çift kayıt yok (T-105): `izinli_mi` kalktı, amirin izni `izin` tablosundan okunur; `ad_soyad` çalışan kaydından gelir |
 
 ---
 
@@ -219,6 +220,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | İstanbul tarihi (T-45, T-59, T-04): plan, fazla mesai iptali, gece işi, İSG durumu ve kart tarihi UTC−12 / UTC+14 oturumda da İstanbul'a göre; yazılı onayın geri alınması her zaman kaydedilir (24 test) | ✅ |
 | RLS hızı (T-104): 9 tabloda oturum sorgu başına bir kez denetlenir; her rolde görünen satırlar eskisiyle aynı, Montaj amirinin Departmanlar ve Vardiya planı okumaları 500 ms altında (28 test) | ✅ |
 | Ay kilidi zamanı (T-89): içinde bulunulan ve ileri ay kilitlenemez (zorla da), ayın son günü sınırı; testler için tarih ayarı (10 test) | ✅ |
+| Kullanıcı çift kayıtları (T-105): izinli amirin sorusu `izin` tablosuna göre vekile gider; kullanıcı adı çalışan kaydından gelir (20 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

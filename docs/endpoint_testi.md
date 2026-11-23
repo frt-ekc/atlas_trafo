@@ -78,7 +78,7 @@ Parametre kaynakları için kısaltmalar:
 | İSG | "Ver" / "Kaldır" | `bolgeYetkisi` | `bolge_yetkisi_ver` / `bolge_yetkisi_kaldir` | `p_bolge_id`, `p_departman_id` ← gizli · hangi fonksiyon ← gizli `islem` (hücrede yetki varsa "kaldir") | ✅ |
 | Uyarılar | Görüldü | `uyariGoruldu` | `uyari_goruldu` | `p_uyari_id` ← gizli | ✅ |
 | Ayarlar | Değiştir | `ayarGuncelle` | `ayar_guncelle` | `p_anahtar` ← gizli · `p_deger` ← tam sayı | ✅ |
-| Kullanıcılar | Kullanıcı ekle | `kullaniciEkle` | `kullanici_ekle` | `p_ad_soyad`, `p_eposta`, `p_rol` · `p_calisan_id` ← sicil · `p_ust_amir_id` ← seçim | ✅ |
+| Kullanıcılar | Kullanıcı ekle | `kullaniciEkle` | `kullanici_ekle` | `p_eposta`, `p_rol` · `p_calisan_id` ← sicil · `p_ust_amir_id` ← seçim | ✅ |
 | Kullanıcılar | Düzenle | `kullaniciGuncelle` | `kullanici_guncelle` | `p_kullanici_id` ← gizli · `p_rol` · `p_ust_amir_id` (boş = değiştirme) · `p_aktif` ← kutu (önceden işaretli) | ✅ |
 | Puantaj | Ayı kilitle | `ayKilitle` | `ay_kilitle` | `p_yil`, `p_ay` ← gizli `ay` (YYYY-MM) · `p_zorla` ← kutu. Ayrıca "geri açılamaz" onay kutusu zorunlu | ✅ |
 | Her sayfa (amir) | — | `gorunurBolumler` | `oturum_departmanlari` (okuma) | — | ✅ |
