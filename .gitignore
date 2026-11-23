@@ -22,3 +22,6 @@ next-env.d.ts
 *.tsbuildinfo
 .vercel/
 npm-debug.log*
+
+# Sentetik veri çıktısı (scripts/sentetik_veri.mjs her seferinde aynısını üretir)
+/veri/

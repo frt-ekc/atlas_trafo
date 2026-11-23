@@ -6,6 +6,8 @@ Seed yalnızca gece işinin işleyeceği **girdileri** yazar: organizasyon, kull
 
 Veri her çalıştırmada aynı çıkar: saatler rastgele değil, sicil ve tarihten türetilir.
 
+180 çalışanlık, gerçeğe benzer sentetik veri seti (Ekim 2026): [sentetik_veri.md](sentetik_veri.md).
+
 ## Yükleme
 
 ```bash
