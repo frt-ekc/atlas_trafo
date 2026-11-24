@@ -342,7 +342,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | Belge |
 | T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | ✅ Düzeltildi (PR #48); kalan 46 politika ayrı iş |
 | T-106 | Yüksek | T-12 düzeltmesi | İK'nın soru kararındaki gerekçe (sağlık bilgisi olabilir) amire açık | K9 | Fırat | ✅ Düzeltildi (feature/T106-ik-karar-gerekcesi) |
-| T-108 | Yüksek | T-104 devamı | Oturum yardımcıları oturumu kendi içlerinde satır başına soruyor; amirin "çalışanlarım" listesi yarım saniye | K16 | Yusuf | ✅ Düzeltildi (PR #..) |
+| T-108 | Yüksek | T-104 devamı | Oturum yardımcıları oturumu kendi içlerinde satır başına soruyor; amirin "çalışanlarım" listesi yarım saniye | K16 | Yusuf | ✅ Düzeltildi (PR #63) |
 
 ### Bilinen sınırlılıklar
 
@@ -3736,7 +3736,7 @@ Durumu değişen bulgular:
 
   Sonuç aynı: Hasan 2 departman, 20 çalışan; testte 8 oturumda 9 tablonun satırları eski politikayla birebir aynı.
 - **Sade dille:** T-104'te veritabanına "amirin çalışan listesini bir kez çıkar, her satırda o listeye bak" dedik. Ama listeyi çıkaran yardımcı, listeyi hazırlarken her çalışan için "amirin departmanları hangileri?" sorusunu baştan soruyordu. 76 çalışanda yarım saniye; 2000 çalışanda saniyeler sürer ve T-104'teki zaman aşımı geri gelirdi.
-- **Durum:** ✅ Düzeltildi — PR #.. (migration: `20261217010000_oturum_yardimcilari.sql`, test: `rls_hizi_testi.sql`).
+- **Durum:** ✅ Düzeltildi — PR #63 (migration: `20261217010000_oturum_yardimcilari.sql`, test: `rls_hizi_testi.sql`).
   - Beş yardımcının içinde oturum fonksiyonları `(select pdks.f())` ile çağrılır (sorgu başına bir kez, InitPlan). İmza, özellikler (STABLE, SECURITY DEFINER, search_path) ve yetkiler aynı.
   - `rls_hizi_testi`: yardımcıların yapısı da denetlenir (1b); hız sınırları ölçülen değere yakın: "çalışanlarım" listesi < 30 ms, sayfa okumaları < 150 ms (eskiden 500 ms).
   - `fazla_mesai_plani` ve `fazla_mesai_inceleme`'nin `amirin_calisani_mi` politikaları da hızlandı (T-104'ün "kalan 46 politika" listesindeydiler).
