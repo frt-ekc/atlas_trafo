@@ -32,7 +32,7 @@ Demo canlı sistemde (atlas-pdks) yalnızca **sahte veriyle** yapılır. Kasım 
   - kart paylaşımı şüphesi (S11);
   - zimmetsiz geçici kart (S23).
 - **Sorular:** Kasım'ın 4 açık sorusu (S2, S4, S19, S22). S22'de soru Montaj amiri Hasan'ın kendi kaydı olduğu için ona değil, üst amiri Levent Sarı'ya gitti (görevler ayrılığı).
-  - **Ekranda "eskale" görünür:** Kasım'ın tamamı gece işinden geçtiği için dördünün de cevap süresi dolmuştur. S2, S4 ve S19 Levent Sarı'ya, S22 İK'ya (Elif Şen) eskale olmuş görünür. "Kime atanmış" sütunu bu yüzden yukarıdaki cümleden farklı görünebilir; anlatırken önce "ilk kime gitti", sonra "süresi dolunca kime geçti" söylenir.
+  - **Ekranda "eskale" ve "İK kararı bekliyor" görünür:** Kasım'ın tamamı gece işinden geçtiği için dördünün de cevap süresi dolmuştur. Soru önce amire, amir 3 günde cevaplamazsa üst amire, üst amir de 3 günde cevaplamazsa İK'ya gider (T-39). Kasım sonunda S2 ve S4 üst amir Levent Sarı'dan İK'ya geçmiş, S19 Levent'te, S22 İK'da (Elif Şen) görünür. Gece işi Aralık'ta her gece çalıştığı için 7 Aralık'ta S19 da İK'dadır (son cevabı 29.11, üst amirin süresi 02.12'de doldu). "Kime atanmış" sütunu bu yüzden yukarıdaki cümleden farklı görünebilir; anlatırken önce "ilk kime gitti", sonra "süresi dolunca kime geçti" söylenir.
 
 ### 2. Kart unutma (Kasım verisi + Güvenlik ekranı)
 Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici kart yoktur.
@@ -107,14 +107,14 @@ Canlıda kilit yapılmaz. Yerelde alınmış görüntülerle anlatılır:
 
 **Görüntüler nasıl alınır (yerelde, Fırat):**
 - Kasım'ı zorlamadan kilitlemek için önce bekleyenler kapatılır: 4 soru (S2, S4, S19, S22), havuzdaki 3 fazla mesai ve Okan'ın (S13) onay bekleyen geriye dönük planı. Bu planı İK uzmanı girdiği için İK müdürü onaylar. Zorla kilitlenirse kilit sonucu, geçilen kalemleri ve puantaja kodsuz giren gün sayısını gösterir. S13 (Okan) planı zorla da geçilmez; kilitten önce İK müdürü planı onaylamalı ya da reddetmeli.
-- **4 soruyu kim kapatır:** soruyu yalnızca atandığı amir ya da eskale edildiği kişi cevaplayabilir. İK, kendisine eskale olmayan soruyu kapatamaz (T-39).
+- **4 soruyu kim kapatır:** İK her açık soruya karar verebilir (son karar İK'da, T-39). Amir ya da üst amir soruyu yalnızca soru İK'ya geçmeden cevaplayabilir.
 
-  | Soru | Kim kapatır |
-  |---|---|
-  | S2 (Ali Demir, 4 Kas) | Montaj amiri Hasan Yılmaz ya da Levent Sarı |
-  | S4 (Mustafa Şahin, 5 Kas) | Montaj amiri Hasan Yılmaz ya da Levent Sarı |
-  | S19 (Kaan Bulut, 25 Kas) | Bobinaj amiri Serkan Öztürk ya da Levent Sarı. Hasan Bobinaj vekili olsa da bu soruyu cevaplayamaz (T-43) |
-  | S22 (Hasan Yılmaz, 26 Kas) | Levent Sarı ya da İK (Elif Şen) |
+  | Soru | Kasım sonunda nerede | Kim kapatır |
+  |---|---|---|
+  | S2 (Ali Demir, 4 Kas) | İK (üst amir de cevaplamadı) | İK (Elif Şen) |
+  | S4 (Mustafa Şahin, 5 Kas) | İK (üst amir de cevaplamadı) | İK (Elif Şen) |
+  | S19 (Kaan Bulut, 25 Kas) | Levent Sarı | Bobinaj amiri Serkan Öztürk, Levent Sarı ya da İK. Hasan Bobinaj vekili olsa da bu soruyu cevaplayamaz (T-43) |
+  | S22 (Hasan Yılmaz, 26 Kas) | İK | Levent Sarı ya da İK (Elif Şen) |
 
 1. `supabase db reset` (örnek veriyle).
 2. Kasım'ı gece işinden geçir.

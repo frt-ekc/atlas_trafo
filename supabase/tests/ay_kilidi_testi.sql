@@ -278,17 +278,25 @@ do $$ declare d date; begin
         perform pdks.gece_isi_calistir(d);
     end loop;
 end $$;
-select test.dogrula('uçtan uca hazırlık: Kasım işlendi, 4 soru üst amirde / İK''da bekliyor',
-    (select count(*) from pdks.amir_sorusu q join pdks.gun_kaydi g on g.id = q.gun_kaydi_id
-     where q.durum = 'eskale' and g.is_gunu between '2026-11-01' and '2026-11-30') = 4
-    and pdks.kullanici_rolu((test.soru('1001', '2026-11-26')).eskale_edilen_id) = 'ik');
+-- T-39: S2 ve S4'te üst amir (Levent) de süresinde cevaplamadı; Kasım sonuna kadar İK'ya geçtiler.
+-- S19 Levent'te (süresi dolmadı), S22 baştan İK'da (Hasan'ın kendi günü).
+select test.dogrula('uçtan uca hazırlık: Kasım işlendi; S2, S4 İK''ya geçti, S19 üst amirde, S22 İK''da',
+    (select array_agg(c.sicil_no || ':' || q.durum order by c.sicil_no) from pdks.amir_sorusu q
+     join pdks.gun_kaydi g on g.id = q.gun_kaydi_id join pdks.calisan c on c.id = g.calisan_id
+     where q.durum in ('acik', 'eskale', 'ik_karari_bekliyor') and g.is_gunu between '2026-11-01' and '2026-11-30')
+    = array['1001:eskale', '1003:ik_karari_bekliyor', '1005:ik_karari_bekliyor', '2009:eskale']
+    and pdks.kullanici_rolu((test.soru('1001', '2026-11-26')).eskale_edilen_id) = 'ik'
+    and (test.soru('1003', '2026-11-04')).ik_eskale_zamani is not null);
 
 set local role authenticated;
 select test.oturum('levent.sari@atlastrafo.example.com');
-select pdks.soru_cevapla((test.soru('1003', '2026-11-04')).id, 'geldi_saat_dogru');   -- S2
-select pdks.soru_cevapla((test.soru('1005', '2026-11-05')).id, 'bilmiyorum');         -- S4
+select test.hata('uçtan uca: İK''ya geçen soruyu üst amir artık cevaplayamaz', 'zaten cevaplanmış',
+    $$select pdks.soru_cevapla((test.soru('1003', '2026-11-04')).id, 'geldi_saat_dogru')$$);
 select pdks.soru_cevapla((test.soru('2009', '2026-11-25')).id, 'gelmedi');            -- S19
 select test.oturum('elif.sen@atlastrafo.example.com');
+-- S2: kapı kaydındaki saat doğru (eskiden üst amir "geldi, saat doğru" derdi; artık İK karar verir)
+select pdks.soru_ik_karari((test.soru('1003', '2026-11-04')).id, false, 'Kapı kaydı doğru',
+                           (test.soru('1003', '2026-11-04')).onerilen_zaman);
 select pdks.soru_ik_karari((test.soru('1005', '2026-11-05')).id, false, 'Vardiya sonuna kadar çalıştı', null, '2026-11-05 17:00+03');
 select pdks.soru_ik_karari((test.soru('2009', '2026-11-25')).id, true, 'Haber vermeden gelmedi');
 select pdks.soru_ik_karari((test.soru('1001', '2026-11-26')).id, false, 'Üretim müdürü teyit etti', '2026-11-26 08:00+03'); -- S22 (İK'ya eskale)

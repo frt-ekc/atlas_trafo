@@ -201,7 +201,13 @@ select test.dogrula('S13 Okan 13 Kasım: plan İK onayı beklediği için gün i
 select test.dogrula('açık soru yalnızca bilerek açık bırakılan 4 gün (S2, S4, S19, S22)',
     (select array_agg(c.sicil_no order by c.sicil_no) from pdks.amir_sorusu q
      join pdks.gun_kaydi g on g.id = q.gun_kaydi_id join pdks.calisan c on c.id = g.calisan_id
-     where q.durum in ('acik', 'eskale')) = array['1001', '1003', '1005', '2009']);
+     where q.durum in ('acik', 'eskale', 'ik_karari_bekliyor')) = array['1001', '1003', '1005', '2009']);
+-- T-39: S2 ve S4'te üst amir de cevaplamadı; Kasım sonuna kadar İK'ya geçtiler
+select test.dogrula('S2 ve S4 üst amirden İK''ya geçti (ikinci kademe), S19 üst amirde, S22 İK''da',
+    (select array_agg(c.sicil_no || ':' || q.durum order by c.sicil_no) from pdks.amir_sorusu q
+     join pdks.gun_kaydi g on g.id = q.gun_kaydi_id join pdks.calisan c on c.id = g.calisan_id
+     where q.durum in ('acik', 'eskale', 'ik_karari_bekliyor'))
+    = array['1001:eskale', '1003:ik_karari_bekliyor', '1005:ik_karari_bekliyor', '2009:eskale']);
 select test.dogrula('S24 Ferhat 17 Kasım 00-08: giriş 16 Kasım 23:39, tek iş günü, mola 60, gece 315 dk',
     (select date_trunc('minute', giris_zamani) = '2026-11-16 23:39+03' and (cikis_zamani at time zone 'Europe/Istanbul')::date = '2026-11-17'
             and durum = 'tamam' and mola_dk = 60 and gece_calisma_dk = 315

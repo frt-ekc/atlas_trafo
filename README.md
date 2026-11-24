@@ -137,6 +137,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261207010000_ay_kilidi_zamani.sql` | Ay bitmeden kilitlenemez, zorla da (T-89); testler için `pdks.test_bugun` tarih ayarı (yalnızca doğrudan bağlantı) |
 | `20261208010000_kullanici_cift_kayit.sql` | `kullanici` tablosunda çift kayıt yok (T-105): `izinli_mi` kalktı, amirin izni `izin` tablosundan okunur; `ad_soyad` çalışan kaydından gelir |
 | `20261209010000_kodsuz_gun.sql` | Puantaja kodsuz girecek gün varken ay zorlamadan kilitlenmez; hata ve özet günleri adıyla söyler (T-90, T-101) |
+| `20261210010000_ikinci_eskale.sql` | Soru amir → üst amir → İK: üst amir de cevaplamazsa İK'ya geçer; İK her açık soruya karar verir (T-39) |
 
 ---
 
@@ -223,6 +224,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Ay kilidi zamanı (T-89): içinde bulunulan ve ileri ay kilitlenemez (zorla da), ayın son günü sınırı; testler için tarih ayarı (10 test) | ✅ |
 | Kullanıcı çift kayıtları (T-105): izinli amirin sorusu `izin` tablosuna göre vekile gider; kullanıcı adı çalışan kaydından gelir (20 test) | ✅ |
 | Kodsuz gün (T-90, T-101): kodsuz gün varken zorlamadan kilit reddedilir ve günleri (sicil, gün, neden) söyler; zorla kilitte günler özete yazılır (8 test) | ✅ |
+| Soru eskalasyonu (T-39): amir → üst amir → İK; bir gecede en çok bir kademe; İK her açık soruya karar verir, gün hesaplanır (17 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
