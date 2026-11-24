@@ -11,7 +11,7 @@ import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
 import { saat, tarih, tarihSaat, yerelZamanGirdisi } from "@/lib/bicim";
-import { SORU_CEVABI, SORU_DURUMU, SORU_TURU } from "@/lib/etiketler";
+import { IK_KARARI, SORU_CEVABI, SORU_DURUMU, SORU_TURU } from "@/lib/etiketler";
 import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
@@ -34,6 +34,9 @@ type Soru = {
   cevap_giris: string | null;
   cevap_cikis: string | null;
   cevap_aciklama: string | null;
+  ik_karari: string | null;
+  // İK kararının gerekçesi düzeltmededir; amir için okunmaz (T-106)
+  duzeltmeler?: { gerekce: string; kaynak: string }[];
   cevap_zamani: string | null;
   ik_eskale_zamani: string | null; // üst amir de cevaplamayınca İK'ya geçtiği an (T-39)
   atanan: { ad_soyad: string; rol: string } | null;
@@ -87,9 +90,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       .from("amir_sorusu")
       .select(
         "id, soru_turu, aciklama, onerilen_zaman, durum, olusturma_zamani, son_cevap_tarihi, " +
-          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_eskale_zamani, " +
+          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_karari, ik_eskale_zamani, " +
           "atanan:kullanici!atanan_id(ad_soyad, rol), eskale:kullanici!eskale_edilen_id(ad_soyad, rol), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
-          "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))",
+          "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))" +
+          (kullanici.rol === "amir" ? "" : ", duzeltmeler:duzeltme!soru_id(gerekce, kaynak)"),
       )
       .order("son_cevap_tarihi")
       .order("id")
@@ -164,6 +168,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
             <TableBody>
               {sorular.map((s) => {
                 const c = s.gun?.calisan;
+                const ikGerekcesi = s.duzeltmeler?.find((d) => d.kaynak === "ik")?.gerekce;
                 const gecikti = (s.durum === "acik" || s.durum === "eskale") && s.son_cevap_tarihi < bugunTarih;
                 return (
                   <TableRow key={s.id}>
@@ -187,6 +192,12 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                           {(s.cevap_giris || s.cevap_cikis) && ` (${saat(s.cevap_giris)}–${saat(s.cevap_cikis)})`}
                           {s.cevap_aciklama && ` · ${s.cevap_aciklama}`}
                           <span className="text-muted-foreground"> · {s.cevaplayan?.ad_soyad ?? "—"}, {tarihSaat(s.cevap_zamani)}</span>
+                        </div>
+                      )}
+                      {s.ik_karari && (
+                        <div className="mt-1 text-sm">
+                          İK kararı: {IK_KARARI[s.ik_karari] ?? s.ik_karari}
+                          {ikGerekcesi && <span className="text-muted-foreground"> · Gerekçe: {ikGerekcesi}</span>}
                         </div>
                       )}
                     </TableCell>

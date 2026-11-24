@@ -26,6 +26,12 @@ export const SORU_CEVABI: Record<string, string> = {
   bilmiyorum: "Bilmiyorum",
 };
 
+// İK'nın soru kararının sonucu (amir_sorusu.ik_karari)
+export const IK_KARARI: Record<string, string> = {
+  devamsiz: "Devamsız",
+  geldi: "Çalışmış, saat yazıldı",
+};
+
 export const UYARI_TURU: Record<string, string> = {
   iptal_kart_okutma: "İptal edilmiş kart okutuldu",
   sik_kart_unutma: "Sık kart unutma",

@@ -37,11 +37,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 
 **Tutarlılık denetimi (22 Kasım):**
 - Her bulgunun önemi başlığında, adım sonundaki "Bulgular önem sırasıyla" listesinde ve metindeki atıflarda aynı (otomatik karşılaştırma: 0 fark).
-- Numaralar T-01'den T-104'e kadar; atlanan ve tekrar eden yok. T-104, 22 Kasım'daki ekran PR'larının (#37, #39–#41) incelemesinde bulundu (raporun sonundaki "PR incelemesi" bölümü).
+- Numaralar T-01'den T-106'ya kadar; atlanan ve tekrar eden yok (T-107 planlanan kart paylaşımı kanıt kuralına ayrıldı). T-104, 22 Kasım'daki ekran PR'larının (#37, #39–#41) incelemesinde bulundu (raporun sonundaki "PR incelemesi" bölümü).
 - Adımlar raporda 1 → 13 sırasıyla duruyor; Endpoint testi 6 ile 7 arasında.
 - Numaralar adım sırasında değil: Adım 10, 11'den sonra yapıldığı için Adım 9'da T-76–78, Adım 11'de T-79–80, Adım 10'da T-81–88 var. Bu bilinçli; numara değiştirilmedi.
 
-**Yüksek bulgular (17):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104.
+**Yüksek bulgular (18):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106.
 
 ### Kök neden grupları
 
@@ -128,8 +128,8 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
   - T-25: bir çalışanın hatası bütün günü durduruyor.
   - T-99 (varsayım, karar verildi): PDKS kayıtları saniyeli gelir; gerçek kurulumda teyit edilir.
 
-#### K9 · Gizlilik ve görevler ayrılığı (RLS) — T-12, T-15, T-14 · en yüksek: Yüksek
-- **Tek düzeltme (karar verildi):** Amire özel, gerekçeyi ve izin türünü gizleyen bir düzeltme görünümü (T-12). "Raporlu" durumunun amire görünmesi bilinçli kabul edilir ve belgelenir. `itiraz_incelemeye_al`'da görevler ayrılığı (T-15).
+#### K9 · Gizlilik ve görevler ayrılığı (RLS) — T-12, T-106, T-15, T-14 · en yüksek: Yüksek
+- **Tek düzeltme (karar verildi):** Amire özel, gerekçeyi ve izin türünü gizleyen bir düzeltme görünümü (T-12). "Raporlu" durumunun amire görünmesi bilinçli kabul edilir ve belgelenir. İK'nın soru kararındaki gerekçe de amire gizlidir; amir yalnızca sonucu görür (T-106). `itiraz_incelemeye_al`'da görevler ayrılığı (T-15).
 - **Sınırlılık:** T-14 (vekillik tarihi yok; vekil her zaman yetkili).
 
 #### K10 · Hesap kuralları — T-28, T-27, T-29, T-30 · en yüksek: Yüksek
@@ -341,6 +341,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-102 | Orta | 13 | Reddedilen tatil çalışması puantajda "FM100 1 gün / 0 dk" kodlanıyor | K4 | Yusuf | Düzelt |
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | Belge |
 | T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | ✅ Düzeltildi (PR #48); kalan 46 politika ayrı iş |
+| T-106 | Yüksek | T-12 düzeltmesi | İK'nın soru kararındaki gerekçe (sağlık bilgisi olabilir) amire açık | K9 | Fırat | ✅ Düzeltildi (feature/T106-ik-karar-gerekcesi) |
 
 ### Bilinen sınırlılıklar
 
@@ -3686,3 +3687,24 @@ Durumu değişen bulgular:
   - `ad_soyad` kolonu kaldı (15 ekran okuyor), kaynağı çalışan: `kullanici_ad_soyad` trigger'ı yazarken, `calisan_adi_degisti` trigger'ı çalışanın adı değişince eşitler; var olan satırlar bir kez eşitlendi. `kullanici_ekle(p_eposta, p_rol, p_calisan_id, p_ust_amir_id?)` artık ad soyad almaz; Kullanıcılar ekranındaki "Ad soyad" alanı kalktı.
   - `organizasyon_roller_testi.sql` yeni imzaya göre güncellendi (35 test geçiyor).
 - **İlgili açık maddeler:** T-14 (vekilin görünürlüğü) ve T-43 (izinden önce açılmış sorular) artık `izinli_mi` yerine `pdks.kullanici_izinli_mi()` üzerine kurulmalı.
+
+## T-12 düzeltmesinde bulunan (24 Kasım 2026)
+
+### T-106 · İK'nın soru kararındaki gerekçe (sağlık bilgisi olabilir) amire açık
+- **Adım:** T-12 düzeltmesi · **Önem:** Yüksek (KVKK m.6; T-12 ile aynı kök neden, K9)
+- **Yer:** `pdks.soru_ik_karari` (son sürüm: `20261210010000_ikinci_eskale.sql`), `pdks.v_duzeltme_amir` (T-12)
+- **Ne oldu:**
+  - `soru_ik_karari` gerekçeyi `amir_sorusu.cevap_aciklama`'ya "İK: …" diye ekliyordu. Soruyu atanan amir ve eskale edilen üst amir okuyabiliyor.
+  - Karar "geldi" ise gerekçe saat düzeltmesine de yazılıyor; T-12'nin görünümü saat düzeltmesinin gerekçesini gizlemediği için amire oradan da açıktı.
+- **Ne olmalıydı:** Amir kararın sonucunu görmeli (devamsız / çalışmış), gerekçesini görmemeli.
+- **Kanıt:** `ik_karar_gerekcesi_testi.sql` eski kodda kalıyor: `KALDI  amir: İK gerekçesi soruda yok`.
+- **Sade dille:** İK "hastane evrakı geçersiz" diye gerekçe yazarsa amir bunu kendi sorular listesinde okuyordu. Düzeltme listesindeki gerekçeyi gizlemiştik, ama aynı cümle sorunun içinde duruyordu.
+- **Durum:** ✅ Düzeltildi (feature/T106-ik-karar-gerekcesi). Migration: `20261215010000_ik_karar_gerekcesi.sql`, test: `ik_karar_gerekcesi_testi.sql`.
+  - Yeni `amir_sorusu.ik_karari` (`devamsiz` / `geldi`); gerekçe yalnızca `duzeltme`'de (İK ve yönetici). `cevap_aciklama` amirin kendi açıklaması olarak kalır.
+  - `v_duzeltme_amir`, İK'nın soru kararından gelen düzeltmede de gerekçeyi gizler.
+  - Eski kayıtlardaki "İK: …" parçası, birebir aynısı `duzeltme`'de varsa sorudan silinir.
+- **Kalan:**
+  - `isten_cikis_gir` çıkış açıklamasını kapattığı soruya ve fazla mesai talebine yazıyor; amir okuyabilir.
+  - İtiraz ve fazla mesai karar açıklamaları amire açık (karar, çalışana / talep edene bildirilen metindir).
+  - Elle saat düzeltmesinin gerekçesi açık (T-12 sınırlılığı). Amirin adının silinmesi T-32'de.
+- **Numara notu:** T-107, planlanan "kart paylaşımı kanıt kuralı" için ayrıldı.
