@@ -165,8 +165,10 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
       "id, is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, giris_kaynagi, cikis_kaynagi, durum, calisma_dk, gec_kalma_dk, erken_cikis_dk, fazla_mesai_dk",
       "is_gunu",
     ),
+    // Amir düzeltmeyi yalnızca v_duzeltme_amir'den okur: durum ve izin düzeltmelerinin gerekçesi
+    // orada gizlidir, "raporlu" yerine "izinli" gelir (T-12). Tabloyu RLS zaten vermez.
     sayfali<Duz>(
-      "duzeltme",
+      tumunuGorur ? "duzeltme" : "v_duzeltme_amir",
       "is_gunu, alan, eski_deger, yeni_deger, gerekce, kaynak, calisan_aleyhine, yapilma_zamani, yapan:kullanici!yapan_id(ad_soyad)",
       "is_gunu",
     ),

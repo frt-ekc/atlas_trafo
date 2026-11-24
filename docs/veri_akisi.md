@@ -112,7 +112,7 @@ Bu okumalar doğrudan yapılır (`supabase.from(...).select(...)`). Satırları 
 |---|---|
 | Ana sayfa (`/`) | `amir_sorusu`, `fazla_mesai_plani`, `gece_isi`, `gecici_kart`, `gecici_kart_zimmet`, `itiraz`, `izin`, `kullanici`, `uyari`, `v_isg_durum`, `v_izin_amir`, `vardiya_plani` |
 | Çalışanlar (`/calisanlar`) | `calisan`, `departman` |
-| Çalışan sayfası ve PDF döküm (`/calisanlar/[id]`, `lib/dokum.ts`) | `calisan`, `vardiya_plani`, `izin` (İK) ya da `v_izin_amir` (diğerleri), `fazla_mesai_plani`, `gecici_kart_zimmet` (İK, yönetici), `gun_kaydi`, `duzeltme`, `resmi_tatil`, `kart`, `itiraz` |
+| Çalışan sayfası ve PDF döküm (`/calisanlar/[id]`, `lib/dokum.ts`) | `calisan`, `vardiya_plani`, `izin` (İK) ya da `v_izin_amir` (diğerleri), `fazla_mesai_plani`, `gecici_kart_zimmet` (İK, yönetici), `gun_kaydi`, `duzeltme` (İK, yönetici) ya da `v_duzeltme_amir` (amir), `resmi_tatil`, `kart`, `itiraz` |
 | Sorular | `amir_sorusu` |
 | İtirazlar | `itiraz` |
 | İzinler | `calisan`, `izin`, `saatlik_izin` |

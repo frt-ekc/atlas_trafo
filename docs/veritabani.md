@@ -95,6 +95,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/ayar_sinirlari_testi.sql` | Ayar sınırları: her ayarda aralık dışı ret ve sınır değer kabul, yasal sınırlar, mola sıralaması, geçersiz giriş, İK'ya uyarı için 68 test |
 | `supabase/migrations/20261213010000_yukleyen.sql` | `aktarim.yukleyen_id`; `dosya_yukle` yükleyeni oturumdan yazar, kendi okutmasını içeren dosyada `kendi_okutmasi_yuklendi` uyarısı yazar; yükleyen bu uyarıyı görmez (`uyari` okuma politikası, `oturum_calisan_id`) (T-13) |
 | `supabase/tests/yukleyen_testi.sql` | Yükleyen: kayıt, asıl ve geçici kart, kapı dosyası, yeniden gelen okutma, uyarıyı kim görür / kapatır için 21 test |
+| `supabase/migrations/20261214010000_rapor_gizliligi.sql` | `duzeltme.amir_okur` kaldırıldı; `v_duzeltme_amir` görünümü (kendi çalışanları, gizli gerekçe, "raporlu" → "izinli") (T-12) |
+| `supabase/tests/rapor_gizliligi_testi.sql` | Rapor gizliliği: tablo amire kapalı, görünümün gizlediği ve gösterdiği alanlar, departman sınırı, yetkiler için 19 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -449,6 +451,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için); gerekçe ve izin türü ayrıntısı gizlidir. Amir düzeltmeleri `v_duzeltme_amir`'den okur: durum ve izin düzeltmelerinde gerekçe "İK tarafından düzeltildi", "raporlu" yerine "izinli". `gun_kaydi.durum` ve `v_puantaj_canli.raporlu_gun` API'den açıktır, ekranda "İzinli" görünür (T-12).
 - Değerler için enum yerine `text + check` kullandık: okunması ve yeni değer eklemesi daha kolay.
 - Bir bilgi tek yerde tutulur. `kullanici.ad_soyad` ekranların hızlı okuması için kalır, ama kaynağı `calisan.ad` / `soyad`'dır ve trigger'la eşit tutulur; elle yazılan ad geçersizdir. "Amir izinli mi?" ayrı bir bayrakla değil `izin` tablosundan cevaplanır (T-105).
 - "Bugün" her yerde `pdks.bugun()` (İstanbul tarihi) ile alınır, `current_date` kullanılmaz. Ekrandan (PostgREST) gelen istekler ve pg_cron UTC oturumla çalışır; `current_date` İstanbul 00:00–03:00 arasında dünü verir. Okutma zamanından gün türetirken de `(zaman at time zone 'Europe/Istanbul')::date` kalıbı kullanılır.
