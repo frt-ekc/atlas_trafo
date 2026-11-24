@@ -35,7 +35,7 @@ with beklenen(surum, ad, nesne) as (values
     ('20261128010000', 'dosya_yukle_duzeltmesi',         exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'dosya_yukle'
                                                                  and pg_get_function_identity_arguments(oid) like '%p_dosya_ozeti%')),
     ('20261129010000', 'esnek_kanit',                    exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_kanitla_duzelt'
-                                                                 and prosrc like '%Esnek mesai%')),
+                                                                 and prosrc like '%v\_esnek%')),
     ('20261129020000', 'zimmet_cakisma_mesaji',          exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'yonelme_eki')),
     ('20261130010000', 'ise_giris_cikis',                exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'isten_cikis_gir')),
     ('20261201010000', 'ay_kilidi_ve_aninda_hesap',      exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gun_hesapla')),
