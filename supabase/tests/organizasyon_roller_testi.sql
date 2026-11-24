@@ -150,7 +150,7 @@ select test.hata('kullanıcı kendi üst amiri olamaz', 'kendisinin üst amiri',
     format($$select pdks.kullanici_guncelle(%s, p_ust_amir_id => %s)$$,
            test.k('or_amir@ornek.test'), test.k('or_amir@ornek.test')));
 
-select pdks.ayar_guncelle('gec_kalma_tolerans_dk', 7);
+select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '7');
 reset role;
 select test.dogrula('admin ayarı değiştirir; geçmişe eski / yeni değer ve değiştiren yazılır',
     pdks.ayar_al('gec_kalma_tolerans_dk') = 7
@@ -158,21 +158,21 @@ select test.dogrula('admin ayarı değiştirir; geçmişe eski / yeni değer ve 
                 and yeni_deger = 7 and guncelleyen_id = test.k('or_admin@ornek.test')));
 set local role authenticated;
 select test.oturum('or_admin@ornek.test');
-select test.hata('bilinmeyen ayar değiştirilemez', 'Ayar bulunamadı', $$select pdks.ayar_guncelle('yok_boyle_ayar', 1)$$);
-select test.hata('eksi ayar değeri girilemez', '0 ya da daha büyük', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', -1)$$);
+select test.hata('bilinmeyen ayar değiştirilemez', 'Ayar bulunamadı', $$select pdks.ayar_guncelle('yok_boyle_ayar', '1')$$);
+select test.hata('eksi ayar değeri girilemez', 'değer 0 ile 60 arasında olmalı', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '-1')$$);
 
 -- 5) Kullanıcı ve ayar yönetimi yalnızca admin'de ----------------------------------------------
 select test.oturum('or_ik@ornek.test');
 select test.hata('İK kullanıcı tanımlayamaz', 'yetkiniz yok',
     format($$select pdks.kullanici_ekle('or_x@ornek.test', 'amir', %s)$$, test.c('OR01')));
-select test.hata('İK ayar değiştiremez', 'yetkiniz yok', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', 20)$$);
+select test.hata('İK ayar değiştiremez', 'yetkiniz yok', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '20')$$);
 select test.oturum('or_isg@ornek.test');
 select test.hata('İSG uzmanı kullanıcı güncelleyemez', 'yetkiniz yok',
     format($$select pdks.kullanici_guncelle(%s, p_aktif => false)$$, test.k('or_amir@ornek.test')));
 reset role;
 select test.dogrula('iç yardımcı uygulamaya kapalı, ekran fonksiyonları açık',
     not has_function_privilege('authenticated', 'pdks.auth_hesabi_bagla(bigint)', 'execute')
-    and has_function_privilege('authenticated', 'pdks.ayar_guncelle(text, integer)', 'execute')
+    and has_function_privilege('authenticated', 'pdks.ayar_guncelle(text, text)', 'execute')
     and not has_function_privilege('anon', 'pdks.kullanici_ekle(text, text, bigint, bigint)', 'execute'));
 
 do $$ begin raise notice 'ORGANİZASYON VE ROL TESTLERİ GEÇTİ'; end $$;

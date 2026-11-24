@@ -102,7 +102,7 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
   - `ik` / `admin` rolü verme iki adımlı: admin önerir, farklı bir İK kullanıcısı onaylar (T-72).
   - `ayar` tablosuna `en_az` / `en_cok`; yasal sınırlar yasa değerini aşamaz (T-74).
   - Admin `calisan`'da yalnızca sicil, ad, soyad ve departman görür (T-80; karar verildi). CLAUDE.md'deki cümle buna göre düzeltilir (Fırat).
-- **Sınırlılık:** T-09 (canlıda sign-up kapalı), T-10 (ayar yetkisi admin'de; T-74'teki aralıklar ve iz yeterli kabul edilir), T-73 (üst amir döngüsü), T-100 (kilitten sonra ayar değişince fark; T-74 ve belgeyle).
+- **Sınırlılık:** T-09 (canlıda sign-up kapalı), T-10 (ayar yetkisi admin'de; T-74'teki aralıklar, iz ve İK uyarısı yeterli kabul edilir), T-73 (üst amir döngüsü), T-100 (kilitten sonra ayar değişince fark; T-74 ve belgeyle).
 
 #### K7 · İşe giriş ve işten çıkış — T-65, T-66, T-67, T-68, T-69, T-70, T-75 · en yüksek: Yüksek
 - **Kök:** `isten_cikis_gir` çıkışın sonuçlarını kendi içinde tek tek elle yapıyor; çalışan tarihlerini ise diğer fonksiyonlar hiç denetlemiyor.
@@ -310,7 +310,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | ✅ Düzeltildi (PR #56) |
 | T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | Düzelt (25 Kas) |
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | Sınırlılık |
-| T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | Düzelt (25 Kas) |
+| T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | ✅ Düzeltildi (feature/T74-ayar-sinirlari) |
 | T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | Düzelt (zaman kalırsa) |
 | T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | Düzelt |
 | T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
@@ -349,7 +349,7 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
 - **Veritabanı sahibi bazı gün alanlarını izsiz değiştirebilir (T-01).** Uygulama ve ekranlar gün kaydına doğrudan yazamaz; yalnızca veritabanının sahibi (canlıda yalnızca proje sorumlusu) bazı alanları düzeltme kaydı bırakmadan değiştirebilir. Gerçek kurulumda bu erişim tek kişiyle sınırlıdır.
 - **Giriş hesabı ile kullanıcı kaydı arasında veritabanı bağı yok (T-06).** Bağ e-postayla kuruluyor; silinen bir giriş hesabı kullanıcı kaydını kendiliğinden kapatmaz.
 - **Ayarlar okunabilir (T-09).** Giriş yapmış ama sisteme bağlı olmayan bir hesap tolerans gibi ayarları okuyabilir. Canlıda yeni hesap açma kapalıdır; çalışan verisine erişim yoktur.
-- **Ayarları sistem yöneticisi değiştirir (T-10, T-100).** Değişiklik `ayar_gecmisi`'nde izlenir. Bugün yalnızca 0'dan küçük değer reddedilir; yasal sınırları aşan değerler için aralık kontrolü T-74 düzeltmesiyle gelecek. Ay kilitlendikten sonra ayar değişirse, o aya sonradan gelen düzeltmenin farkı yeni ayarla hesaplanır. Bu yüzden ayarlar ay ortasında değil, ay başında değiştirilir.
+- **Ayarları sistem yöneticisi değiştirir (T-10, T-100).** Değişiklik `ayar_gecmisi`'nde izlenir. Her ayarın izin verilen aralığı vardır (`en_az` / `en_cok`); yasal sınırlar yasa değerini aşamaz ve puantajı etkileyen ayar değişince İK'ya uyarı gider (T-74). İK'nın ön onayı yoktur. Ay kilitlendikten sonra ayar değişirse, o aya sonradan gelen düzeltmenin farkı yeni ayarla hesaplanır. Bu yüzden ayarlar ay ortasında değil, ay başında değiştirilir.
 - **Veri aktarımını yapan kişi (T-13, kısmen).** Bugün yükleyen kaydedilmiyor; T-13 düzeltmesiyle `aktarim`'e yazılacak. Gerçek kurulumda ise dosyalar bir sistem hesabıyla otomatik yüklenmelidir. Prototipte İK yükler.
 - **Vekil amir her zaman yetkilidir (T-14).** Vekillik için tarih aralığı tutulmaz; vekil atandığı sürece amirle aynı yetkiye sahiptir.
 - **Geç gelen dosya (T-19, T-23).** Gece işi bir günü bir kez işler. Kapı, yemekhane ve servis dosyaları PDKS'den sonra yüklenirse o günün kanıtları kullanılmaz ve amire gereksiz soru gidebilir. İşletme kuralı: o günün dört dosyası yüklenir, gece işi en son çalışır.
@@ -685,7 +685,7 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
 - **Kanıt:** Matris, `ayar_guncelle` satırı; `pdks.ayar`'ın 26 satırı.
 - **Sade dille:** Bilgi işlemdeki sistem yöneticisi, kimseye sormadan geç kalma toleransını 10 dakikadan 0'a indirebilir. Ertesi gece işlenen günlerde herkesin geç kalma dakikası değişir. İz kalır, ama İK'nın onayı ya da haberi olmaz.
 - **Öneri:** Karar konusu. Ya puantajı etkileyen ayarlar İK'ya (ya da admin + İK onayına) verilsin, ya da bu bilinçli kabul edilip `docs/veritabani.md` "Bilinçli tercihler"e yazılsın. Geçersiz değer denemeleri Adım 11'de.
-- **Durum:** Açık
+- **Durum:** Sınırlılık. Ayar yetkisi admin'de kalır; aralık kontrolü, yasal üst sınır, `ayar_gecmisi` ve İK'ya uyarı (T-74, `feature/T74-ayar-sinirlari`) yeterli kabul edilir. Aralık içindeki değişiklik İK onayı istemez.
 
 ### T-11 · Ekrandaki "`v_fazla_mesai_yillik` çalışmıyor" notu eskimiş
 - **Adım:** 2 · **Önem:** Düşük
@@ -3016,7 +3016,7 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** E#5–15, #20 hepsi `OK` · E#23 `ayar_gecmisi … gunluk_azami_calisma_dk 660→1440 (sistem.yoneticisi@example.com); fm_yillik_sinir_dk 16200→60000 …` · E#26 `T1 21.10: … giriş 10:30, tolerans 100000 → tamam gec=0` · G#182 aynı gün tolerans 10: `gec=150` · E#29 geri aldıktan sonra `gec=0` · E#16, #18, #19 `invalid input syntax for type integer`, `function … does not exist`.
 - **Sade dille:** Sistem yöneticisi bir yazım hatasıyla ("10" yerine "100000") bütün fabrikada geç kalmayı ortadan kaldırabilir, ya da yıllık fazla mesai sınırını yasanın dört katına çıkarıp sistemin yasadışı fazla mesaiyi onaylamasına yol açabilir. Hata fark edilip düzeltilse bile o arada işlenen günler yanlış kalır. İz var (`ayar_gecmisi`), ama yanlış değer girilmesini engelleyen bir şey yok. T-10'daki "ayarı yalnızca admin değiştirir" kaygısıyla birleşince risk büyüyor.
 - **Öneri:** `ayar` tablosuna `en_az` / `en_cok` sütunları (yasal sınırlar için `en_cok` = yasa değeri), `ayar_guncelle`'de bu aralık kontrolü, mola sınırları için sıralama kontrolü. Puantajı etkileyen ayar değişince İK'ya uyarı. Kalıcı test: her ayarda aralık dışı değer reddedilir. T-10 kararıyla birlikte ele alınmalı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T74-ayar-sinirlari). Migration: `20261212010000_ayar_sinirlari.sql`, test: `ayar_sinirlari_testi.sql`. Geri alınan ayardan önce işlenmiş günler kendiliğinden yeniden hesaplanmaz; İK uyarıda bunu görür.
 
 ### T-75 · `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hataları ham İngilizce
 - **Adım:** 11 · **Önem:** Düşük

@@ -91,6 +91,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/soru_eskale_testi.sql` | Soru eskalasyonu: amir → üst amir → İK, süre sınırları, bir gecede bir kademe, üst amiri olmayan amir, İK'nın her açık soruya kararı ve gün hesabı için 17 test |
 | `supabase/migrations/20261211010000_cikmis_hesap.sql` | `kullanici_guncelle` işten ayrılmış çalışanın hesabını açmaz; `oturum_kullanici_id` bağlı çalışanın aktif olmasını şart koşar; açık kalmış hesaplar kapatılır (T-71) |
 | `supabase/tests/cikmis_hesap_testi.sql` | Çıkmış çalışanın hesabı: yeniden açma reddi, elle açık hesapla oturum ve işlem yok, çalışmaya devam edenin hesabı için 8 test |
+| `supabase/migrations/20261212010000_ayar_sinirlari.sql` | `ayar.en_az` / `en_cok` / `puantaji_etkiler`; `ayar_guncelle(text, text)` aralığı, mola sıralamasını ve tam sayıyı denetler; `puantaj_ayari_degisti` uyarısı (T-74) |
+| `supabase/tests/ayar_sinirlari_testi.sql` | Ayar sınırları: her ayarda aralık dışı ret ve sınır değer kabul, yasal sınırlar, mola sıralaması, geçersiz giriş, İK'ya uyarı için 68 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
