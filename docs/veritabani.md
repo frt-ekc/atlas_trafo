@@ -84,6 +84,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/ay_kilidi_zamani_testi.sql` | Ay kilidi zamanı: içinde bulunulan, gelecek ve iki ay sonraki ay ret; bitmiş ay kabul; ayın son günü sınırı; tarih ayarının yalnızca doğrudan bağlantıda geçerliliği için 10 test |
 | `supabase/migrations/20261208010000_kullanici_cift_kayit.sql` | `kullanici` tablosundaki iki çift kayıt kaldırıldı (T-105). `izinli_mi` kolonu silindi; amirin izni `izin` tablosundan okunur (`kullanici_izinli_mi`), izinli amirin sorusu vekile gider. `ad_soyad` artık çalışan kaydından yazılır (trigger `kullanici_ad_soyad`, `calisan_adi_degisti`); `kullanici_ekle` ad soyad almaz |
 | `supabase/tests/kullanici_cift_kayit_testi.sql` | İzin tablosuna göre soru yönlendirmesi (izin, rapor, iptal, izin bitişi, vekilsiz departman), çalışandan gelen ad soyad ve yeni `kullanici_ekle` için 20 test |
+| `supabase/migrations/20261209010000_kodsuz_gun.sql` | `ay_kilitle`: puantaja kodsuz girecek gün varsa zorlamadan ret (sicil, gün, neden; en çok 10 gün); zorla kilitte "Zorla geçilenler" ve özette `kodsuz_gun_listesi` (T-90, T-101) |
+| `supabase/tests/kodsuz_gun_testi.sql` | Kodsuz gün: zorlamadan ret ve mesajdaki gün listesi (10 gün sınırı), zorla kilit özeti, kodsuz gün yokken kilit için 8 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -104,6 +106,8 @@ olarak veritabanının içinde çalışır.
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
    Sistem en fazla `devamsiz_suphesi` der.
 6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
+   Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
+   adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).
    Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
    gelen düzeltme sonraki açık aya `fark_satiri = true` olarak yazılır. Puantaj (`puantaj_satiri`)
    yalnızca kilitli aya yazılır ve sonra değiştirilemez. Kilit önce ayın hesabı bekleyen günlerini hesaplar;

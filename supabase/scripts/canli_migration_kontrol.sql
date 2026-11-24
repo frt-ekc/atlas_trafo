@@ -51,7 +51,9 @@ with beklenen(surum, ad, nesne) as (values
     ('20261206010000', 'rls_hizi',                       exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'oturum_calisanlari')),
     ('20261207010000', 'ay_kilidi_zamani',               exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'ay_kilitle'
                                                                  and prosrc like '%henüz bitmedi%')),
-    ('20261208010000', 'kullanici_cift_kayit',           exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'kullanici_izinli_mi'))
+    ('20261208010000', 'kullanici_cift_kayit',           exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'kullanici_izinli_mi')),
+    ('20261209010000', 'kodsuz_gun',                     exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'ay_kilitle'
+                                                                 and prosrc like '%kodsuz_gun_listesi%'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
