@@ -326,7 +326,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | Düzelt |
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | Sınırlılık |
 | T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 |
-| T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #..) |
+| T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #54) |
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | Düzelt |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | Düzelt |
@@ -337,7 +337,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-98 | Düşük | 12 (ek) | Yönetici panelinde "açık soru" sayısı bakan kişiye göre değişiyor | K2 | — | Sınırlılık |
 | T-99 | Orta | 12 (ek; Adım 12 şüphesinden) | Saniyesiz okutma zamanı kabul ediliyor | K8 | Mehmet | Sınırlılık (varsayım; karar verildi) |
 | T-100 | Orta | 12 (ek; Adım 12 şüphesinden) | Fark hesabı kilitli ayın "önce" değerini bugünkü ayarla hesaplıyor | K6 | Mehmet | Sınırlılık |
-| T-101 | Görüş | 12 (ek; Adım 12 şüphesinden) | Kilit, kodsuz kalan günlerin listesini vermiyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (PR #.., T-90 ile) |
+| T-101 | Görüş | 12 (ek; Adım 12 şüphesinden) | Kilit, kodsuz kalan günlerin listesini vermiyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (PR #54, T-90 ile) |
 | T-102 | Orta | 13 | Reddedilen tatil çalışması puantajda "FM100 1 gün / 0 dk" kodlanıyor | K4 | Yusuf | Düzelt |
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | Belge |
 | T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | ✅ Düzeltildi (PR #48); kalan 46 politika ayrı iş |
@@ -3234,7 +3234,7 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
   - `puantaj_satiri`'na `bekleyen_gun` (ya da bir `KARARSIZ` kodu) eklensin, ERP görünümüne geçsin.
   - T-39 ve T-41'in düzeltmesi bu günlerin çoğunu zaten önler.
   - Kalıcı test: tek saatli cevaplı gün varken zorlamadan kilit reddedilir.
-- **Durum:** ✅ Düzeltildi — PR #.. (migration: `20261209010000_kodsuz_gun.sql`, test: `kodsuz_gun_testi.sql`).
+- **Durum:** ✅ Düzeltildi — PR #54 (migration: `20261209010000_kodsuz_gun.sql`, test: `kodsuz_gun_testi.sql`).
   - `ay_kilitle`: puantaja kodsuz girecek gün varsa zorlamadan kilit reddedilir; hata günleri adıyla söyler ("10/2026 döneminde 1 gün puantaja kodsuz girecek: KG01 09.10.2026 (eksik). …", en çok 10 gün, kalanı "ve N gün daha"). Zorla kilitte kodsuz günler "Zorla geçilenler"e ve özetin `kodsuz_gun_listesi` alanına (sicil, gün, durum, neden) yazılır. Sayım eskisi gibi kilitten sonra; hata kilidi de geri alır, açık soru / itiraz mesajları önce gelir.
   - Yerelde yeniden üretildi: Ekim'de eksik gün varken zorlamadan kilit "10/2026 kilitlendi. Puantaja kodsuz giren gün: 1." dedi; çalışanın Ekim puantajı 31 yerine 30 gün (HT 29, RT 1). Düzeltmeden sonra reddediliyor.
   - Kapsam dışı (ayrı iş, karar Fırat): zorla kilitlenen ayda kodsuz günü `puantaj_satiri` / ERP dosyasına ayrı bir kodla ("BEKLİYOR") yazmak; ERP biçimini ve Excel ekranını değiştirir.
@@ -3378,7 +3378,7 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #12 `"kodsuz_gun": 7` · #15 kapsama listesi (ayrı sorguyla) · #72 `"kodsuz_gun": 1`.
 - **Sade dille:** Sistem "7 gün boş kaldı" diyor ama hangi 7 gün olduğunu söylemiyor. İK bunları bulmak için ekranda çalışanları tek tek açmak zorunda.
 - **Öneri:** `kodsuz_gun_listesi jsonb` (sicil, gün, durum, neden); T-92 ve T-96 ile birlikte tek değişiklik.
-- **Durum:** ✅ Düzeltildi — PR #.. (T-90 ile; `kodsuz_gun_listesi` ve hata mesajındaki gün listesi). Ön kontrol (T-96) ve kilit kaydına yazma (T-92) açık.
+- **Durum:** ✅ Düzeltildi — PR #54 (T-90 ile; `kodsuz_gun_listesi` ve hata mesajındaki gün listesi). Ön kontrol (T-96) ve kilit kaydına yazma (T-92) açık.
 
 ### Eski bulgularla karşılaştırma
 - **T-39 / T-41:** Kilitte ne olduğu bu adımda görüldü. Eskale soru (Q2) zorla geçiliyor; tek saatli cevap (Q3, E41) zorla bile gerekmeden geçiyor. İkisi de kodsuz giriyor ve ERP'de görünmüyor (T-90). T-39'daki Z1 vakası (Q4) ayrıca satır / kalem çelişkisi yaratıyor (T-91).
@@ -3534,7 +3534,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | T-83 | 2. adım | Osman'a kart demo saatiyle verilir; geçmiş saat seçilemez | Belgedeki gibi "o anın saatiyle" anlatılsın |
 | T-86 | 2.4 | Aynı kişiye ikinci geçici kart denenirse mesaj başka kartı anlatır | Çakışmayı belgedeki gibi **başka bir kişiyle** (ör. Burak) ve 2.2 ile 2.3 arasında göster |
 | T-89 | 9. adım, Puantaj | Canlıda yanlış ay seçilip "Ayı kilitle"ye basılırsa ay (gelecek ay bile) kalıcı kilitlenir | ✅ Düzeltildi (PR #39 ekran, PR #49 veritabanı; canlıya 20261207010000 uygulandıktan sonra): bitmemiş ay kilitlenemez. Belgedeki kural yine geçerli: canlıda kilit düğmesine basılmaz (bitmiş ay kalıcı kilitlenir) |
-| T-90 / T-91 / T-92 | 9. adım görüntüleri | Zorla kilitlenirse kodsuz gün, satır / kalem çelişkisi ve izsiz zorla kilit görüntüye girer | T-90 ✅ (PR #..): kodsuz gün varken zorlamadan kilit reddedilir ve günleri söyler. Görüntüler yine A'daki sırayla, zorlamadan kilitle alınsın (kodsuz 0) |
+| T-90 / T-91 / T-92 | 9. adım görüntüleri | Zorla kilitlenirse kodsuz gün, satır / kalem çelişkisi ve izsiz zorla kilit görüntüye girer | T-90 ✅ (PR #54): kodsuz gün varken zorlamadan kilit reddedilir ve günleri söyler. Görüntüler yine A'daki sırayla, zorlamadan kilitle alınsın (kodsuz 0) |
 | T-104 | 8. adım, yönetici paneli | Amir hesabıyla Departmanlar açılırsa sayfa 8 sn'de "Sayfa açılamadı"ya düşer (İK ve yönetici 3,5–4 sn) | ✅ Düzeltildi (PR #48; canlıya 20261206010000 uygulandıktan sonra geçerli): Departmanlar ve Vardiya planı amir hesabıyla da gösterilebilir |
 | T-24 | 3. adım | Gece işi ekrandan çok günle çalıştırılırsa 8 sn zaman aşımı | Yalnızca 07.12 – 07.12 çalıştırılsın (belgedeki gibi). Kasım canlı kurulumda SQL Editor'den işlenir |
 | T-45 | 3. adım | Demo İstanbul 00:00–03:00 arasında yapılmaz; risk yok | — |
