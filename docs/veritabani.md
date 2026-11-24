@@ -93,6 +93,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/cikmis_hesap_testi.sql` | Çıkmış çalışanın hesabı: yeniden açma reddi, elle açık hesapla oturum ve işlem yok, çalışmaya devam edenin hesabı için 8 test |
 | `supabase/migrations/20261212010000_ayar_sinirlari.sql` | `ayar.en_az` / `en_cok` / `puantaji_etkiler`; `ayar_guncelle(text, text)` aralığı, mola sıralamasını ve tam sayıyı denetler; `puantaj_ayari_degisti` uyarısı (T-74) |
 | `supabase/tests/ayar_sinirlari_testi.sql` | Ayar sınırları: her ayarda aralık dışı ret ve sınır değer kabul, yasal sınırlar, mola sıralaması, geçersiz giriş, İK'ya uyarı için 68 test |
+| `supabase/migrations/20261213010000_yukleyen.sql` | `aktarim.yukleyen_id`; `dosya_yukle` yükleyeni oturumdan yazar, kendi okutmasını içeren dosyada `kendi_okutmasi_yuklendi` uyarısı yazar; yükleyen bu uyarıyı görmez (`uyari` okuma politikası, `oturum_calisan_id`) (T-13) |
+| `supabase/tests/yukleyen_testi.sql` | Yükleyen: kayıt, asıl ve geçici kart, kapı dosyası, yeniden gelen okutma, uyarıyı kim görür / kapatır için 21 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.

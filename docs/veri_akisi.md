@@ -29,7 +29,7 @@ Değişen sütunlar ayrıca yazıldı.
 
 | Fonksiyon | Kim çağırır | Ölçülen değişiklik (değişen sütunlar) | İz tablosu | Beklenenle uyum |
 |---|---|---|---|---|
-| `dosya_yukle` | İK | `aktarim` +1, `ham_okutma` +1 | — (yükleyen tutulmuyor, T-13) | ✅ SQL'de. ✅ HTTP'de (T-31 düzeltildi) |
+| `dosya_yukle` | İK | `aktarim` +1, `ham_okutma` +1 | `aktarim.yukleyen_id` (T-13 düzeltildi) | ✅ SQL'de. ✅ HTTP'de (T-31 düzeltildi) |
 | `gece_isi_tetikle` | İK | `gece_isi` +1, `gun_kaydi` +76, `amir_sorusu` +1, `duzeltme` +2, `fazla_mesai_inceleme` +1, `okutma_isareti` +7, `uyari` +7 | `duzeltme`, `gece_isi` | ✅ |
 | `soru_cevapla` | amir | `amir_sorusu` ~1 (cevap, cevap_giris, cevap_zamani, cevaplayan_id, durum), `duzeltme` +1, `gun_kaydi` ~1 (giriş + bütün dakika alanları) | `duzeltme` | ✅ Gün hemen yeniden hesaplanıyor |
 | `soru_ik_karari` | İK | `amir_sorusu` ~1 (cevap_aciklama, **cevaplayan_id**, durum), `duzeltme` +1, `gun_kaydi` ~1 | `duzeltme` | ⚠️ Amirin adı soru kaydından siliniyor (T-32) |

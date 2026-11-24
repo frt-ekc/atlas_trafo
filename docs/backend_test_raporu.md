@@ -249,7 +249,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-10 | Görüş | 2 | Puantajı etkileyen ayarları yalnızca admin, tek başına değiştirebiliyor | K6 | Mehmet | Sınırlılık |
 | T-11 | Düşük | 2 | Ekrandaki "`v_fazla_mesai_yillik` çalışmıyor" notu eskimiş | K15 | Gökalp | Düzelt |
 | T-12 | Yüksek | 3 | Amir izin türünü (rapor = sağlık bilgisi) üç yoldan görebiliyor | K9 | Yusuf + Mehmet | Düzelt (25 Kas) + belge (karar verildi) |
-| T-13 | Yüksek | 3 | İK, dosya yükleyerek kendi çalışılmış gününü üretebiliyor ve yükleyen kaydedilmiyor | K8 | Yusuf + Mehmet | Düzelt (25 Kas) + sınırlılık metni |
+| T-13 | Yüksek | 3 | İK, dosya yükleyerek kendi çalışılmış gününü üretebiliyor ve yükleyen kaydedilmiyor | K8 | Yusuf + Mehmet | ✅ Düzeltildi (feature/T13-yukleyen) + sınırlılık metni |
 | T-14 | Orta | 3 | Vekil amir her zaman yetkili | K9 | — | Sınırlılık |
 | T-15 | Düşük | 3 | İK kendi itirazını "incelemeye alabiliyor" | K9 | Yusuf | Düzelt |
 | T-16 | Düşük | 3 | "Talep eden onaylayamaz" kuralı ham İngilizce hata mesajıyla dönüyor | K13 | Yusuf | Düzelt (zaman kalırsa) |
@@ -350,7 +350,7 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
 - **Giriş hesabı ile kullanıcı kaydı arasında veritabanı bağı yok (T-06).** Bağ e-postayla kuruluyor; silinen bir giriş hesabı kullanıcı kaydını kendiliğinden kapatmaz.
 - **Ayarlar okunabilir (T-09).** Giriş yapmış ama sisteme bağlı olmayan bir hesap tolerans gibi ayarları okuyabilir. Canlıda yeni hesap açma kapalıdır; çalışan verisine erişim yoktur.
 - **Ayarları sistem yöneticisi değiştirir (T-10, T-100).** Değişiklik `ayar_gecmisi`'nde izlenir. Her ayarın izin verilen aralığı vardır (`en_az` / `en_cok`); yasal sınırlar yasa değerini aşamaz ve puantajı etkileyen ayar değişince İK'ya uyarı gider (T-74). İK'nın ön onayı yoktur. Ay kilitlendikten sonra ayar değişirse, o aya sonradan gelen düzeltmenin farkı yeni ayarla hesaplanır. Bu yüzden ayarlar ay ortasında değil, ay başında değiştirilir.
-- **Veri aktarımını yapan kişi (T-13, kısmen).** Bugün yükleyen kaydedilmiyor; T-13 düzeltmesiyle `aktarim`'e yazılacak. Gerçek kurulumda ise dosyalar bir sistem hesabıyla otomatik yüklenmelidir. Prototipte İK yükler.
+- **Veri aktarımını yapan kişi (T-13).** Prototipte dosyaları İK elle yükler; yükleyen kaydedilir (`aktarim.yukleyen_id`) ve kendi okutmasını içeren dosyada diğer İK'ya uyarı gider. Okutmanın gerçekliği doğrulanmaz: İK başka bir çalışanın okutmasını uydurabilir, yalnızca izi kalır. Gerçek kurulumda dosyaları bir sistem hesabı otomatik yükler. T-13'ten önce yüklenmiş dosyalarda yükleyen boştur.
 - **Vekil amir her zaman yetkilidir (T-14).** Vekillik için tarih aralığı tutulmaz; vekil atandığı sürece amirle aynı yetkiye sahiptir.
 - **Geç gelen dosya (T-19, T-23).** Gece işi bir günü bir kez işler. Kapı, yemekhane ve servis dosyaları PDKS'den sonra yüklenirse o günün kanıtları kullanılmaz ve amire gereksiz soru gidebilir. İşletme kuralı: o günün dört dosyası yüklenir, gece işi en son çalışır.
 - **Dosya özeti ekrandan gelir (T-20).** Aynı satırlar ikinci kez yazılmaz; ama aynı dosya farklı bir özetle "yeni dosya" gibi kaydedilebilir.
@@ -969,7 +969,7 @@ Yani ekrandan sızan tek şey **gerekçe metni**. Diğer iki yol (durum, `raporl
 - **Öneri:**
   1. `aktarim`'a `yukleyen_id` eklensin (zorunlu; `dosya_yukle` oturumdan doldursun).
   2. `dosya_yukle`, yükleyenin kendi kartının (asıl ya da o an zimmetli geçici kartı) okutmasını içeren satırları reddetsin ya da İK'ya uyarı yazsın. Gerçek PDKS dosyasında İK'nın kendi okutmaları da olacağı için reddetmek yerine "kendi okutmasını içeren dosya" uyarısı ve ikinci İK onayı daha uygulanabilir.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T13-yukleyen). Migration: `20261213010000_yukleyen.sql`, test: `yukleyen_testi.sql`. Yükleyen kaydedilir; kendi okutmasını içeren dosyada diğer İK'ya uyarı gider. Okutmanın gerçekliği doğrulanmaz (bilinen sınırlılık).
 
 #### T-13 · Çözüm seçenekleri (kod yazılmadı, 21 Kasım)
 
