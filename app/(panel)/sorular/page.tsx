@@ -35,6 +35,7 @@ type Soru = {
   cevap_cikis: string | null;
   cevap_aciklama: string | null;
   cevap_zamani: string | null;
+  ik_eskale_zamani: string | null; // üst amir de cevaplamayınca İK'ya geçtiği an (T-39)
   atanan: { ad_soyad: string; rol: string } | null;
   eskale: { ad_soyad: string; rol: string } | null;
   cevaplayan: { ad_soyad: string } | null;
@@ -57,8 +58,9 @@ const SUZGECLER = {
 } as const;
 type Suzgec = keyof typeof SUZGECLER;
 
-// İK'nın karar vereceği soru (soru_ik_karari): amirin "gelmedi / bilmiyorum" dediği soru ya da
-// İK'ya eskale edilmiş / doğrudan İK'ya atanmış açık soru (ör. üst amiri olmayan amirin kendi günü).
+// İK'nın karar vereceği soru (soru_ik_karari): amirin "gelmedi / bilmiyorum" dediği soru, üst amir de
+// süresinde cevaplamadığı için İK'ya geçen soru (ik_karari_bekliyor, T-39) ya da İK'ya eskale edilmiş /
+// doğrudan İK'ya atanmış açık soru (ör. üst amiri olmayan amirin kendi günü).
 function ikteBekliyor(s: Soru) {
   if (s.durum === "ik_karari_bekliyor") return true;
   return (s.durum === "acik" || s.durum === "eskale") && (s.eskale ?? s.atanan)?.rol === "ik";
@@ -85,7 +87,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       .from("amir_sorusu")
       .select(
         "id, soru_turu, aciklama, onerilen_zaman, durum, olusturma_zamani, son_cevap_tarihi, " +
-          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, " +
+          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_eskale_zamani, " +
           "atanan:kullanici!atanan_id(ad_soyad, rol), eskale:kullanici!eskale_edilen_id(ad_soyad, rol), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
           "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))",
       )
@@ -273,9 +275,11 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
           ) : (
             <>
               {soru.aciklama}{" "}
-              {soru.durum === "eskale"
-                ? "Amir süresinde cevaplamadı; üst amiri olmadığı için soru İK'ya eskale edildi."
-                : "Cevaplayacak amir olmadığı için soru doğrudan İK'ya atandı."}
+              {soru.ik_eskale_zamani
+                ? `Amir ve üst amir${soru.eskale ? ` (${soru.eskale.ad_soyad})` : ""} süresinde cevaplamadı; soru İK'ya gitti.`
+                : soru.durum === "eskale"
+                  ? "Amir süresinde cevaplamadı; üst amiri olmadığı için soru İK'ya eskale edildi."
+                  : "Cevaplayacak amir olmadığı için soru doğrudan İK'ya atandı."}
               {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
             </>
           )}
