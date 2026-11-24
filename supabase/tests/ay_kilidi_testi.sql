@@ -194,11 +194,15 @@ select test.oturum('ak_ik1@ornek.test');
 select test.hata('onay bekleyen geriye dönük plan varken zorlamadan kilit reddedilir',
     '9/2026 döneminde İK onayı bekleyen 1 geriye dönük vardiya planı var',
     $$select pdks.ay_kilitle(2026::smallint, 9::smallint)$$);
-select test.dogrula('zorla kilit özeti: geçilen kalemler ve puantaja kodsuz giren gün sayısı',
-    pdks.ay_kilitle(2026::smallint, 9::smallint, true)
-    = '{"donem": "2026-09", "zorla": true, "kodsuz_gun": 1,
-        "zorla_gecilen": {"acik_soru_gun": 1, "acik_itiraz": 1, "bekleyen_fazla_mesai": 0, "bekleyen_plan_onayi": 1},
-        "mesaj": "9/2026 kilitlendi. Zorla geçilenler: 1 açık sorulu gün, 1 açık itiraz, 1 onay bekleyen geriye dönük plan. Puantaja kodsuz giren gün: 1."}'::jsonb);
+-- T-90: kodsuz gün de "Zorla geçilenler"de; özet hangi gün olduğunu söyler (kodsuz_gun_listesi)
+select test.dogrula('zorla kilit özeti: geçilen kalemler, kodsuz gün sayısı ve listesi',
+    (select r - 'kodsuz_gun_listesi'
+            = '{"donem": "2026-09", "zorla": true, "kodsuz_gun": 1,
+                "zorla_gecilen": {"acik_soru_gun": 1, "acik_itiraz": 1, "bekleyen_fazla_mesai": 0, "bekleyen_plan_onayi": 1},
+                "mesaj": "9/2026 kilitlendi. Zorla geçilenler: 1 açık sorulu gün, 1 açık itiraz, 1 onay bekleyen geriye dönük plan, 1 kodsuz gün."}'::jsonb
+        and jsonb_array_length(r -> 'kodsuz_gun_listesi') = 1
+        and r -> 'kodsuz_gun_listesi' @> '[{"sicil": "AK02", "gun": "2026-09-07"}]'::jsonb
+     from (select pdks.ay_kilitle(2026::smallint, 9::smallint, true) as r) x));
 reset role;
 select test.dogrula('kodsuz gün sayısı puantajla uyuşuyor: AK02 7 Eylül hiçbir kod almadı, AK03 8 Eylül NÇ',
     not exists (select 1 from pdks.gun_kodlari_hesapla(2026, 9) k where k.calisan_id = test.c('AK02') and k.tarih = '2026-09-07')
@@ -235,7 +239,7 @@ set local role authenticated;
 select test.oturum('ak_ik1@ornek.test');
 select test.dogrula('zorlamadan kilit özeti: geçilen kalem yok, kodsuz gün yok',
     pdks.ay_kilitle(2026::smallint, 10::smallint)
-    = '{"donem": "2026-10", "zorla": false, "kodsuz_gun": 0, "mesaj": "10/2026 kilitlendi.",
+    = '{"donem": "2026-10", "zorla": false, "kodsuz_gun": 0, "kodsuz_gun_listesi": [], "mesaj": "10/2026 kilitlendi.",
         "zorla_gecilen": {"acik_soru_gun": 0, "acik_itiraz": 0, "bekleyen_fazla_mesai": 0, "bekleyen_plan_onayi": 0}}'::jsonb);
 reset role;
 select test.dogrula('kilit zorlamadan geçti (açık soru, itiraz, havuz yok)', pdks.donem_kilitli_mi('2026-10-05'));
