@@ -102,6 +102,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/migrations/20261216010000_ekran_metinleri.sql` | `ayar.ad` / `kategori` / `sira`; `sure_metni`, `ayar_degeri_metni`, `soru_cevabi_adi`; 21 fonksiyonda yalnızca metin |
 | `supabase/tests/ekran_metinleri_testi.sql` | Ekran metinleri: ayar ad ve açıklamaları, süre metni, cevap adları, eski ifadeler için 8 test |
 | `supabase/migrations/20261217010000_oturum_yardimcilari.sql` | `oturum_rolu`, `oturum_calisan_id`, `oturum_departmanlari`, `oturum_calisanlari`, `amirin_calisani_mi` oturumu kendi içlerinde de `(select pdks.f())` ile bir kez sorar (T-108). Sonuçları ve yetkileri aynı |
+| `supabase/migrations/20261218010000_cakisan_izin.sql` | `izin_gir` kesişen geçerli izni, `saatlik_izin_gir` tam gün izinli günü reddeder (T-47) |
+| `supabase/tests/cakisan_izin_testi.sql` | Çakışan izin: kesişme ve sınır günleri, iptal sonrası, başka İK, saatlik izin için 18 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.

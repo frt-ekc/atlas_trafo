@@ -68,7 +68,9 @@ with beklenen(surum, ad, nesne) as (values
     ('20261216010000', 'ekran_metinleri',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'ayar' and column_name = 'kategori')),
     ('20261217010000', 'oturum_yardimcilari',            exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'oturum_calisanlari'
-                                                                 and prosrc like '%(select pdks.oturum_departmanlari())%'))
+                                                                 and prosrc like '%(select pdks.oturum_departmanlari())%')),
+    ('20261218010000', 'cakisan_izin',                   exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'izin_gir'
+                                                                 and prosrc like '%geçerli bir izni vardır%'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
