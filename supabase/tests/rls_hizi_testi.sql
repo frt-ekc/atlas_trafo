@@ -10,7 +10,13 @@
 --    hesaplanan satırlarla birebir aynıdır (yetki değişmedi, yalnızca hız).
 -- 3) Hız: örnek veri yüklüyse Kasım gece işinden geçirilir; Montaj amirinin
 --    v_departman_ozet, v_esnek_mesai, vardiya_plani, kanit_kaydi ve ham_okutma
---    okumaları 500 ms'nin altında kalır. Örnek veri yoksa bu bölüm atlanır.
+--    okumaları 150 ms'nin, "Hasan'ın çalışanları" (oturum_calisanlari) 30 ms'nin
+--    altında kalır. Örnek veri yoksa bu bölüm atlanır.
+--    T-108: sınırlar ölçülen değere yakın tutulur (eskiden 500 ms; 50 ms'lik okuma
+--    10 kat yavaşlayınca test bunu yakalayamadı).
+-- 4) Yardımcılar (T-108): oturum_rolu, oturum_calisan_id, oturum_departmanlari,
+--    oturum_calisanlari ve amirin_calisani_mi da oturumu kendi içlerinde satır başına
+--    değil bir kez sorar ("(select pdks.f())").
 --
 -- Testin kendi sahte verisi kullanılır; örnek veri yüklü olsun olmasın çalışır.
 -- Her şey tek işlemde çalışır ve sonda geri alınır (ROLLBACK).
@@ -152,6 +158,15 @@ select test.dogrula(t || ': okuma politikaları oturumu sorgu başına bir kez d
      from pg_policies where schemaname = 'pdks' and tablename = t))
 from unnest(test.tablolar()) t;
 
+-- 1b) Yapı (T-108): yardımcı fonksiyonların içinde de satır başına oturum sorusu yok
+select test.dogrula(f || ': oturumu kendi içinde de bir kez soruyor',
+    (select regexp_count(prosrc, 'pdks\.(oturum_[a-z_]+|tum_veriyi_gorur)\(') > 0
+            and regexp_count(prosrc, 'pdks\.(oturum_[a-z_]+|tum_veriyi_gorur)\(')
+              = regexp_count(prosrc, '\(select pdks\.(oturum_[a-z_]+|tum_veriyi_gorur)\(')
+     from pg_proc where pronamespace = 'pdks'::regnamespace and proname = f))
+from unnest(array['oturum_rolu', 'oturum_calisan_id', 'oturum_departmanlari', 'oturum_calisanlari',
+                  'amirin_calisani_mi']) f;
+
 -- 2) Eşdeğerlik: her rol eskisiyle aynı satırları görüyor --------------------
 set local role authenticated;
 select test.oturum('hz_amir@ornek.test');
@@ -208,6 +223,10 @@ begin
     perform test.dogrula('Montaj amiri (' || (select count(*) from pdks.gun_kaydi) || ' gün kaydı görüyor): 9 tabloda görünen satırlar eski kuralla aynı '
                          || test.farklar(), test.farklar() = '');
 
+    -- T-108: listeyi hazırlayan yardımcı tek başına
+    v_ms := test.sure('select pdks.oturum_calisanlari()');
+    perform test.dogrula(format('Montaj amiri: "çalışanlarım" listesi (oturum_calisanlari) %s ms (< 30)', v_ms), v_ms < 30);
+
     for r in select * from (values
         ('departman özeti (Departmanlar)', 'select count(*) from pdks.v_departman_ozet where yil = 2026 and ay = 11'),
         ('esnek mesai özeti (Departmanlar)', 'select count(*) from pdks.v_esnek_mesai where yil = 2026 and ay = 11'),
@@ -216,7 +235,7 @@ begin
         ('ham okutmalar', 'select count(*) from pdks.ham_okutma')) v(ad, sorgu)
     loop
         v_ms := test.sure(r.sorgu);
-        perform test.dogrula(format('Montaj amiri: %s %s ms (< 500)', r.ad, v_ms), v_ms < 500);
+        perform test.dogrula(format('Montaj amiri: %s %s ms (< 150)', r.ad, v_ms), v_ms < 150);
     end loop;
     reset role;
 end $$;

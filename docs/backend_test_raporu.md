@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 17 | 11 | 6 (T-39, T-45, T-71, T-89, T-90, T-104) | 11 (25 Kasım'a kadar) | 0 |
+| Yüksek | 19 | 8 | 11 (T-12, T-13, T-39, T-45, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 8 | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **104** | **89** | **15** | **61** | **31** |
+| **Toplam** | **106** | **86** | **20** | **58** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -41,7 +41,7 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 - Adımlar raporda 1 → 13 sırasıyla duruyor; Endpoint testi 6 ile 7 arasında.
 - Numaralar adım sırasında değil: Adım 10, 11'den sonra yapıldığı için Adım 9'da T-76–78, Adım 11'de T-79–80, Adım 10'da T-81–88 var. Bu bilinçli; numara değiştirilmedi.
 
-**Yüksek bulgular (18):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106.
+**Yüksek bulgular (19):** T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108.
 
 ### Kök neden grupları
 
@@ -342,6 +342,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | Belge |
 | T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | ✅ Düzeltildi (PR #48); kalan 46 politika ayrı iş |
 | T-106 | Yüksek | T-12 düzeltmesi | İK'nın soru kararındaki gerekçe (sağlık bilgisi olabilir) amire açık | K9 | Fırat | ✅ Düzeltildi (feature/T106-ik-karar-gerekcesi) |
+| T-108 | Yüksek | T-104 devamı | Oturum yardımcıları oturumu kendi içlerinde satır başına soruyor; amirin "çalışanlarım" listesi yarım saniye | K16 | Yusuf | ✅ Düzeltildi (PR #63) |
 
 ### Bilinen sınırlılıklar
 
@@ -3670,6 +3671,7 @@ Durumu değişen bulgular:
   - **`explain analyze` (Montaj amiri):** Eski planda `Filter: (pdks.tum_veriyi_gorur() OR pdks.amirin_calisani_mi(calisan_id))` her satırda çalışıyor (`vardiya_plani` 1608 satır, 1479 ms; `v_esnek_mesai` 1612 ms). Yeni planda iki `InitPlan` bir kez hesaplanıyor, filtre `(InitPlan 1).col1 OR (calisan_id = ANY ((InitPlan 2).col1))` (49 ms; 40 ms).
   - **Ekranda (yerel, `npm run dev`, Montaj amiri):** Departmanlar 8,2 / 8,9 sn "statement timeout" → 1,5–1,6 sn, açılıyor.
   - **Test süreleri (Montaj amiri):** departman özeti 643 → 56 ms, esnek mesai 1472 → 49 ms, vardiya planları 1650 → 50 ms, kanıt kayıtları 771 → 0 ms.
+  - **Devamı (25 Kasım):** politikaların çağırdığı yardımcı fonksiyonların içi bu PR'da çevrilmemişti; amirde okumalar 50 ms'den 400–850 ms'ye çıktı. T-108'de düzeltildi.
 - **Kalan (ayrı iş, 26 Kasım – 3 Aralık):** Diğer 26 tablonun 46 politikası hâlâ satır başına denetliyor. Bugün amirde her biri 0,2 sn'nin altında; 2000 çalışanda yavaşlayabilir. Aynı kalıpla çevrilecek; `rls_hizi_testi.sql`'deki tablo listesi genişletilecek.
 - **Not (test ortamı):** `gecici_kart_ve_paylasim_testi.sql`, Kasım gece işinden geçmiş bir veritabanında ("kart paylaşımı günlük kaydı değiştirmedi") düşüyor; eski kodda da aynı. Test temiz veritabanı bekliyor (`db reset` sonrası geçiyor). Bu PR ile ilgili değil.
 
@@ -3708,3 +3710,34 @@ Durumu değişen bulgular:
   - İtiraz ve fazla mesai karar açıklamaları amire açık (karar, çalışana / talep edene bildirilen metindir).
   - Elle saat düzeltmesinin gerekçesi açık (T-12 sınırlılığı). Amirin adının silinmesi T-32'de.
 - **Numara notu:** T-107, planlanan "kart paylaşımı kanıt kuralı" için ayrıldı.
+
+
+## T-104 devamında bulunan (25 Kasım 2026)
+
+### T-108 · Oturum yardımcıları oturumu kendi içlerinde satır başına soruyor; amirin "çalışanlarım" listesi yarım saniye
+- **Adım:** T-104 devamı (T-74 testleri sırasında `rls_hizi_testi` hız sınırına takıldı) · **Önem:** Yüksek (T-104 ile aynı kök neden, K16; ölçekte zaman aşımı)
+- **Yer:** `pdks.oturum_departmanlari`, `pdks.oturum_calisanlari` (son sürüm: `20261206010000_rls_hizi.sql`), `pdks.amirin_calisani_mi`, `pdks.oturum_rolu`, `pdks.oturum_calisan_id`.
+- **Ne oldu:**
+  - T-104 politikaları `(select pdks.f())` kalıbına çevirdi, ama politikaların çağırdığı yardımcıların İÇİ çevrilmedi.
+  - `oturum_departmanlari` departman tablosunun her satırında `oturum_rolu()` ve `oturum_kullanici_id()`'yi; `oturum_calisanlari` çalışan tablosunun her satırında `oturum_departmanlari()`'yı yeniden hesaplıyordu (tekrarın içinde tekrar).
+  - T-71 `oturum_kullanici_id`'ye "çalışan aktif mi" şartını ekleyince her çağrı uzadı; tekrar görünür oldu. `rls_hizi_testi`'nin 500 ms sınırı (ölçülen değerin 10 katı) gerilemeyi geç yakaladı; test 154 sn sürmeye başladı.
+  - T-12 ve T-106'nın yeni politikaları da `oturum_calisanlari`'ni kullanıyor.
+- **Ne olmalıydı:** Oturum (kim, rolü, departmanları, çalışanları) sorgu başına bir kez hesaplanmalı.
+- **Kanıt (yerel, Montaj amiri, 5 ölçüm ortalaması):**
+
+  | Ölçüm | Önce | Sonra |
+  |---|---:|---:|
+  | `oturum_departmanlari()` | 3,5 ms | 1,0 ms |
+  | `oturum_calisanlari()` (79 çalışan × 3,5 ms) | 262,6 ms | 1,0 ms |
+  | `vardiya_plani` okuması (Vardiya planı) | 286,5 ms | 1,6 ms |
+  | `fazla_mesai_plani` okuması (`amirin_calisani_mi` politikası) | 8,6 ms | 1,4 ms |
+  | `rls_hizi_testi`: departman özeti / esnek mesai / vardiya planları | 480 / 436 / 458 ms | 9 / 5 / 2 ms |
+  | `rls_hizi_testi` süresi · bütün test turu | 154 sn · 10+ dk | 22 sn · 105 sn |
+
+  Sonuç aynı: Hasan 2 departman, 20 çalışan; testte 8 oturumda 9 tablonun satırları eski politikayla birebir aynı.
+- **Sade dille:** T-104'te veritabanına "amirin çalışan listesini bir kez çıkar, her satırda o listeye bak" dedik. Ama listeyi çıkaran yardımcı, listeyi hazırlarken her çalışan için "amirin departmanları hangileri?" sorusunu baştan soruyordu. 76 çalışanda yarım saniye; 2000 çalışanda saniyeler sürer ve T-104'teki zaman aşımı geri gelirdi.
+- **Durum:** ✅ Düzeltildi — PR #63 (migration: `20261217010000_oturum_yardimcilari.sql`, test: `rls_hizi_testi.sql`).
+  - Beş yardımcının içinde oturum fonksiyonları `(select pdks.f())` ile çağrılır (sorgu başına bir kez, InitPlan). İmza, özellikler (STABLE, SECURITY DEFINER, search_path) ve yetkiler aynı.
+  - `rls_hizi_testi`: yardımcıların yapısı da denetlenir (1b); hız sınırları ölçülen değere yakın: "çalışanlarım" listesi < 30 ms, sayfa okumaları < 150 ms (eskiden 500 ms).
+  - `fazla_mesai_plani` ve `fazla_mesai_inceleme`'nin `amirin_calisani_mi` politikaları da hızlandı (T-104'ün "kalan 46 politika" listesindeydiler).
+- **Numara notu:** T-107, Fırat'ın planladığı "kart paylaşımı kanıt kuralı" için ayrılmış olduğundan bu bulgu T-108.
