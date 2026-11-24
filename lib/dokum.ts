@@ -1,5 +1,6 @@
 import "server-only";
 import { saat, tarih, tarihSaat } from "@/lib/bicim";
+import { gerekceMetni } from "@/lib/etiketler";
 import { gunEkle } from "@/lib/hafta";
 import type { Rol } from "@/lib/oturum";
 import { ayAdi } from "@/lib/puantaj";
@@ -78,18 +79,18 @@ const IZIN_TURU: Record<string, string> = {
 const DURUM: Record<string, string> = {
   tamam: "Tamam",
   eksik: "Eksik kayıt",
-  soru_bekliyor: "Amire soruldu",
+  soru_bekliyor: "Amir cevabı bekleniyor",
   izinli: "İzinli",
   raporlu: "Raporlu",
   tatil: "Tatil",
-  vardiya_yok: "Plan yok",
+  vardiya_yok: "Vardiya planı yok",
   devamsiz_suphesi: "Devamsızlık şüphesi",
   devamsiz: "Devamsız",
 };
 
 const KAYIT_KAYNAGI: Record<string, string> = { pdks: "PDKS", kanit: "Kanıt", amir: "Amir", ik: "İK" };
 const DUZELTME_ALANI: Record<string, string> = { giris_zamani: "Giriş", cikis_zamani: "Çıkış", vardiya_id: "Vardiya", durum: "Durum" };
-const DUZELTME_KAYNAGI: Record<string, string> = { gece_isi: "Gece işi", amir: "Amir", ik: "İK" };
+const DUZELTME_KAYNAGI: Record<string, string> = { gece_isi: "Gece işlemi", amir: "Amir", ik: "İK" };
 
 // Sağlık verisi (rapor) yalnızca İK'ya açıktır; diğer rollere "İzinli" görünür.
 function izinEtiketi(tur: string, ikMi: boolean): string {
@@ -256,7 +257,7 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
       alan: DUZELTME_ALANI[d.alan] ?? d.alan,
       eski: degerGoster(d.alan, d.eski_deger),
       yeni: degerGoster(d.alan, d.yeni_deger),
-      gerekce: d.gerekce,
+      gerekce: gerekceMetni(d.gerekce),
       kaynak: DUZELTME_KAYNAGI[d.kaynak] ?? d.kaynak,
       yapan: d.yapan?.ad_soyad ?? (d.kaynak === "gece_isi" ? "Sistem" : "—"),
       zaman: tarihSaat(d.yapilma_zamani),

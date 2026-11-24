@@ -64,7 +64,9 @@ with beklenen(surum, ad, nesne) as (values
                                                                  and table_name = 'aktarim' and column_name = 'yukleyen_id')),
     ('20261214010000', 'rapor_gizliligi',                to_regclass('pdks.v_duzeltme_amir') is not null),
     ('20261215010000', 'ik_karar_gerekcesi',             exists (select 1 from information_schema.columns where table_schema = 'pdks'
-                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karari'))
+                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karari')),
+    ('20261216010000', 'ekran_metinleri',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'ayar' and column_name = 'kategori'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

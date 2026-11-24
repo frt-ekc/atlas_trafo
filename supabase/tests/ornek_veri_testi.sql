@@ -245,7 +245,7 @@ select test.dogrula('S32 İrem 18 Kasım: giriş kapı 09:12 + yürüme payı = 
      from test.gk('6202', '2026-11-18'))
     and not exists (select 1 from pdks.amir_sorusu where gun_kaydi_id = (test.gk('6202', '2026-11-18')).id)
     and exists (select 1 from pdks.duzeltme where gun_kaydi_id = (test.gk('6202', '2026-11-18')).id
-                and gerekce like 'Esnek mesai: Kapı kaydı 09:12%'));
+                and gerekce like 'Kapı kaydı 09:12; yürüme süresi eklenerek%'));
 
 do $$ begin raise notice 'ÖRNEK VERİ TESTLERİ GEÇTİ'; end $$;
 rollback;

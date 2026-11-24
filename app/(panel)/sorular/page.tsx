@@ -115,8 +115,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{amir ? "Sorularım" : "Amir soruları"}</h1>
         <p className="text-sm text-muted-foreground">
-          Gece işi kanıt (kapı, yemekhane, servis kaydı) bulamadığı kayıtları sabah amire sorar. Cevapsız soru son günden
-          sonra üst amire ve İK&apos;ya gider. &quot;Gelmedi&quot; cevabında kararı İK verir.
+          Otomatik düzeltilemeyen kayıtlar amire sorulur. Süresinde cevaplanmayan sorular üst amire, ardından İK&apos;ya iletilir. Devamsızlık kararı İK tarafından verilir.
         </p>
       </div>
 
@@ -135,7 +134,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
@@ -145,10 +144,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         <BosDurum
           aciklama={
             suzgecVar
-              ? "Süzgeçlere uyan soru yok. Süzgeçleri temizleyip yeniden deneyin."
+              ? "Seçilen filtrelere uygun kayıt bulunmuyor."
               : suzgec === "bekleyen"
-                ? "Cevap bekleyen soru yok. Sorular gece işi çalıştığında oluşur."
-                : "Henüz soru yok. Sorular gece işi çalıştığında oluşur."
+                ? "Kayıt bulunmuyor."
+                : "Kayıt bulunmuyor."
           }
         />
       ) : (
@@ -159,8 +158,8 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                 <TableHead>Gün</TableHead>
                 <TableHead>Çalışan</TableHead>
                 <TableHead className="w-full">Soru</TableHead>
-                <TableHead className="whitespace-normal">Kanıttaki saat</TableHead>
-                <TableHead>Son gün</TableHead>
+                <TableHead className="whitespace-normal">Kanıt saati</TableHead>
+                <TableHead>Son cevap tarihi</TableHead>
                 {!amir && <TableHead>Atanan</TableHead>}
                 <TableHead>Durum</TableHead>
               </TableRow>
@@ -204,12 +203,12 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                     <TableCell className="tabular-nums">{s.onerilen_zaman ? saat(s.onerilen_zaman) : "—"}</TableCell>
                     <TableCell className="tabular-nums">
                       {tarih(s.son_cevap_tarihi)}
-                      {gecikti && <div className="text-xs text-destructive">Süresi geçti</div>}
+                      {gecikti && <div className="text-xs text-destructive">Süresi doldu</div>}
                     </TableCell>
                     {!amir && (
                       <TableCell className="min-w-28 whitespace-normal text-muted-foreground">
                         {s.atanan?.ad_soyad ?? "—"}
-                        {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
+                        {s.eskale && <div className="text-xs">İletilen: {s.eskale.ad_soyad}</div>}
                       </TableCell>
                     )}
                     <TableCell>
@@ -249,7 +248,7 @@ function CevaplaPenceresi({ soru }: { soru: Soru }) {
         <>
           {SORU_TURU[soru.soru_turu] ?? soru.soru_turu}. {soru.aciklama}
           {g && ` Plan: ${saat(g.planli_baslangic)}–${saat(g.planli_bitis)}.`}
-          {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
+          {soru.onerilen_zaman && ` Kanıt saati: ${saat(soru.onerilen_zaman)}.`}
         </>
       }
       onay="Cevabı kaydet"
@@ -287,11 +286,11 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
             <>
               {soru.aciklama}{" "}
               {soru.ik_eskale_zamani
-                ? `Amir ve üst amir${soru.eskale ? ` (${soru.eskale.ad_soyad})` : ""} süresinde cevaplamadı; soru İK'ya gitti.`
+                ? `Amir ve üst amir${soru.eskale ? ` (${soru.eskale.ad_soyad})` : ""} süresinde cevaplamadığı için soru İK'ya iletildi.`
                 : soru.durum === "eskale"
-                  ? "Amir süresinde cevaplamadı; üst amiri olmadığı için soru İK'ya eskale edildi."
-                  : "Cevaplayacak amir olmadığı için soru doğrudan İK'ya atandı."}
-              {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
+                  ? "Soru süresinde cevaplanmadığı için İK'ya iletildi."
+                  : "Tanımlı amir bulunmadığı için soru İK'ya atandı."}
+              {soru.onerilen_zaman && ` Kanıt saati: ${saat(soru.onerilen_zaman)}.`}
             </>
           )}
           {g && ` Plan: ${saat(g.planli_baslangic)}–${saat(g.planli_bitis)}.`}

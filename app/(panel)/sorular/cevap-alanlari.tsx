@@ -48,20 +48,20 @@ export function CevapAlanlari({
           </div>
           <p className="text-xs text-muted-foreground sm:col-span-2">
             {zorunlu.giris && zorunlu.cikis
-              ? "Giriş ve çıkış saatini birlikte yazın."
+              ? "Giriş ve çıkış saati girilmelidir."
               : zorunlu.giris
-                ? "Giriş saatini yazın; çıkış boş bırakılırsa değişmez."
+                ? "Giriş saati girilmelidir. Boş bırakılan çıkış saati değişmez."
                 : zorunlu.cikis
-                  ? "Çıkış saatini yazın; giriş boş bırakılırsa değişmez."
-                  : "Yalnızca düzeltilecek saati girin; boş bırakılan değişmez."}{" "}
-            Gece vardiyasında çıkış ertesi gündür.
+                  ? "Çıkış saati girilmelidir. Boş bırakılan giriş saati değişmez."
+                  : "Düzeltilecek saat girilmelidir. Boş bırakılan saat değişmez."}{" "}
+            Gece vardiyasında çıkış ertesi güne aittir.
           </p>
         </div>
       )}
 
       {(cevap === "gelmedi" || cevap === "bilmiyorum") && (
         <p className="rounded-lg bg-muted p-3 text-sm">
-          Gün kaydı değişmez; karar İK&apos;ya geçer. Devamsızlık kararını yalnızca İK verir.
+          Cevap İK kararına gönderilir. Devamsızlık kararı yalnızca İK tarafından verilir.
         </p>
       )}
 

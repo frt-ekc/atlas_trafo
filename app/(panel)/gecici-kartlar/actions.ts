@@ -16,7 +16,7 @@ function yenile() {
 export async function kartVer(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const kartId = sayiAl(form, "kart_id");
   const kartNo = metinAl(form, "kart_no") ?? "Geçici kart";
-  if (!kartId) return { durum: "hata", mesaj: "Kart seçilmedi." };
+  if (!kartId) return { durum: "hata", mesaj: "Kart seçilmelidir." };
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
@@ -30,17 +30,17 @@ export async function kartVer(_onceki: IslemSonucu, form: FormData): Promise<Isl
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
 
   yenile();
-  return { durum: "tamam", mesaj: `${kartNo} kartı ${calisan.adSoyad} adına verildi.` };
+  return { durum: "tamam", mesaj: `${kartNo} numaralı kart ${calisan.adSoyad} adına zimmetlendi.` };
 }
 
 export async function kartIadeAl(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const zimmetId = sayiAl(form, "zimmet_id");
   const kartNo = metinAl(form, "kart_no") ?? "Geçici kart";
-  if (!zimmetId) return { durum: "hata", mesaj: "Zimmet seçilmedi." };
+  if (!zimmetId) return { durum: "hata", mesaj: "Zimmet seçilmelidir." };
 
   const sonuc = await rpcCagir("gecici_kart_iade_al", { p_zimmet_id: zimmetId });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
 
   yenile();
-  return { durum: "tamam", mesaj: `${kartNo} kartı iade alındı.` };
+  return { durum: "tamam", mesaj: `${kartNo} numaralı kart iade alındı.` };
 }

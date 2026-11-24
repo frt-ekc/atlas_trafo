@@ -54,7 +54,7 @@ export function AktarimFormu({ okuyucular }: { okuyucular: Okuyucu[] }) {
   async function denetle(secilen: File, secilenKaynak: Kaynak) {
     setYukleme({ tur: "bekliyor" });
     if (secilen.size > EN_BUYUK_DOSYA) {
-      setDurum({ tur: "hata", mesaj: "Dosya 20 MB'tan büyük. Günlük dosyalar bundan küçük olmalı." });
+      setDurum({ tur: "hata", mesaj: "Dosya boyutu 20 MB'ı aşmamalıdır." });
       return;
     }
     setDurum({ tur: "okunuyor" });
@@ -78,7 +78,7 @@ export function AktarimFormu({ okuyucular }: { okuyucular: Okuyucu[] }) {
       setDurum({ tur: "hazir", dosyaAdi: secilen.name, sonuc, ozet, onceki: data });
     } catch {
       // Tarayıcının hatası İngilizce ve teknik gelir; kullanıcıya ne yapacağı söylenir
-      setDurum({ tur: "hata", mesaj: "Dosya okunamadı. Dosya başka bir programda açıksa kapatın ve yeniden seçin." });
+      setDurum({ tur: "hata", mesaj: "Dosya okunamadı. Dosya kapatılıp yeniden seçilmelidir." });
     }
   }
 
@@ -196,18 +196,17 @@ function Sonuc({
     return (
       <div className="flex flex-col gap-3" aria-live="polite">
         <Alert>
-          <AlertTitle>Dosya aktarıldı</AlertTitle>
+          <AlertTitle>Dosya yüklendi</AlertTitle>
           <AlertDescription>
             {durum.dosyaAdi}: {eklenen.toLocaleString("tr-TR")} okutma kaydedildi
-            {zaten_vardi > 0 && `, daha önce başka dosyayla gelmiş ${zaten_vardi.toLocaleString("tr-TR")} okutma atlandı`}. Kayıtlar
-            gece işinde işlenecek.
+            {zaten_vardi > 0 && `, daha önce yüklenmiş ${zaten_vardi.toLocaleString("tr-TR")} okutma atlandı`}. Kayıtlar gece işleminde işlenir.
           </AlertDescription>
         </Alert>
         {donem_kilitli && (
           <Alert variant="destructive">
-            <AlertTitle>Bu dosyanın ayı kilitli</AlertTitle>
+            <AlertTitle>Dosya kilitli bir aya ait</AlertTitle>
             <AlertDescription>
-              Ham kayıtlar alındı. Bu kayıtlardan çıkan düzeltmeler kilitli aya yazılmaz, sonraki aya fark satırı olarak geçer.
+              Okutmalar kaydedildi. Bu kayıtlardan doğan düzeltmeler izleyen aya fark satırı olarak aktarılır.
             </AlertDescription>
           </Alert>
         )}
@@ -223,15 +222,15 @@ function Sonuc({
         <OzetKarti
           baslik="Hata"
           deger={sonuc.hatalar.length}
-          aciklama={sonuc.hatalar.length ? "Düzeltilmeden yüklenemez" : "Hata yok"}
+          aciklama={sonuc.hatalar.length ? "Yükleme için hatalar giderilmelidir" : "Hata yok"}
           ton={sonuc.hatalar.length ? "dikkat" : "iyi"}
         />
-        <OzetKarti baslik="Verinin günü" deger={sonuc.veriTarihi ? tarih(sonuc.veriTarihi) : "—"} aciklama="Dosya adından ya da satırlardan" />
+        <OzetKarti baslik="Verinin günü" deger={sonuc.veriTarihi ? tarih(sonuc.veriTarihi) : "—"} aciklama="Dosya adı veya satırlardan belirlenir" />
       </OzetIzgarasi>
 
       {onceki && (
         <Alert variant="destructive">
-          <AlertTitle>Bu dosya daha önce yüklenmiş</AlertTitle>
+          <AlertTitle>Dosya daha önce yüklenmiş</AlertTitle>
           <AlertDescription>
             Aynı içerikteki {KAYNAK_ADI[kaynak]} dosyası {tarihSaat(onceki.aktarim_zamani)} tarihinde aktarılmış. Aynı dosya ikinci
             kez yüklenemez.
@@ -258,7 +257,7 @@ function Sonuc({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-20">Satır</TableHead>
-                  <TableHead>Sorun</TableHead>
+                  <TableHead>Açıklama</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -307,7 +306,7 @@ function Sonuc({
 
       {yukleme.tur === "hata" && (
         <Alert variant="destructive">
-          <AlertTitle>Dosya aktarılamadı</AlertTitle>
+          <AlertTitle>Dosya yüklenemedi</AlertTitle>
           <AlertDescription>{yukleme.mesaj} Hiçbir satır kaydedilmedi.</AlertDescription>
         </Alert>
       )}
@@ -322,10 +321,10 @@ function Sonuc({
         </Button>
         <p className="text-sm text-muted-foreground">
           {yuklenebilir
-            ? "Dosya yüklemeye hazır. Kayıtlar tek seferde yazılır; bir hata olursa hiçbiri yazılmaz. Yüklenen kayıt değiştirilemez ve silinemez."
+            ? "Dosya yüklemeye hazır. Yüklenen kayıtlar değiştirilemez ve silinemez."
             : onceki
-              ? "Bu dosya daha önce aktarıldığı için yüklenemez."
-              : "Hatalar giderilmeden dosya yüklenemez."}
+              ? "Dosya daha önce yüklenmiştir."
+              : "Yükleme için hatalar giderilmelidir."}
         </p>
       </div>
     </div>

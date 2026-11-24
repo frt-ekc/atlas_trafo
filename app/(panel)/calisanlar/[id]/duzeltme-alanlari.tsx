@@ -9,12 +9,12 @@ import { ITIRAZ_DURUMU } from "@/lib/etiketler";
 // İK'nın gün kaydında değiştirebileceği alanlar ve "durum" için seçenekler.
 // gun_kaydi doğrudan değişmez: kayit_duzelt → duzeltme_uygula eski / yeni değeri ve gerekçeyi saklar.
 const DURUMLAR: Record<string, string> = {
-  tamam: "Tamam (çalıştı)",
+  tamam: "Çalıştı",
   devamsiz: "Devamsız",
   izinli: "İzinli",
   raporlu: "Raporlu",
   tatil: "Tatil",
-  vardiya_yok: "Plan yok",
+  vardiya_yok: "Vardiya planı yok",
 };
 
 export type DuzeltmeItirazi = { id: number; metin: string; durum: string };
@@ -67,7 +67,7 @@ export function DuzeltmeAlanlari({
         <div className="flex flex-col gap-1.5">
           <label htmlFor="itiraz_id" className="text-sm font-medium">Bağlı itiraz (isteğe bağlı)</label>
           <Secim id="itiraz_id" name="itiraz_id" defaultValue={varsayilanItiraz} className="h-9">
-            <option value="">İtiraza bağlı değil</option>
+            <option value="">Bağlı itiraz yok</option>
             {itirazlar.map((i) => (
               <option key={i.id} value={i.id}>No {i.id} · {ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}: {i.metin.slice(0, 50)}</option>
             ))}
@@ -80,8 +80,7 @@ export function DuzeltmeAlanlari({
         <Textarea id="gerekce" name="gerekce" rows={2} required minLength={5} maxLength={1000} placeholder="ör. İtiraz kabul edildi, servis kaydı 07:40" />
       </div>
       <p className="text-xs text-muted-foreground">
-        Ham kayıt değişmez. Düzeltme kim, ne zaman, eski ve yeni değer ve gerekçesiyle silinemeyen bir tabloya yazılır.
-        &quot;Devamsız&quot; çalışan aleyhine işaretlenir. Ay kilitliyse düzeltme sonraki aya fark satırı olur.
+        Okutma kaydı değiştirilmez. Düzeltme; tarih, kullanıcı ve gerekçe bilgisiyle kalıcı olarak saklanır. &quot;Devamsız&quot; kararı çalışan aleyhine kaydedilir. Kilitli aya ait düzeltmeler izleyen aya fark satırı olarak aktarılır.
       </p>
     </>
   );

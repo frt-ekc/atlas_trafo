@@ -170,7 +170,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
                 Çalışan kaydını aç
               </Link>
             )}
-            {ik && !u.goruldu && <HizliIslem dugme="Görüldü yap" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />}
+            {ik && !u.goruldu && <HizliIslem dugme="Görüldü olarak işaretle" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />}
           </>
         }
       >
@@ -185,11 +185,11 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         <section aria-labelledby="karar-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-0.5">
             <h2 id="karar-baslik" className="flex items-center gap-2 text-lg font-semibold">
-              Karar gerekli
+              İK incelemesi bekleyenler
               <DurumRozeti ton="dikkat">{kararGerekli.length}</DurumRozeti>
             </h2>
             <p className="text-sm text-muted-foreground">
-              Okuyucu arızası ve geçici kart çakışması şüpheleri. İK inceler; şüphe tek başına ceza değildir.
+              Okuyucu arızası ve geçici kart çakışması kayıtları.
             </p>
           </div>
           {kararGerekli.map(kart)}
@@ -198,7 +198,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
       {bilgi.length > 0 && (
         <section aria-labelledby="bilgi-baslik" className="flex flex-col gap-3">
           <h2 id="bilgi-baslik" className="flex items-center gap-2 text-lg font-semibold">
-            Bilgi
+            Bilgilendirme
             <DurumRozeti ton="notr">{bilgi.length}</DurumRozeti>
           </h2>
           {bilgi.map(kart)}
@@ -212,7 +212,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Uyarılar</h1>
         <p className="text-sm text-muted-foreground">
-          Gece işinin ve veritabanı kurallarının ürettiği uyarılar. Uyarı ceza değildir; çalışan aleyhine karar İK&apos;dadır.
+          Sistem tarafından oluşturulan uyarılar. Çalışan aleyhine kararlar yalnızca İK tarafından verilir.
         </p>
       </div>
 
@@ -229,10 +229,10 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         <FiltreAlani etiket="Tür" htmlFor="tur">
           <Secim id="tur" name="tur" defaultValue={gecerliTur} className="max-w-72">
             <option value="">Tüm türler</option>
-            <optgroup label="Karar gerekli">
+            <optgroup label="İK incelemesi bekleyenler">
               {[...KARAR_GEREKLI].map((k) => <option key={k} value={k}>{UYARI_TURU[k]}</option>)}
             </optgroup>
-            <optgroup label="Bilgi">
+            <optgroup label="Bilgilendirme">
               {Object.entries(UYARI_TURU)
                 .filter(([k]) => !KARAR_GEREKLI.has(k))
                 .map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -248,18 +248,18 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground" aria-live="polite">
-          {uyarilar.length} uyarı · {kararGerekli.length} karar gerekli · {bilgi.length} bilgi
+          {uyarilar.length} uyarı · {kararGerekli.length} İK incelemesi bekliyor · {bilgi.length} bilgilendirme
         </p>
         {ozet.length > 1 && (
           <details className="group w-full rounded-xl border bg-card/60 open:p-3 sm:w-auto sm:open:w-full">
             <summary className="cursor-pointer list-none rounded-xl px-3 py-1.5 text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring group-open:mb-2 group-open:px-0 group-open:py-0">
-              Türlere göre dağılım ▾
+              Türlere göre dağılım
             </summary>
             <dl className="flex flex-col gap-2">
               {ozet.map((k) => (
@@ -289,14 +289,14 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         <BosDurum
           aciklama={
             suzgecVar
-              ? "Süzgeçlere uyan uyarı yok. Süzgeçleri temizleyip yeniden deneyin."
+              ? "Seçilen filtrelere uygun kayıt bulunmuyor."
               : gorulenler
-                ? "Henüz görüldü olarak işaretlenmiş uyarı yok."
-                : "Görülmemiş uyarı yok. Uyarılar gece işi çalıştığında oluşur."
+                ? "Kayıt bulunmuyor."
+                : "Kayıt bulunmuyor."
           }
         />
       ) : secilebilir ? (
-        <TopluSecim idler={uyarilar.map((u) => u.id)} alanAdi="uyari_id" dugme="Seçilenleri görüldü yap" islem={uyarilarGoruldu}>
+        <TopluSecim idler={uyarilar.map((u) => u.id)} alanAdi="uyari_id" dugme="Seçilenleri görüldü olarak işaretle" islem={uyarilarGoruldu}>
           {liste}
         </TopluSecim>
       ) : (

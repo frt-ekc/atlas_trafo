@@ -26,7 +26,7 @@ export function FiltreCubugu({
             scroll={false}
             className="rounded-sm text-sm text-muted-foreground underline underline-offset-4 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Süzgeçleri temizle
+            Filtreleri temizle
           </Link>
         )}
       </div>

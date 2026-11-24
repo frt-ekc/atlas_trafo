@@ -53,6 +53,15 @@ export function saat(deger: string | null | undefined): string {
   return saatBicimi.format(new Date(deger));
 }
 
+// Dakikayı "11 sa 30 dk" biçiminde yazar (690 → "11 sa 30 dk", 600 → "10 sa", 15 → "15 dk")
+export function sureMetni(dk: number): string {
+  const mutlak = Math.abs(Math.round(dk));
+  const sa = Math.floor(mutlak / 60);
+  const kalan = mutlak % 60;
+  const metin = sa > 0 ? (kalan > 0 ? `${sa.toLocaleString("tr-TR")} sa ${kalan} dk` : `${sa.toLocaleString("tr-TR")} sa`) : `${kalan} dk`;
+  return dk < 0 ? `−${metin}` : metin;
+}
+
 // İki zaman arasındaki süre: "3 sa 20 dk" / "2 gün 4 sa"
 export function sure(baslangic: string, bitis: string | null | undefined, simdi = new Date()): string {
   const dk = Math.max(0, Math.round(((bitis ? new Date(bitis) : simdi).getTime() - new Date(baslangic).getTime()) / 60000));
@@ -60,8 +69,7 @@ export function sure(baslangic: string, bitis: string | null | undefined, simdi 
   const sa = Math.floor((dk % 1440) / 60);
   const kalanDk = dk % 60;
   if (gun > 0) return `${gun} gün ${sa} sa`;
-  if (sa > 0) return `${sa} sa ${kalanDk} dk`;
-  return `${kalanDk} dk`;
+  return sureMetni(sa * 60 + kalanDk);
 }
 
 // datetime-local alanı için Türkiye saatiyle "2026-11-26T08:01" (alanın varsayılan değeri)

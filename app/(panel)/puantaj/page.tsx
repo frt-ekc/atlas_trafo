@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { tekDeger } from "@/lib/arama";
-import { tarih, tarihSaat } from "@/lib/bicim";
+import { sureMetni, tarih, tarihSaat } from "@/lib/bicim";
 import { ayBittiMi, bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
-import { ayAdi, ayKaydir, saatDakika, type PuantajSatiri } from "@/lib/puantaj";
+import { ayAdi, ayKaydir, type PuantajSatiri } from "@/lib/puantaj";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import type { ErpSatiri } from "@/lib/erp-aktarim";
@@ -225,7 +225,7 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Puantaj · {ayAdi(ay)}</h1>
-        <p className="text-sm text-muted-foreground">Bordroya giden gün ve dakika özeti. Ücret hesaplanmaz.</p>
+        <p className="text-sm text-muted-foreground">Bordroya aktarılacak gün ve süre özeti. Ücret bilgisi içermez.</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -258,17 +258,17 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
           aciklama={
             kilitli
               ? `${donem?.kilitleyen?.ad_soyad ?? "—"} · ${tarihSaat(donem?.kilit_zamani)}`
-              : "Canlı hesap; ay kilitlenince kesinleşir"
+              : "Ay kilitlendiğinde kesinleşir"
           }
           ton={kilitli ? "iyi" : "notr"}
         />
-        <OzetKarti baslik="Çalışan" deger={satirlar.length} aciklama={farkSatirlari.length ? `${farkSatirlari.length} fark satırı` : "Bordroya girecek"} />
-        <OzetKarti baslik="Toplam çalışma" deger={saatDakika(toplamDk)} aciklama={`Fazla mesai ${saatDakika(toplamFmDk)} (sa:dk)`} />
+        <OzetKarti baslik="Çalışan" deger={satirlar.length} aciklama={farkSatirlari.length ? `${farkSatirlari.length} fark satırı` : "Bordroya aktarılacak"} />
+        <OzetKarti baslik="Toplam çalışma" deger={sureMetni(toplamDk)} aciklama={`Fazla mesai ${sureMetni(toplamFmDk)}`} />
         {!kilitli && (
           <OzetKarti
             baslik="Kesinleşmemiş gün"
             deger={bekleyenGun}
-            aciklama={!veriVar ? "Hesaplanmış gün yok" : bekleyenGun ? "Soru, eksik kayıt ya da hesap bekliyor" : "Hepsi kesin"}
+            aciklama={!veriVar ? "Kayıt bulunmuyor" : bekleyenGun ? "Soru, eksik kayıt veya hesaplama bekleniyor" : "Tüm günler kesinleşti"}
             ton={!veriVar ? "notr" : bekleyenGun ? "dikkat" : "iyi"}
           />
         )}
@@ -276,10 +276,9 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
 
       {!veriVar && !kilitli && (
         <Alert>
-          <AlertTitle>Bu ay için hesaplanmış gün yok</AlertTitle>
+          <AlertTitle>Kayıt bulunmuyor</AlertTitle>
           <AlertDescription>
-            Puantaj, gece işinin ürettiği günlük kayıtlardan hesaplanır. Gece işi çalışınca sayılar dolar; liste şimdilik sıfırlarla
-            gösteriliyor.
+            Puantaj, gece işleminden sonra hesaplanır.
           </AlertDescription>
         </Alert>
       )}
@@ -298,7 +297,7 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
               dugme="Ayı kilitle"
               dugmeTuru="destructive"
               baslik={`${ayAdi(ay)} dönemini kilitle`}
-              aciklama="Puantaj kesinleşir ve bordroya gider. Kilit geri açılamaz; sonradan gelen düzeltme sonraki aya fark satırı olarak yazılır."
+              aciklama="Puantaj kesinleşir. Kilit geri açılamaz; sonraki düzeltmeler izleyen aya fark satırı olarak aktarılır."
               onay="Ayı kilitle"
               onayTuru="destructive"
               islem={ayKilitle}
@@ -307,32 +306,32 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
               {acikIsler.length > 0 ? (
                 <div className="flex flex-col gap-2 rounded-lg bg-destructive/10 p-3 text-sm">
                   <p className="font-medium text-destructive">Bu ayda {acikIsler.join(", ")} var.</p>
-                  <p>Bunlar kapanmadan kilitlenirse sonuçları sonraki aya fark satırı olarak geçer.</p>
+                  <p>Bu kayıtlar sonuçlanmadan kilitleme yapılırsa sonuçlar izleyen aya fark satırı olarak aktarılır.</p>
                   {(bekleyenPlan?.count ?? 0) > 0 && (
-                    <p>Onay bekleyen planın günü gece işinden hiç geçmediyse ay zorla da kilitlenmez; planı önce onaylayın ya da reddedin.</p>
+                    <p>İşlenmemiş günü bulunan bekleyen planlar, ay kilitlenmeden önce onaylanmalı veya reddedilmelidir.</p>
                   )}
                   <label className="flex items-center gap-2">
                     <input type="checkbox" name="zorla" value="evet" />
-                    Yine de kilitle
+                    Bekleyen kayıtlarla birlikte kilitle
                   </label>
                 </div>
               ) : (
-                <p className="rounded-lg bg-muted p-3 text-sm">Bu ayda açık soru, itiraz, kararı bekleyen fazla mesai ya da onay bekleyen plan yok.</p>
+                <p className="rounded-lg bg-muted p-3 text-sm">Bu ayda bekleyen kayıt bulunmuyor.</p>
               )}
               {bekleyenGun > 0 && (
-                <p className="text-sm text-muted-foreground">{bekleyenGun} gün henüz kesinleşmemiş (eksik kayıt ya da hesap bekliyor).</p>
+                <p className="text-sm text-muted-foreground">{bekleyenGun} gün kesinleşmemiştir (eksik kayıt veya bekleyen hesaplama).</p>
               )}
               <p className="text-sm text-muted-foreground">
-                Gece işinden geçmemiş planlı gün varsa (ör. o günün dosyası yüklenmediyse) ay kilitlenmez; veritabanı hangi günler olduğunu söyler.
+                İşlenmemiş planlı günü bulunan ay kilitlenemez.
               </p>
               <label className="flex items-start gap-2 text-sm">
                 <input type="checkbox" name="onay" value="evet" required className="mt-0.5" />
-                Kilidin geri açılamayacağını biliyorum.
+                Kilidin geri açılamayacağını onaylıyorum.
               </label>
             </IslemPenceresi>
           </div>
           <p className="text-sm text-muted-foreground">
-            Kilitlenen ay geri açılamaz; sonradan gelen düzeltme sonraki aya fark satırı olarak yazılır.
+            Kilitlenen ay geri açılamaz; sonraki düzeltmeler izleyen aya fark satırı olarak aktarılır.
             {acikIsler.length > 0 && ` Şu an ${acikIsler.join(", ")} var.`}
           </p>
         </div>
@@ -341,17 +340,17 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
       <FiltreCubugu temizleAdres={`/puantaj?ay=${ay}`} suzgecVar={Boolean(araMetni)}>
         <input type="hidden" name="ay" value={ay} />
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil ya da bölüm" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil veya departman" />
         </FiltreAlani>
         {araMetni && (
           <p className="self-center text-xs text-muted-foreground">
-            {gosterilenSatirlar.length} / {satirlar.length} çalışan gösteriliyor. Excel her zaman tüm çalışanları içerir.
+            {gosterilenSatirlar.length} / {satirlar.length} çalışan gösteriliyor. Excel dosyası tüm çalışanları içerir.
           </p>
         )}
       </FiltreCubugu>
 
       {gosterilenSatirlar.length === 0 ? (
-        <BosDurum aciklama={araMetni ? "Aramaya uyan çalışan yok." : "Bu ay bordroya girecek çalışan yok."} />
+        <BosDurum aciklama={araMetni ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
       ) : (
         // Dar ekranda sayı sütunları yana kayar; çalışan sütunu solda sabit kalır, kimin satırı olduğu hep görünür
         <TabloKutusu>
@@ -381,8 +380,8 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
                     </div>
                   </TableCell>
                   <Sayi deger={s.calisilanGun} />
-                  <TableCell className="text-right tabular-nums">{saatDakika(s.calismaDk)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.fazlaMesaiDk ? saatDakika(s.fazlaMesaiDk) : "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{sureMetni(s.calismaDk)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{s.fazlaMesaiDk ? sureMetni(s.fazlaMesaiDk) : "—"}</TableCell>
                   <Sayi deger={s.gecKalmaDk} birim="dk" />
                   <Sayi deger={s.erkenCikisDk} birim="dk" />
                   <Sayi deger={s.devamsizGun} />
@@ -403,7 +402,7 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
 
       {farkSatirlari.length > 0 && (
         <p className="text-sm text-muted-foreground">
-          Bu ayda önceki aylara ait {farkSatirlari.length} fark satırı var; Excel dosyasında ayrı sayfada yer alır.
+          Bu ayda önceki aylara ait {farkSatirlari.length} fark satırı bulunuyor. Fark satırları Excel dosyasında ayrı sayfada yer alır.
         </p>
       )}
     </div>

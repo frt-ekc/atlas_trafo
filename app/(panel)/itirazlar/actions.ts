@@ -13,7 +13,7 @@ function yenile() {
 // İK itirazı incelemeye alır (amire ve çalışana "bakılıyor" bilgisi).
 export async function itirazIncelemeyeAl(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const itirazId = sayiAl(form, "itiraz_id");
-  if (!itirazId) return { durum: "hata", mesaj: "İtiraz seçilmedi." };
+  if (!itirazId) return { durum: "hata", mesaj: "İtiraz seçilmelidir." };
   const sonuc = await rpcCagir("itiraz_incelemeye_al", { p_itiraz_id: itirazId });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   yenile();
@@ -26,15 +26,15 @@ export async function itirazKarar(_onceki: IslemSonucu, form: FormData): Promise
   const itirazId = sayiAl(form, "itiraz_id");
   const kabul = kararAl(form);
   const aciklama = metinAl(form, "aciklama");
-  if (!itirazId) return { durum: "hata", mesaj: "İtiraz seçilmedi." };
-  if (kabul === null) return { durum: "hata", mesaj: "Kabul ya da red seçin." };
-  if (!aciklama || aciklama.length < 5) return { durum: "hata", mesaj: "Kararın gerekçesini yazın." };
+  if (!itirazId) return { durum: "hata", mesaj: "İtiraz seçilmelidir." };
+  if (kabul === null) return { durum: "hata", mesaj: "Kabul veya ret seçilmelidir." };
+  if (!aciklama || aciklama.length < 5) return { durum: "hata", mesaj: "Karar gerekçesi girilmelidir." };
 
   const sonuc = await rpcCagir("itiraz_karar", { p_itiraz_id: itirazId, p_kabul: kabul, p_aciklama: aciklama });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   yenile();
   return {
     durum: "tamam",
-    mesaj: kabul ? "İtiraz kabul edildi. Kaydı çalışan sayfasından düzeltin." : "İtiraz reddedildi.",
+    mesaj: kabul ? "İtiraz kabul edildi. Kayıt, çalışan sayfasından düzeltilmelidir." : "İtiraz reddedildi.",
   };
 }

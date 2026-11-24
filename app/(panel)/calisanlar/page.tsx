@@ -69,8 +69,8 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
           <h1 className="text-2xl font-semibold">Çalışanlar</h1>
           <p className="text-sm text-muted-foreground">
             {kullanici.rol === "amir"
-              ? "Yalnızca sorumlu olduğunuz bölümlerin çalışanları listelenir."
-              : "Fabrikadaki çalışanlar."}
+              ? "Sorumlu olunan departmanların çalışanları."
+              : "Tüm çalışanlar."}
           </p>
         </div>
         {kullanici.rol === "ik" && (
@@ -78,7 +78,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
             dugme="Çalışan ekle"
             dugmeTuru="default"
             baslik="Yeni çalışan"
-            aciklama="İşe giriş ileri tarihli olabilir; o güne kadar gece işi gün kaydı açmaz. Kart ve vardiya planı ayrıca girilir. Departman sonradan değiştirilemez."
+            aciklama="İşe giriş tarihi ileri tarihli olabilir. Kart ve vardiya planı ayrıca tanımlanır. Departman sonradan değiştirilemez."
             onay="Ekle"
             islem={calisanEkle}
           >
@@ -110,9 +110,9 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
 
       <FiltreCubugu temizleAdres="/calisanlar" suzgecVar={suzgecVar}>
         <FiltreAlani etiket="Ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Sicil, ad ya da soyad" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Sicil, ad veya soyad" />
         </FiltreAlani>
-        <FiltreAlani etiket="Bölüm" htmlFor="departman">
+        <FiltreAlani etiket="Departman" htmlFor="departman">
           <Secim id="departman" name="departman" defaultValue={departmanId ?? ""} className="max-w-72">
             <option value="">Tümü</option>
             {departmanlar.map((d) => (
@@ -128,11 +128,11 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
         </FiltreAlani>
       </FiltreCubugu>
 
-      <p className="text-sm text-muted-foreground" aria-live="polite">{calisanlar.length} kişi</p>
+      <p className="text-sm text-muted-foreground" aria-live="polite">{calisanlar.length} çalışan</p>
 
       {calisanlar.length === 0 ? (
         <BosDurum
-          aciklama={suzgecVar ? "Süzgeçlere uyan çalışan yok. Süzgeçleri temizleyip yeniden deneyin." : "Görebileceğiniz çalışan kaydı yok."}
+          aciklama={suzgecVar ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."}
         />
       ) : (
         <TabloKutusu>
@@ -141,7 +141,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
               <TableRow>
                 <TableHead className="w-24">Sicil</TableHead>
                 <TableHead>Ad soyad</TableHead>
-                <TableHead className="w-full">Bölüm</TableHead>
+                <TableHead className="w-full">Departman</TableHead>
                 <TableHead>İşe giriş</TableHead>
                 <TableHead>Durum</TableHead>
               </TableRow>

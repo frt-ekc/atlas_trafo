@@ -49,7 +49,7 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 
 ### 3. 7 Aralık dosyalarını yükleme ve gece işi (İK, Veri aktarımı)
 1. **Dosya yükle:** dört dosya sırayla yüklenir. Gün dosya adından okunur (07.12.2026). Ekran yüklemeden önce satırları denetler ve özet gösterir.
-2. **Gece işini çalıştır:** başlangıç ve bitiş 07.12.2026.
+2. **Gece işlemini başlat:** başlangıç ve bitiş 07.12.2026.
 3. **Beklenen özet:** 10 gün kaydı, 2 kanıtla düzeltme, 2 amir sorusu, 8 hesaplanan gün, yeni uyarı yok.
 
 7 Aralık'ta yalnızca Montaj'ın 10 kişisi planlıdır (Gündüz 08:00–17:00):
@@ -62,7 +62,7 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 | Mustafa Şahin (1005) | Çıkışa dair hiçbir kayıt yok | **Amire soru:** "çıkış yok" |
 | Diğer 6 kişi | Normal gün | Tamam, 480 dk |
 
-**İK, Çalışanlar → Veli Çelik:** 7 Aralık girişinin yanında kaynak "kanıt", düzeltme izinde gerekçe görünür: "Kapı kaydı 07:46, vardiya başından önce; giriş vardiya başı olarak yazıldı". Düzeltme silinemez.
+**İK, Çalışanlar → Veli Çelik:** 7 Aralık girişinin yanında kaynak "kanıt", düzeltme izinde gerekçe görünür: "Kapı kaydı 07:46; giriş vardiya başlangıcı olarak kaydedildi". Düzeltme silinemez.
 
 ### 4. Amire soru (Montaj amiri, Sorularım)
 1. **Ali:** "Geldi, saat doğru" → giriş 08:29 yazılır ve gün hemen hesaplanır.

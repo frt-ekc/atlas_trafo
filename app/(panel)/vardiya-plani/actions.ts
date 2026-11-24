@@ -10,8 +10,8 @@ import { metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supab
 export async function vardiyaPlaniGir(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const gun = tarihAl(form, "tarih");
   const vardiyaId = sayiAl(form, "vardiya_id");
-  if (!gun) return { durum: "hata", mesaj: "Günü seçin." };
-  if (!vardiyaId) return { durum: "hata", mesaj: "Vardiyayı seçin." };
+  if (!gun) return { durum: "hata", mesaj: "Gün seçilmelidir." };
+  if (!vardiyaId) return { durum: "hata", mesaj: "Vardiya seçilmelidir." };
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
@@ -30,7 +30,7 @@ export async function vardiyaPlaniGir(_onceki: IslemSonucu, form: FormData): Pro
   return {
     durum: "tamam",
     mesaj: geriye
-      ? `${bulunan.calisan.adSoyad} için geçmiş güne plan girildi; İK onayı bekliyor. Onaylanana kadar gün eski haliyle kalır.`
+      ? `${bulunan.calisan.adSoyad} için geriye dönük plan kaydedildi ve İK onayına gönderildi.`
       : `${bulunan.calisan.adSoyad} için vardiya planı kaydedildi.`,
   };
 }
@@ -41,7 +41,7 @@ export async function vardiyaPlaniGir(_onceki: IslemSonucu, form: FormData): Pro
 export async function vardiyaPlaniOnayla(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const planId = sayiAl(form, "plan_id");
   const karar = metinAl(form, "karar");
-  if (!planId || (karar !== "onay" && karar !== "ret")) return { durum: "hata", mesaj: "Plan ya da karar seçilmedi." };
+  if (!planId || (karar !== "onay" && karar !== "ret")) return { durum: "hata", mesaj: "Plan ve karar seçilmelidir." };
 
   const sonuc = await rpcCagir("vardiya_plani_onayla", { p_plan_id: planId, p_onay: karar === "onay" });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -51,7 +51,7 @@ export async function vardiyaPlaniOnayla(_onceki: IslemSonucu, form: FormData): 
     durum: "tamam",
     mesaj:
       karar === "onay"
-        ? "Geriye dönük plan onaylandı; gün yeni plana göre hemen hesaplandı."
-        : "Geriye dönük plan reddedildi; gün değişmedi. Doğru plan gerekiyorsa yeniden girilmeli.",
+        ? "Geriye dönük plan onaylandı ve gün kaydı güncellendi."
+        : "Geriye dönük plan reddedildi. Gün kaydı değişmedi.",
   };
 }

@@ -148,7 +148,7 @@ select test.hata('geçersiz kart numarası reddedilir', '1. satırda kart numara
 select test.hata('geçersiz yön reddedilir', 'yön',
     $$select pdks.dosya_yukle('pdks', 'p.csv', '2027-03-05',
         '[{"okuyucu": "DY-PDKS-1", "kart_no": "DY-K1", "zaman": "2027-03-05T07:50:00+03:00", "yon": "yukari"}]', test.ozet('e'))$$);
-select test.hata('saat dilimi olmayan zaman reddedilir', 'saat dilimiyle gelmeli',
+select test.hata('saat dilimi olmayan zaman reddedilir', 'zaman bilgisi geçersiz',
     $$select pdks.dosya_yukle('pdks', 'p.csv', '2027-03-05',
         '[{"okuyucu": "DY-PDKS-1", "kart_no": "DY-K1", "zaman": "2027-03-05 07:50"}]', test.ozet('e'))$$);
 select test.hata('olmayan tarih (31 Şubat) anlaşılır mesajla reddedilir', 'zaman okunamadı',
@@ -156,7 +156,7 @@ select test.hata('olmayan tarih (31 Şubat) anlaşılır mesajla reddedilir', 'z
         '[{"okuyucu": "DY-PDKS-1", "kart_no": "DY-K1", "zaman": "2027-02-31T07:50:00+03:00"}]', test.ozet('e'))$$);
 select test.hata('nesne olmayan satır reddedilir', 'satır okunamadı',
     $$select pdks.dosya_yukle('pdks', 'p.csv', '2027-03-05', '["metin"]', test.ozet('e'))$$);
-select test.hata('geçersiz dosya özeti reddedilir', 'Dosya özeti geçersiz',
+select test.hata('geçersiz dosya özeti reddedilir', 'Dosya doğrulanamadı',
     $$select pdks.dosya_yukle('pdks', 'p.csv', '2027-03-05',
         '[{"okuyucu": "DY-PDKS-1", "kart_no": "DY-K1", "zaman": "2027-03-05T07:50:00+03:00"}]', 'abc')$$);
 select test.hata('geçersiz dosya türü reddedilir', 'Dosya türü geçersiz',

@@ -106,7 +106,7 @@ begin
     end;
     if p_kabul and (v_hata is not null or v_sonuc is distinct from p_deger) then
         raise exception 'KALDI  % = % kabul edilmeliydi: % (yazılan %)', p_anahtar, p_deger, v_hata, v_sonuc;
-    elsif not p_kabul and (v_hata is null or v_hata not like '%için değer % ile % arasında olmalı.%') then
+    elsif not p_kabul and (v_hata is null or v_hata not like '%Değer % ile % arasında olmalıdır.%') then
         raise exception 'KALDI  % = % reddedilmeliydi: %', p_anahtar, p_deger, v_hata;
     end if;
 end $$;
@@ -130,20 +130,20 @@ end $$;
 
 -- 4) Sayı olmayan girişler Türkçe mesajla ---------------------------------------
 set local role authenticated;
-select test.hata('geçersiz giriş reddedilir: ' || coalesce(quote_literal(d), 'null'), 'için tam sayı girin',
+select test.hata('geçersiz giriş reddedilir: ' || coalesce(quote_literal(d), 'null'), 'Tam sayı girilmelidir',
                  format('select pdks.ayar_guncelle(%L, %L)', 'gec_kalma_tolerans_dk', d))
 from (values ('10.5'), ('10,5'), ('on'), (''), ('  '), ('1e3'), ('10; drop'), (null)) v(d);
-select test.hata('integer''a sığmayan sayı da aralık mesajı alır', 'gec_kalma_tolerans_dk için değer 0 ile 60 arasında olmalı.',
+select test.hata('integer''a sığmayan sayı da aralık mesajı alır', 'Değer 0 ile 60 arasında olmalıdır.',
     $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '99999999999999999999')$$);
 select test.hata('bilinmeyen ayar', 'Ayar bulunamadı', $$select pdks.ayar_guncelle('yok', '1')$$);
 select test.hata('null anahtar', 'Ayar bulunamadı', $$select pdks.ayar_guncelle(null, '1')$$);
 
 -- 5) Mola sıralaması (hepsi kendi aralığının içinde) ------------------------------
-select test.hata('kısa mola orta molaya eşit olamaz', 'Mola süreleri sıralı', $$select pdks.ayar_guncelle('mola_kisa_dk', '30')$$);
-select test.hata('orta mola uzun moladan büyük olamaz', 'Mola süreleri sıralı', $$select pdks.ayar_guncelle('mola_orta_dk', '75')$$);
-select test.hata('orta mola uzun molaya eşit olamaz', 'Mola süreleri sıralı', $$select pdks.ayar_guncelle('mola_orta_dk', '60')$$);
-select test.hata('orta sınır kısa sınırdan küçük olamaz', 'Mola sınırları sıralı', $$select pdks.ayar_guncelle('mola_orta_sinir_dk', '200')$$);
-select test.hata('orta sınır kısa sınıra eşit olamaz', 'Mola sınırları sıralı', $$select pdks.ayar_guncelle('mola_orta_sinir_dk', '240')$$);
+select test.hata('kısa mola orta molaya eşit olamaz', 'Mola süreleri kısa, orta ve uzun', $$select pdks.ayar_guncelle('mola_kisa_dk', '30')$$);
+select test.hata('orta mola uzun moladan büyük olamaz', 'Mola süreleri kısa, orta ve uzun', $$select pdks.ayar_guncelle('mola_orta_dk', '75')$$);
+select test.hata('orta mola uzun molaya eşit olamaz', 'Mola süreleri kısa, orta ve uzun', $$select pdks.ayar_guncelle('mola_orta_dk', '60')$$);
+select test.hata('orta sınır kısa sınırdan küçük olamaz', 'Kısa mola çalışma sınırı, orta', $$select pdks.ayar_guncelle('mola_orta_sinir_dk', '200')$$);
+select test.hata('orta sınır kısa sınıra eşit olamaz', 'Kısa mola çalışma sınırı, orta', $$select pdks.ayar_guncelle('mola_orta_sinir_dk', '240')$$);
 select pdks.ayar_guncelle('mola_uzun_dk', '90') \g /dev/null
 select pdks.ayar_guncelle('mola_orta_dk', '75') \g /dev/null
 reset role;
@@ -152,7 +152,7 @@ select test.dogrula('uzun mola büyütülünce orta mola 75 olabilir',
 
 -- 6) İK'ya uyarı -----------------------------------------------------------------
 create function test.uyari(p text) returns bigint language sql security definer as $$
-    select count(*) from pdks.uyari where tur = 'puantaj_ayari_degisti' and mesaj like p || ' ayarı %' $$;
+    select count(*) from pdks.uyari where tur = 'puantaj_ayari_degisti' and mesaj like '"' || (select ad from pdks.ayar where anahtar = p) || '" ayarı %' $$;
 grant execute on function test.uyari(text) to authenticated;
 update pdks.ayar set deger = 10 where anahtar = 'gec_kalma_tolerans_dk';
 set local role authenticated;
@@ -162,7 +162,7 @@ select test.dogrula('puantajı etkileyen ayar: geçmiş ve uyarı yazıldı (esk
     pdks.ayar_al('gec_kalma_tolerans_dk') = 15
     and (select eski_deger = 10 and yeni_deger = 15 from pdks.ayar_gecmisi where anahtar = 'gec_kalma_tolerans_dk' order by id desc limit 1)
     and exists (select 1 from pdks.uyari where tur = 'puantaj_ayari_degisti'
-                and mesaj like 'gec_kalma_tolerans_dk ayarı 10 değerinden 15 değerine%AdASD1 Örnek%'));
+                and mesaj like '"Geç kalma toleransı" ayarı 10 dk değerinden 15 dk değerine güncellendi (AdASD1 Örnek).%'));
 set local role authenticated;
 select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '15') \g /dev/null
 reset role;
@@ -180,7 +180,7 @@ reset role;
 select test.dogrula('reddedilen değişiklikte uyarı yok', test.uyari('gec_kalma_tolerans_dk') = 3);
 select test.oturum('00000000-0000-0000-0000-0000000074b2');
 set local role authenticated;
-select test.dogrula('İK uyarıyı görür', (select count(*) = 3 from pdks.uyari where tur = 'puantaj_ayari_degisti' and mesaj like 'gec_kalma_tolerans_dk%'));
+select test.dogrula('İK uyarıyı görür', (select count(*) = 3 from pdks.uyari where tur = 'puantaj_ayari_degisti' and mesaj like '"Geç kalma toleransı"%'));
 select test.hata('İK ayar değiştiremez', 'yetkiniz yok', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '20')$$);
 reset role;
 select test.oturum('00000000-0000-0000-0000-0000000074b3');

@@ -157,7 +157,7 @@ export function dosyayiDenetle(metin: string, dosyaAdi: string, kaynak: Kaynak, 
     let gecerli = true;
 
     if (!okuyucu) {
-      hata(satirNo, kod ? `"${kod}" adında bir okuyucu yok.` : "Okuyucu kodu boş.");
+      hata(satirNo, kod ? `"${kod}" okuyucusu tanımlı değil.` : "Okuyucu kodu boş.");
       gecerli = false;
     } else if (okuyucu.sistem !== kaynak) {
       hata(satirNo, `${kod} bir ${KAYNAK_ADI[okuyucu.sistem]} okuyucusu; seçilen dosya türü ${KAYNAK_ADI[kaynak]}.`);
@@ -172,7 +172,7 @@ export function dosyayiDenetle(metin: string, dosyaAdi: string, kaynak: Kaynak, 
       gecerli = false;
     }
     if (yon === undefined) {
-      hata(satirNo, `Yön "giris", "cikis" ya da boş olmalı: "${ham.yon}"`);
+      hata(satirNo, `Yön "giris", "cikis" veya boş olmalıdır: "${ham.yon}"`);
       gecerli = false;
     }
     if (!gecerli || !okuyucu || !zaman || yon === undefined) return;
@@ -187,8 +187,8 @@ export function dosyayiDenetle(metin: string, dosyaAdi: string, kaynak: Kaynak, 
     satirlar.push({ satirNo, okuyucuId: okuyucu.id, okuyucuKod: okuyucu.kod, kartNo, zaman: zaman.iso, yerelTarih: zaman.yerelTarih, yon });
   });
 
-  if (tekrarSayisi) uyarilar.push({ satirNo: null, mesaj: `${tekrarSayisi} satır dosyada birden fazla geçiyor; bir kez yüklenecek.` });
-  if (okunan.data.length === 0) hata(null, "Dosyada veri satırı yok.");
+  if (tekrarSayisi) uyarilar.push({ satirNo: null, mesaj: `${tekrarSayisi} yinelenen satır bir kez yüklenir.` });
+  if (okunan.data.length === 0) hata(null, "Dosyada veri satırı bulunmuyor.");
 
   // Dosyanın ait olduğu gün: dosya adından, yoksa en çok geçen günden
   const gunler = new Map<string, number>();
@@ -200,13 +200,13 @@ export function dosyayiDenetle(metin: string, dosyaAdi: string, kaynak: Kaynak, 
     // Gece vardiyası ertesi sabaha taşar; daha uzak günler şüphelidir.
     const ertesiGun = new Date(new Date(`${veriTarihi}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
     const uzak = satirlar.filter((s) => s.yerelTarih !== veriTarihi && s.yerelTarih !== ertesiGun).length;
-    if (uzak) uyarilar.push({ satirNo: null, mesaj: `${uzak} satır dosyanın günü (${veriTarihi}) ve ertesi gün dışında.` });
+    if (uzak) uyarilar.push({ satirNo: null, mesaj: `${uzak} satır, dosya günü (${veriTarihi}) ve izleyen günün dışındadır.` });
   } else {
-    hata(null, "Dosyanın hangi güne ait olduğu bulunamadı. Dosya adına tarihi ekleyin: pdks_20261126.csv");
+    hata(null, "Dosya tarihi belirlenemedi. Dosya adı tarih içermelidir (ör. pdks_20261126.csv).");
   }
 
   const pasif = new Set(satirlar.filter((s) => !okuyucuByKod.get(s.okuyucuKod.toUpperCase())?.aktif).map((s) => s.okuyucuKod));
-  if (pasif.size) uyarilar.push({ satirNo: null, mesaj: `Pasif okuyucudan kayıt var: ${[...pasif].join(", ")}` });
+  if (pasif.size) uyarilar.push({ satirNo: null, mesaj: `Pasif okuyuculara ait kayıtlar: ${[...pasif].join(", ")}` });
 
   return { satirlar, hatalar, uyarilar, toplamSatir: okunan.data.length, veriTarihi };
 }

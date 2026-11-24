@@ -69,12 +69,12 @@ set local role authenticated;
 
 -- 1) Zorlamadan: kodsuz gün kilidi durdurur, günleri adıyla söyler -----------
 select test.hata('Ekim: 1 kodsuz gün varken zorlamadan kilit reddedilir',
-    '10/2026 döneminde 1 gün puantaja kodsuz girecek: KG01 09.10.2026 (eksik)',
+    '10/2026 döneminde 1 gün için puantaj kodu oluşmadı: KG01 09.10.2026 (eksik)',
     'select test.kilit(2026, 10, false)');
 select test.dogrula('Ekim kilitlenmedi',
     not exists (select 1 from pdks.donem where yil = 2026 and ay = 10 and durum = 'kilitli'));
 select test.hata('Ağustos: 11 kodsuz gün; hata ilk 10 günü yazar, kalanını sayar',
-    '8/2026 döneminde 11 gün puantaja kodsuz girecek: KG02 03.08.2026 (eksik)',
+    '8/2026 döneminde 11 gün için puantaj kodu oluşmadı: KG02 03.08.2026 (eksik)',
     'select test.kilit(2026, 8, false)');
 select test.hata('Ağustos: "ve 1 gün daha" ile biter (en çok 10 gün listelenir)',
     'KG02 12.08.2026 (eksik) ve 1 gün daha',
@@ -89,7 +89,7 @@ select test.dogrula('özet: kodsuz_gun 1, liste KG01 9 Ekim (eksik)',
         and r -> 'kodsuz_gun_listesi' = '[{"sicil": "KG01", "gun": "2026-10-09", "durum": "eksik", "neden": "eksik"}]'::jsonb
      from ozet));
 select test.dogrula('özet mesajı: kodsuz gün "Zorla geçilenler" arasında',
-    (select r ->> 'mesaj' = '10/2026 kilitlendi. Zorla geçilenler: 1 kodsuz gün.' from ozet));
+    (select r ->> 'mesaj' = '10/2026 kilitlendi. Sonuçlanmadan kilitlenen kayıtlar: 1 kodsuz gün.' from ozet));
 
 -- 3) Kodsuz gün yok: kilit eskisi gibi -------------------------------------
 create temp table ozet_eylul as select test.kilit(2026, 9, false) as r;

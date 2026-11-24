@@ -14,7 +14,7 @@ export async function rpcCagir<T = unknown>(ad: string, parametreler: Record<str
     if (error) return { tamam: false, mesaj: hataMesaji(error) };
     return { tamam: true, veri: data as T };
   } catch {
-    return { tamam: false, mesaj: "Veritabanına ulaşılamadı. Bağlantıyı kontrol edip tekrar deneyin." };
+    return { tamam: false, mesaj: "Sisteme ulaşılamadı. Lütfen tekrar deneyin." };
   }
 }
 
@@ -52,12 +52,12 @@ export async function sicildenCalisan(
   ad = "sicil",
 ): Promise<{ tamam: true; calisan: { id: number; adSoyad: string } } | { tamam: false; mesaj: string }> {
   const sicil = metinAl(form, ad)?.split(/\s+/)[0] ?? null;
-  if (!sicil) return { tamam: false, mesaj: "Çalışanın sicil numarasını yazın." };
+  if (!sicil) return { tamam: false, mesaj: "Çalışanın sicil numarası girilmelidir." };
   const supabase = await sunucuIstemcisi();
   const { data, error } = await supabase.from("calisan").select("id, ad, soyad, aktif").eq("sicil_no", sicil).maybeSingle();
   if (error) return { tamam: false, mesaj: "Çalışan aranamadı. Lütfen tekrar deneyin." };
-  if (!data) return { tamam: false, mesaj: `${sicil} sicil numaralı çalışan bulunamadı ya da görme yetkiniz yok.` };
-  if (!data.aktif) return { tamam: false, mesaj: `${data.ad} ${data.soyad} aktif çalışan değil.` };
+  if (!data) return { tamam: false, mesaj: `${sicil} sicil numaralı çalışan bulunamadı veya görüntüleme yetkisi yok.` };
+  if (!data.aktif) return { tamam: false, mesaj: `${data.ad} ${data.soyad} aktif bir çalışan değildir.` };
   return { tamam: true, calisan: { id: data.id, adSoyad: `${data.ad} ${data.soyad}` } };
 }
 

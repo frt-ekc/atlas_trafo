@@ -17,11 +17,11 @@ export function IkKararAlanlari({ soruTuru, girisVarsayilan, cikisVarsayilan }: 
         <legend className="mb-1 text-sm font-medium">Karar</legend>
         <label className="flex items-center gap-2 text-sm">
           <input type="radio" name="karar" value="geldi" required checked={karar === "geldi"} onChange={() => setKarar("geldi")} />
-          Çalışmış: saati yaz
+          Çalıştı (saat girilir)
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="radio" name="karar" value="devamsiz" required checked={karar === "devamsiz"} onChange={() => setKarar("devamsiz")} />
-          Devamsız say
+          Devamsız
         </label>
       </fieldset>
 
@@ -39,13 +39,13 @@ export function IkKararAlanlari({ soruTuru, girisVarsayilan, cikisVarsayilan }: 
       )}
       {karar === "devamsiz" && (
         <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-          Gün &quot;devamsız&quot; olur ve düzeltme çalışan aleyhine işaretlenir. Bu karar geri alınmaz; gerekirse sonradan itirazla düzeltilir.
+          Gün &quot;Devamsız&quot; olarak ve çalışan aleyhine kaydedilir. Karar geri alınamaz; çalışan itiraz edebilir.
         </p>
       )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="gerekce" className="text-sm font-medium">Gerekçe</label>
-        <Textarea id="gerekce" name="gerekce" rows={2} required minLength={5} maxLength={1000} placeholder="ör. Çalışanla görüşüldü, mazeret belgesi yok" />
+        <Textarea id="gerekce" name="gerekce" rows={2} required minLength={5} maxLength={1000} placeholder="ör. Mazeret belgesi sunulmadı" />
       </div>
     </>
   );

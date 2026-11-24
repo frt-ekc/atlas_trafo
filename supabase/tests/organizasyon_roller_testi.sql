@@ -159,7 +159,7 @@ select test.dogrula('admin ayarı değiştirir; geçmişe eski / yeni değer ve 
 set local role authenticated;
 select test.oturum('or_admin@ornek.test');
 select test.hata('bilinmeyen ayar değiştirilemez', 'Ayar bulunamadı', $$select pdks.ayar_guncelle('yok_boyle_ayar', '1')$$);
-select test.hata('eksi ayar değeri girilemez', 'değer 0 ile 60 arasında olmalı', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '-1')$$);
+select test.hata('eksi ayar değeri girilemez', 'Değer 0 ile 60 arasında olmalıdır', $$select pdks.ayar_guncelle('gec_kalma_tolerans_dk', '-1')$$);
 
 -- 5) Kullanıcı ve ayar yönetimi yalnızca admin'de ----------------------------------------------
 select test.oturum('or_ik@ornek.test');

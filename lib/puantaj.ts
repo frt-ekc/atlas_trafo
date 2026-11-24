@@ -43,12 +43,6 @@ export const PUANTAJ_SUTUNLARI: Sutun[] = [
   { baslik: "Tatil gün", deger: (s) => s.tatilGun, genislik: 10, sayi: true },
 ];
 
-// 9750 dk → "162:30"
-export function saatDakika(dk: number): string {
-  const sa = Math.floor(dk / 60);
-  return `${sa}:${String(dk % 60).padStart(2, "0")}`;
-}
-
 // "2026-11" → "Kasım 2026"
 export function ayAdi(ay: string): string {
   return new Intl.DateTimeFormat("tr-TR", { month: "long", year: "numeric", timeZone: "UTC" }).format(

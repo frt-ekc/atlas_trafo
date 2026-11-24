@@ -90,7 +90,7 @@ select test.dogrula('ES01: İK kararı bekliyor; üst amirin adı duruyor, İK''
             and ik_eskale_zamani is not null from test.soru('ES01')));
 select test.dogrula('ES01 için İK''ya uyarı yazıldı',
     exists (select 1 from pdks.uyari where tur = 'soru_eskale' and tekillik_anahtari = 'soru_ik:' || (test.soru('ES01')).id
-                                     and mesaj like '%üst amir de süresinde cevaplamadı%'));
+                                     and mesaj like '%üst amir tarafından süresinde cevaplanmadı%'));
 select test.dogrula('ES03 (zaten İK''da) bir daha taşınmadı',
     (select durum = 'eskale' and ik_eskale_zamani is null from test.soru('ES03')));
 select test.dogrula('ES04 (süresi 30.10) hâlâ amirde', (select durum = 'acik' from test.soru('ES04')));

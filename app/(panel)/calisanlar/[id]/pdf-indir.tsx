@@ -1,9 +1,9 @@
 "use client";
 
+import { sureMetni } from "@/lib/bicim";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Dokum } from "@/lib/dokum";
-import { saatDakika } from "@/lib/puantaj";
 
 type ReactPdf = typeof import("@react-pdf/renderer");
 type Style = Parameters<ReactPdf["StyleSheet"]["create"]>[0][string];
@@ -34,9 +34,9 @@ export function PdfIndir({ dokum, hazirlayan }: { dokum: Dokum; hazirlayan: stri
 
   return (
     <div className="flex items-center gap-3">
-      {durum === "hata" && <span className="text-sm text-destructive">PDF oluşturulamadı.</span>}
+      {durum === "hata" && <span className="text-sm text-destructive">PDF oluşturulamadı. Lütfen tekrar deneyin.</span>}
       <Button onClick={indir} disabled={durum === "hazirlaniyor"}>
-        {durum === "hazirlaniyor" ? "PDF hazırlanıyor…" : "Dökümü PDF olarak indir"}
+        {durum === "hazirlaniyor" ? "PDF hazırlanıyor…" : "PDF indir"}
       </Button>
     </div>
   );
@@ -105,10 +105,10 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
         <View style={s.bilgi}>
           <BilgiHucresi rp={rp} st={s} etiket="Ad soyad" deger={calisan.adSoyad} />
           <BilgiHucresi rp={rp} st={s} etiket="Sicil" deger={calisan.sicil} />
-          <BilgiHucresi rp={rp} st={s} etiket="Bölüm" deger={calisan.bolum} />
+          <BilgiHucresi rp={rp} st={s} etiket="Departman" deger={calisan.bolum} />
           <BilgiHucresi rp={rp} st={s} etiket="İşe giriş" deger={calisan.iseGiris} />
           <BilgiHucresi rp={rp} st={s} etiket="Planlı / izinli gün" deger={`${ozet.planliGun} / ${ozet.izinliGun}`} />
-          <BilgiHucresi rp={rp} st={s} etiket="Çalışma (sa:dk)" deger={`${saatDakika(ozet.calismaDk)} · FM ${saatDakika(ozet.fazlaMesaiDk)}`} />
+          <BilgiHucresi rp={rp} st={s} etiket="Çalışma" deger={`${sureMetni(ozet.calismaDk)} · FM ${sureMetni(ozet.fazlaMesaiDk)}`} />
         </View>
 
         <View style={s.tablo}>
@@ -121,8 +121,8 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
               g.planNotu,
               g.fazlaMesai && `FM ${g.fazlaMesai}`,
               g.geciciKart && `Geçici kart ${g.geciciKart}`,
-              g.gecKalmaDk ? `Geç ${g.gecKalmaDk} dk` : null,
-              g.erkenCikisDk ? `Erken ${g.erkenCikisDk} dk` : null,
+              g.gecKalmaDk ? `Geç ${sureMetni(g.gecKalmaDk)}` : null,
+              g.erkenCikisDk ? `Erken ${sureMetni(g.erkenCikisDk)}` : null,
             ].filter(Boolean).join(" · ");
             return (
               <View key={g.tarih} style={[s.satir, ...(g.haftaSonu && !g.vardiya ? [s.haftaSonu] : [])]} wrap={false}>
@@ -130,7 +130,7 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
                 <Text style={{ width: "17%" }}>{g.izin ?? g.vardiya ?? "—"}</Text>
                 <Text style={{ width: "9%" }}>{g.giris ?? "—"}{g.girisKaynagi && g.girisKaynagi !== "PDKS" ? ` (${g.girisKaynagi})` : ""}</Text>
                 <Text style={{ width: "9%" }}>{g.cikis ?? "—"}{g.cikisKaynagi && g.cikisKaynagi !== "PDKS" ? ` (${g.cikisKaynagi})` : ""}</Text>
-                <Text style={{ width: "9%" }}>{g.calismaDk != null ? saatDakika(g.calismaDk) : "—"}</Text>
+                <Text style={{ width: "9%" }}>{g.calismaDk != null ? sureMetni(g.calismaDk) : "—"}</Text>
                 <Text style={{ width: "14%" }}>{g.durum ?? "—"}</Text>
                 <Text style={{ width: "29%" }}>{not}</Text>
               </View>
@@ -140,11 +140,11 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
 
         <Text style={s.altBaslik}>Düzeltmeler</Text>
         {dokum.duzeltmeler.length === 0 ? (
-          <Text style={s.kucuk}>Bu ay kayıtlarınızda düzeltme yapılmadı.</Text>
+          <Text style={s.kucuk}>Kayıt bulunmuyor.</Text>
         ) : (
           <View style={s.tablo}>
             <View style={s.basSatir}>
-              {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["Yapan", "20%"]].map(([b, w]) => (
+              {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["İşlemi yapan", "20%"]].map(([b, w]) => (
                 <Text key={b} style={{ width: w }}>{b}</Text>
               ))}
             </View>
@@ -154,7 +154,7 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
                 <Text style={{ width: "9%" }}>{d.alan}</Text>
                 <Text style={{ width: "14%" }}>{d.eski}</Text>
                 <Text style={{ width: "14%" }}>{d.yeni}</Text>
-                <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (aleyhe, İK kararı)" : ""}</Text>
+                <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
                 <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
               </View>
             ))}
@@ -162,8 +162,7 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
         )}
 
         <Text style={[s.kucuk, { marginTop: 14 }]}>
-          Bu belge PDKS kayıtlarından üretilmiştir ve ücret bilgisi içermez. Kayıtlara itirazınızı amirinize ya da İK&apos;ya
-          iletebilirsiniz.
+          Bu belge PDKS kayıtlarından oluşturulmuştur ve ücret bilgisi içermez. Kayıtlara ilişkin itirazlar amire veya İnsan Kaynaklarına iletilebilir.
         </Text>
 
         <View style={s.alt} fixed>
