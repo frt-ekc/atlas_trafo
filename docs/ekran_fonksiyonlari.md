@@ -72,7 +72,7 @@ await supabase.schema('pdks').from('v_isg_durum').select('*').in('durum', ['yok'
 |---|---|---|
 | `kullanici_ekle` | `p_eposta`, `p_rol`, `p_calisan_id`, `p_ust_amir_id?` | Sisteme giren kişiyi tanımlar; kullanıcı no döner. Ad soyad çalışan kaydından gelir (T-105). Giriş hesabı Supabase Auth'ta aynı e-postayla açılır; hesap varsa hemen bağlanır. Aynı e-posta ya da hesabı olan çalışan reddedilir. Admin kendine hesap açamaz |
 | `kullanici_guncelle` | `p_kullanici_id`, `p_rol?`, `p_ust_amir_id?`, `p_aktif?` | Rolü, üst amiri ya da aktifliği değiştirir (gönderilmeyen değişmez); Auth hesabı sonradan açıldıysa bağlar. Admin kendi hesabını değiştiremez |
-| `ayar_guncelle` | `p_anahtar`, `p_deger` | Ayar değerini değiştirir (tolerans, mola, eşikler …); eski / yeni değer ve değiştiren `ayar_gecmisi`'ne yazılır |
+| `ayar_guncelle` | `p_anahtar`, `p_deger` (metin) | Ayar değerini değiştirir (tolerans, mola, eşikler …); tam sayı, `en_az`–`en_cok` aralığı ve mola sıralaması denetlenir; puantajı etkileyen ayarda İK'ya uyarı (T-74); eski / yeni değer ve değiştiren `ayar_gecmisi`'ne yazılır |
 
 Admin çalışan kayıtları üzerinde karar veremez: düzeltme, izin, itiraz, fazla mesai, ay kilidi ve soru cevabı fonksiyonları admin için `Bu işlem için yetkiniz yok.` hatası verir.
 

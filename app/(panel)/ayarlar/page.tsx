@@ -19,6 +19,9 @@ export const metadata = { title: "Ayarlar" };
 type Ayar = {
   anahtar: string;
   deger: number;
+  en_az: number;
+  en_cok: number;
+  puantaji_etkiler: boolean;
   birim: string;
   aciklama: string;
   guncelleme_zamani: string;
@@ -28,6 +31,7 @@ type Gecmis = { id: number; anahtar: string; eski_deger: number | null; yeni_deg
 
 // Kuralların eşikleri (tolerans, mola, fazla mesai sınırları…) koda değil bu tabloya yazılıdır.
 // Yalnızca sistem yöneticisi değiştirir; her değişiklik geçmişe yazılır.
+// Aralık (en_az – en_cok) veritabanından gelir; asıl denetim ayar_guncelle'dedir, input yalnızca yardımcıdır.
 export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarlar">) {
   await rolGerekli(["admin"]);
   const parametre = await searchParams;
@@ -37,7 +41,7 @@ export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarl
   const supabase = await sunucuIstemcisi();
 
   const [ayarSonucu, gecmisSonucu] = await Promise.all([
-    supabase.from("ayar").select("anahtar, deger, birim, aciklama, guncelleme_zamani, guncelleyen:kullanici!guncelleyen_id(ad_soyad)").order("anahtar"),
+    supabase.from("ayar").select("anahtar, deger, en_az, en_cok, puantaji_etkiler, birim, aciklama, guncelleme_zamani, guncelleyen:kullanici!guncelleyen_id(ad_soyad)").order("anahtar"),
     supabase
       .from("ayar_gecmisi")
       .select("id, anahtar, eski_deger, yeni_deger, degisim_zamani, guncelleyen:kullanici!guncelleyen_id(ad_soyad)")
@@ -51,6 +55,7 @@ export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarl
   // Geçmişte anahtar yerine ayarın Türkçe açıklaması ve birimi gösterilir
   const ayarBilgisi = new Map(ayarlar.map((a) => [a.anahtar, a]));
   const sayi = (d: number) => d.toLocaleString("tr-TR");
+  const aralik = (a: Ayar) => `${sayi(a.en_az)} – ${sayi(a.en_cok)}`;
   // Ayar adı / açıklaması araması ekranda yapılır
   const gosterilenAyarlar = ayarlar.filter((a) => uyar(a.aciklama, a.anahtar));
 
@@ -87,21 +92,22 @@ export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarl
                   <TableRow>
                     <TableHead className="w-full">Ayar</TableHead>
                     <TableHead className="text-right">Değer</TableHead>
-                    <TableHead>Son değişiklik</TableHead>
+                    <TableHead className="max-sm:hidden">Son değişiklik</TableHead>
                     <TableHead><span className="sr-only">İşlem</span></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {gosterilenAyarlar.map((a) => (
                     <TableRow key={a.anahtar}>
-                      <TableCell className="min-w-72 whitespace-normal">
+                      <TableCell className="min-w-32 whitespace-normal break-words sm:min-w-48">
                         <div className="text-sm">{a.aciklama}</div>
-                        <div className="font-mono text-xs text-muted-foreground">{a.anahtar}</div>
+                        <div className="font-mono text-xs break-all text-muted-foreground">{a.anahtar}</div>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {a.deger.toLocaleString("tr-TR")} <span className="text-muted-foreground">{a.birim}</span>
+                        <div className="text-xs text-muted-foreground"><span className="sr-only">İzin verilen aralık: </span>{aralik(a)}</div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground max-sm:hidden">
                         {a.guncelleyen ? (
                           <>
                             {a.guncelleyen.ad_soyad}
@@ -114,13 +120,14 @@ export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarl
                           dugme="Değiştir"
                           dugmeTuru="outline"
                           baslik={a.aciklama}
-                          aciklama={`Şu an: ${a.deger.toLocaleString("tr-TR")} ${a.birim}. Eski ve yeni değer geçmişe yazılır.`}
+                          aciklama={`Şu an: ${a.deger.toLocaleString("tr-TR")} ${a.birim}. Eski ve yeni değer geçmişe yazılır.${a.puantaji_etkiler ? " Puantajı etkilediği için İK'ya uyarı gider." : ""}`}
                           onay="Kaydet"
                           islem={ayarGuncelle}
                           gizli={{ anahtar: a.anahtar }}
                         >
                           <label htmlFor={`deger-${a.anahtar}`} className="text-sm font-medium">Yeni değer ({a.birim})</label>
-                          <Input id={`deger-${a.anahtar}`} name="deger" type="number" min={0} step={1} required defaultValue={a.deger} />
+                          <Input id={`deger-${a.anahtar}`} name="deger" type="number" min={a.en_az} max={a.en_cok} step={1} required defaultValue={a.deger} />
+                          <p className="text-xs text-muted-foreground">İzin verilen aralık: {aralik(a)} {a.birim}</p>
                         </IslemPenceresi>
                       </TableCell>
                     </TableRow>

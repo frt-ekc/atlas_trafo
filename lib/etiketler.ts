@@ -49,6 +49,7 @@ export const UYARI_TURU: Record<string, string> = {
   isg_belgesi_suresi_dolmus: "İSG belgesinin süresi dolmuş",
   isg_belgesi_suresi_doluyor: "İSG belgesinin süresi doluyor",
   yetkisiz_bolge_okutmasi: "Yetkisiz bölgeye giriş",
+  puantaj_ayari_degisti: "Puantajı etkileyen ayar değişti",
 };
 
 // Uyarı özetinde türler konuya göre gruplanır. Listede olmayan tür "Diğer" altında görünür.
@@ -77,7 +78,7 @@ export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
       "gece_calisma_siniri_asildi",
     ],
   },
-  { ad: "Sistem ve cihaz", turler: ["ariza_suphesi", "dosya_gelmedi", "gece_isi_calismadi"] },
+  { ad: "Sistem ve cihaz", turler: ["ariza_suphesi", "dosya_gelmedi", "gece_isi_calismadi", "puantaj_ayari_degisti"] },
   { ad: "İSG", turler: ["isg_belgesi_yok", "isg_belgesi_suresi_dolmus", "isg_belgesi_suresi_doluyor", "yetkisiz_bolge_okutmasi"] },
 ];
 
