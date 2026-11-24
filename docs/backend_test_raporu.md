@@ -248,7 +248,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-09 | Görüş | 2 | `ayar_al`, hesabı bağlı olmayan her oturuma açık | K6 | Mehmet | Sınırlılık |
 | T-10 | Görüş | 2 | Puantajı etkileyen ayarları yalnızca admin, tek başına değiştirebiliyor | K6 | Mehmet | Sınırlılık |
 | T-11 | Düşük | 2 | Ekrandaki "`v_fazla_mesai_yillik` çalışmıyor" notu eskimiş | K15 | Gökalp | Düzelt |
-| T-12 | Yüksek | 3 | Amir izin türünü (rapor = sağlık bilgisi) üç yoldan görebiliyor | K9 | Yusuf + Mehmet | Düzelt (25 Kas) + belge (karar verildi) |
+| T-12 | Yüksek | 3 | Amir izin türünü (rapor = sağlık bilgisi) üç yoldan görebiliyor | K9 | Yusuf + Mehmet | ✅ Düzeltildi (seçenek a, feature/T12-rapor-gizliligi) + belge |
 | T-13 | Yüksek | 3 | İK, dosya yükleyerek kendi çalışılmış gününü üretebiliyor ve yükleyen kaydedilmiyor | K8 | Yusuf + Mehmet | ✅ Düzeltildi (feature/T13-yukleyen) + sınırlılık metni |
 | T-14 | Orta | 3 | Vekil amir her zaman yetkili | K9 | — | Sınırlılık |
 | T-15 | Düşük | 3 | İK kendi itirazını "incelemeye alabiliyor" | K9 | Yusuf | Düzelt |
@@ -371,7 +371,7 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
 - **Kilitli döneme sistem yoluyla satır (T-97).** Ekrandan yapılamaz; yalnızca veritabanı sahibi kilitli aya ek satır yazabilir.
 - **Panelde açık soru sayısı (T-98).** Amir yönetici panelinde yalnızca kendisine atanmış açık soruları sayar; departmanın bütün açık soruları İK ve yönetici panelinde görünür.
 - **PDKS saat biçimi (T-99, varsayım).** Sistem PDKS kayıtlarının saniyeli geldiğini varsayar. Kart paylaşımı denetimi saniyeye dayanır; gerçek kurulumda PDKS çıktısının biçimi teyit edilir.
-- **"Raporlu" durumu amire görünür (T-12, kısmen; karar verildi).** Amir, çalışanının o gün raporlu olduğunu görür (gün planlaması için gerekli). Rapor gerekçesi ve izin türünün ayrıntısı gizli olacak; bugün amir izin türünü üç yoldan görebiliyor ve bu T-12 düzeltmesiyle kapanacak.
+- **"Raporlu" durumu amire API'den açık (T-12; karar verildi).** Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için). Gün kaydının durumu ve canlı puantajdaki raporlu gün sayısı amire API'den açıktır; ekranda "İzinli" görünür. Durum ve izin düzeltmelerinin gerekçesi artık gizlidir (`v_duzeltme_amir`). Saat düzeltmesinin gerekçesi amire açıktır; İK oraya sağlık bilgisi yazmamalıdır.
 - **Yalnızca örnek veri (genel).** Bütün test sahte veriyle, yerel veritabanında yapıldı; gerçek Atlas Trafo verisiyle ve ekranlardan (HTTP) yük testi yapılmadı.
 
 ---
@@ -892,7 +892,7 @@ Senaryo: Montaj amiri vekili olduğu Bobinaj'da Can Kılıç'ın (2007) 23–25 
   3. `duzeltme`'de durum düzeltmelerinin gerekçesi amire gösterilmesin.
 
   Ekranlar (Gökalp) bu görünümlere geçmeli.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (seçenek a, feature/T12-rapor-gizliligi). Migration: `20261214010000_rapor_gizliligi.sql`, test: `rapor_gizliligi_testi.sql`. `gun_kaydi.durum` ve `raporlu_gun` bilinçli olarak açık (bilinen sınırlılık).
 
 #### T-12 · Çözüm seçenekleri (kod yazılmadı, 21 Kasım)
 
