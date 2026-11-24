@@ -19,14 +19,14 @@ export function ErpIndir({ ay, satirlar }: { ay: string; satirlar: ErpSatiri[] }
   return (
     <div className="flex gap-2">
       <Button variant="outline" disabled={bos} onClick={() => indir("﻿" + csvMetni(satirlar), "text/csv;charset=utf-8", "csv")}>
-        ERP için CSV
+        ERP dosyası (CSV)
       </Button>
       <Button
         variant="outline"
         disabled={bos}
         onClick={() => indir(xmlMetni(ay, satirlar, new Date().toISOString()), "application/xml;charset=utf-8", "xml")}
       >
-        ERP için XML
+        ERP dosyası (XML)
       </Button>
     </div>
   );

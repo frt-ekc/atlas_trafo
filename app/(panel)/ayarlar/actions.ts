@@ -11,11 +11,11 @@ import { metinAl, rpcCagir } from "@/lib/supabase/rpc";
 export async function ayarGuncelle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const anahtar = metinAl(form, "anahtar");
   const deger = metinAl(form, "deger");
-  if (!anahtar) return { durum: "hata", mesaj: "Ayar seçilmedi." };
-  if (deger === null) return { durum: "hata", mesaj: "Yeni değeri yazın." };
+  if (!anahtar) return { durum: "hata", mesaj: "Ayar seçilmelidir." };
+  if (deger === null) return { durum: "hata", mesaj: "Yeni değer girilmelidir." };
 
   const sonuc = await rpcCagir("ayar_guncelle", { p_anahtar: anahtar, p_deger: deger });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/ayarlar");
-  return { durum: "tamam", mesaj: "Ayar güncellendi. Yeni değer bir sonraki hesapta kullanılır." };
+  return { durum: "tamam", mesaj: "Ayar güncellendi. Yeni değer bir sonraki hesaplamadan itibaren geçerlidir." };
 }

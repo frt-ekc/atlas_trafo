@@ -19,9 +19,9 @@ export function eksikSaatMesaji(soruTuru: string, giris: string | null, cikis: s
   const zorunlu = zorunluSaatler(soruTuru);
   const girisEksik = zorunlu.giris && !giris;
   const cikisEksik = zorunlu.cikis && !cikis;
-  if (girisEksik && cikisEksik) return "Bu soru için giriş ve çıkış saatini yazın.";
-  if (girisEksik) return "Bu soru için giriş saatini yazın.";
-  if (cikisEksik) return "Bu soru için çıkış saatini yazın.";
-  if (!giris && !cikis) return "Giriş ya da çıkış saatini yazın.";
+  if (girisEksik && cikisEksik) return "Giriş ve çıkış saati girilmelidir.";
+  if (girisEksik) return "Giriş saati girilmelidir.";
+  if (cikisEksik) return "Çıkış saati girilmelidir.";
+  if (!giris && !cikis) return "Giriş veya çıkış saati girilmelidir.";
   return null;
 }

@@ -17,11 +17,11 @@ import { IslemMenusu } from "@/components/liste/islem-menusu";
 import { Sekmeler } from "@/components/liste/sekmeler";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
-import { yerelZamanGirdisi } from "@/lib/bicim";
+import { sureMetni, yerelZamanGirdisi } from "@/lib/bicim";
 import { aylikDokum } from "@/lib/dokum";
 import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
-import { ayAdi, ayKaydir, saatDakika } from "@/lib/puantaj";
+import { ayAdi, ayKaydir } from "@/lib/puantaj";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { istenCikis, itirazGir, kartIptalEt, kartTanimla, kayitDuzelt } from "./actions";
@@ -110,7 +110,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
             <IslemPenceresi
               dugme="Kart tanımla"
               baslik={`${calisan.adSoyad} · yeni kart`}
-              aciklama="Kartın üzerindeki numarayı girin. Numara harf, rakam ve tireden oluşur; başka bir kartta kullanılamaz."
+              aciklama="Kartın üzerindeki numara girilmelidir. Her kart numarası yalnızca bir kez kullanılabilir."
               onay="Kartı tanımla"
               islem={kartTanimla}
               gizli={{ calisan_id: calisanId }}
@@ -124,7 +124,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
               dugme="Kartı iptal et"
               dugmeTuru="ghost"
               baslik={`${aktifKart.kart_no} kartını iptal et`}
-              aciklama="İptal edilen kart artık geçerli sayılmaz; okutulursa İK'ya uyarı düşer. Yeni kart iptalden sonra tanımlanır."
+              aciklama="İptal edilen kart geçersiz olur ve okutulduğunda İK'ya uyarı iletilir. Yeni kart, iptal işleminden sonra tanımlanabilir."
               onay="İptal et"
               onayTuru="destructive"
               islem={kartIptalEt}
@@ -145,7 +145,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
               dugme="İşten çıkış"
               dugmeTuru="ghost"
               baslik={`${calisan.adSoyad} · işten çıkış`}
-              aciklama="Son çalışma günü girilir; ileri tarih olamaz. Kartı iptal edilir, sonraki planları silinir, sonraki izinleri ve bekleyen fazla mesai talepleri iptal edilir, kullanıcı hesabı varsa pasif olur. Son günler yarın sabah gece işinde yine işlenir. Geri alınamaz."
+              aciklama="Çalışanın kartı iptal edilir, sonraki vardiya planları silinir, sonraki izinleri ve bekleyen fazla mesai talepleri iptal edilir, kullanıcı hesabı pasife alınır. Son çalışma günü ileri tarihli olamaz. Bu işlem geri alınamaz."
               onay="Çıkışı kaydet"
               onayTuru="destructive"
               islem={istenCikis}
@@ -164,14 +164,14 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
       <OzetIzgarasi>
         <OzetKarti baslik="Planlı gün" deger={ozet.planliGun} aciklama="İzinli günler hariç" />
         <OzetKarti baslik="İzinli gün" deger={ozet.izinliGun} />
-        <OzetKarti baslik="Çalışma" deger={saatDakika(ozet.calismaDk)} aciklama={`Fazla mesai ${saatDakika(ozet.fazlaMesaiDk)} (sa:dk)`} />
-        <OzetKarti baslik="Düzeltme" deger={duzeltmeler.length} aciklama="Bu ayın kayıtlarında" />
+        <OzetKarti baslik="Çalışma" deger={sureMetni(ozet.calismaDk)} aciklama={`Fazla mesai ${sureMetni(ozet.fazlaMesaiDk)}`} />
+        <OzetKarti baslik="Düzeltme" deger={duzeltmeler.length} aciklama="Seçili ay" />
       </OzetIzgarasi>
 
       {ozet.gunKaydi === 0 && (
         <Alert>
-          <AlertTitle>Bu ay için gün kaydı yok</AlertTitle>
-          <AlertDescription>Giriş-çıkış saatleri gece işi çalışınca oluşur. Plan, izin ve fazla mesai bilgileri aşağıda.</AlertDescription>
+          <AlertTitle>Kayıt bulunmuyor</AlertTitle>
+          <AlertDescription>Giriş ve çıkış saatleri gece işleminden sonra görüntülenir.</AlertDescription>
         </Alert>
       )}
 
@@ -204,8 +204,8 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                 g.planNotu,
                 g.fazlaMesai && `Fazla mesai ${g.fazlaMesai}`,
                 g.geciciKart && `Geçici kart ${g.geciciKart}`,
-                g.gecKalmaDk ? `Geç kalma ${g.gecKalmaDk} dk` : null,
-                g.erkenCikisDk ? `Erken çıkış ${g.erkenCikisDk} dk` : null,
+                g.gecKalmaDk ? `Geç kalma ${sureMetni(g.gecKalmaDk)}` : null,
+                g.erkenCikisDk ? `Erken çıkış ${sureMetni(g.erkenCikisDk)}` : null,
               ].filter(Boolean);
               return (
                 <TableRow key={g.tarih} className={cn(g.haftaSonu && "bg-muted/40", g.haftaSonu && !g.vardiya && "text-muted-foreground", g.tarih === bugunTarih && "bg-primary/5")}>
@@ -223,7 +223,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                     {g.cikis ?? "—"}
                     {g.cikisKaynagi && g.cikisKaynagi !== "PDKS" && <span className="ml-1 text-xs text-muted-foreground">({g.cikisKaynagi})</span>}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{g.calismaDk != null ? saatDakika(g.calismaDk) : "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{g.calismaDk != null ? sureMetni(g.calismaDk) : "—"}</TableCell>
                   <TableCell className="min-w-56 whitespace-normal text-sm text-muted-foreground">{notlar.join(" · ") || ""}</TableCell>
                   <TableCell>
                     {/* Durum ve işlemler tek dar sütunda: İK için ana işlem Düzelt, İtiraz menüde; amir için İtiraz görünür */}
@@ -235,7 +235,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                               dugme="Düzelt"
                               dugmeTuru="outline"
                               baslik={`${calisan.adSoyad} · ${g.tarihMetni} kaydını düzelt`}
-                              aciklama={`Şu an: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}.`}
+                              aciklama={`Mevcut kayıt: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}.`}
                               onay="Düzeltmeyi kaydet"
                               islem={kayitDuzelt}
                               gizli={{ gun_kaydi_id: g.gunKaydiId }}
@@ -251,15 +251,15 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                           <IslemMenusu>
                             {itirazGirebilir && (
                               <IslemPenceresi
-                                dugme="İtiraz gir"
+                                dugme="İtiraz ekle"
                                 baslik={`${calisan.adSoyad} · ${g.tarihMetni} itirazı`}
-                                aciklama={`Kayıt: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}. Çalışanın söylediğini yazın; kabul ya da red kararını İK verir.`}
+                                aciklama={`Mevcut kayıt: giriş ${g.giris ?? "—"}, çıkış ${g.cikis ?? "—"}, ${g.durum ?? "—"}. İtiraz kararı İK tarafından verilir.`}
                                 onay="İtirazı kaydet"
                                 islem={itirazGir}
                                 gizli={{ gun_kaydi_id: g.gunKaydiId }}
                               >
                                 <label htmlFor="metin" className="text-sm font-medium">İtiraz</label>
-                                <Textarea id="metin" name="metin" rows={3} required minLength={5} maxLength={1000} placeholder="ör. 08:00'de geldim, kartım okumadı" />
+                                <Textarea id="metin" name="metin" rows={3} required minLength={5} maxLength={1000} placeholder="ör. Giriş okutması kaydedilmedi" />
                               </IslemPenceresi>
                             )}
                           </IslemMenusu>
@@ -279,10 +279,10 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
       <section aria-labelledby="duzeltme-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 id="duzeltme-baslik" className="text-lg font-semibold">Düzeltmeler</h2>
-          <p className="text-sm text-muted-foreground">Ham kayıt değiştirilmez; her düzeltme kim, ne zaman, eski-yeni değer ve gerekçesiyle saklanır.</p>
+          <p className="text-sm text-muted-foreground">Okutma kaydı değiştirilmez; tüm düzeltmeler gerekçesiyle birlikte saklanır.</p>
         </div>
         {duzeltmeler.length === 0 ? (
-          <BosDurum aciklama="Bu ay bu çalışanın kayıtlarında düzeltme yapılmadı." />
+          <BosDurum aciklama="Kayıt bulunmuyor." />
         ) : (
           <TabloKutusu>
             <Table>
@@ -293,14 +293,14 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                   <TableHead>Eski</TableHead>
                   <TableHead>Yeni</TableHead>
                   <TableHead className="w-full">Gerekçe</TableHead>
-                  <TableHead>Yapan</TableHead>
+                  <TableHead>İşlemi yapan</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {duzeltmeler.map((d, i) => (
                   <TableRow key={i}>
                     <TableCell className="tabular-nums">{d.gun}</TableCell>
-                    <TableCell>{d.alan}{d.aleyhine && <Badge variant="destructive" className="ml-2">Aleyhe</Badge>}</TableCell>
+                    <TableCell>{d.alan}{d.aleyhine && <Badge variant="destructive" className="ml-2">Çalışan aleyhine</Badge>}</TableCell>
                     <TableCell className="tabular-nums">{d.eski}</TableCell>
                     <TableCell className="tabular-nums">{d.yeni}</TableCell>
                     <TableCell className="min-w-56 whitespace-normal">{d.gerekce}</TableCell>

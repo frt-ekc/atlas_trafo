@@ -1,13 +1,24 @@
 import { cn } from "@/lib/utils";
 
-// Vardiyalar paletin tonlarıyla ayrılır (globals.css: .vardiya-*); renk tek başına anlam taşımasın diye etikette kod da yazar.
+// Vardiyalar paletin tonlarıyla ayrılır (globals.css: .vardiya-*); renk tek başına anlam taşımasın diye etikette ad da yazar.
 const VARDIYA_RENGI: Record<string, string> = {
   GUNDUZ: "vardiya-gunduz",
   V1: "vardiya-v1",
   V2: "vardiya-v2",
   V3: "vardiya-v3",
 };
-const VARDIYA_KISA: Record<string, string> = { GUNDUZ: "Gündüz" };
+// Vardiya kodunun kısa adı (kod ekranda görünmez); tam ad ve saatler vardiya tanımındadır
+const VARDIYA_KISA: Record<string, string> = {
+  GUNDUZ: "Gündüz",
+  V1: "Sabah",
+  V2: "Akşam",
+  V3: "Gece",
+  GUNDUZ_8: "08–16",
+  AKSAM_8: "16–24",
+  GECE_8: "00–08",
+  BEYAZ: "Beyaz yaka",
+  ESNEK: "Esnek",
+};
 
 export function vardiyaAdi(kod: string): string {
   return VARDIYA_KISA[kod] ?? kod;

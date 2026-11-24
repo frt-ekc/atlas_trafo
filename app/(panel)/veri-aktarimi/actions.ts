@@ -10,9 +10,9 @@ export async function arizaGir(_onceki: IslemSonucu, form: FormData): Promise<Is
   const okuyucuId = sayiAl(form, "okuyucu_id");
   const baslangic = zamanAl(form, "baslangic");
   const bitis = zamanAl(form, "bitis");
-  if (!okuyucuId) return { durum: "hata", mesaj: "Okuyucuyu seçin." };
-  if (!baslangic) return { durum: "hata", mesaj: "Arızanın başlangıcını girin." };
-  if (bitis && bitis <= baslangic) return { durum: "hata", mesaj: "Bitiş başlangıçtan sonra olmalı." };
+  if (!okuyucuId) return { durum: "hata", mesaj: "Okuyucu seçilmelidir." };
+  if (!baslangic) return { durum: "hata", mesaj: "Arıza başlangıcı girilmelidir." };
+  if (bitis && bitis <= baslangic) return { durum: "hata", mesaj: "Bitiş, başlangıçtan sonra olmalıdır." };
 
   const sonuc = await rpcCagir<number>("ariza_gir", {
     p_okuyucu_id: okuyucuId,
@@ -22,14 +22,14 @@ export async function arizaGir(_onceki: IslemSonucu, form: FormData): Promise<Is
   });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/veri-aktarimi");
-  return { durum: "tamam", mesaj: "Arıza kaydedildi. Etkisi bir sonraki gece işinde görülür." };
+  return { durum: "tamam", mesaj: "Arıza kaydedildi. Kayıt, bir sonraki gece işleminde dikkate alınır." };
 }
 
 // Gece işinin "arıza şüphesi" olarak açtığı kaydı İK onaylar ya da reddeder.
 export async function arizaKarari(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const arizaId = sayiAl(form, "ariza_id");
   const karar = metinAl(form, "karar");
-  if (!arizaId || (karar !== "onay" && karar !== "ret")) return { durum: "hata", mesaj: "Arıza ya da karar seçilmedi." };
+  if (!arizaId || (karar !== "onay" && karar !== "ret")) return { durum: "hata", mesaj: "Arıza ve karar seçilmelidir." };
 
   const sonuc = await rpcCagir("ariza_karar", { p_ariza_id: arizaId, p_onay: karar === "onay" });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -37,14 +37,14 @@ export async function arizaKarari(_onceki: IslemSonucu, form: FormData): Promise
   return { durum: "tamam", mesaj: karar === "onay" ? "Arıza onaylandı." : "Arıza şüphesi reddedildi." };
 }
 
-type GunSonucu = { gun: string; durum: "basarili" | "hatali" | "calisiyor"; ozet: Record<string, unknown> | null; hata_mesaji: string | null };
+type GunSonucu = { gun: string; durum: "basarili" | "hatali" | "calisiyor"; ozet: Record<string, unknown> | null };
 
 // Özet alanlarının ekrandaki adları (gece_isi.ozet)
 const OZET_ADI: Record<string, string> = {
   gun_kaydi: "gün kaydı",
-  duzeltme: "kanıtla düzeltme",
-  soru: "amire soru",
-  eskale: "üst amire giden",
+  duzeltme: "otomatik düzeltme",
+  soru: "soru",
+  eskale: "üst amire iletilen",
   uyari: "uyarı",
 };
 
@@ -53,8 +53,8 @@ const OZET_ADI: Record<string, string> = {
 export async function geceIsiTetikle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const baslangic = tarihAl(form, "baslangic");
   const bitis = tarihAl(form, "bitis") ?? baslangic;
-  if (!baslangic || !bitis) return { durum: "hata", mesaj: "Başlangıç gününü seçin." };
-  if (bitis < baslangic) return { durum: "hata", mesaj: "Bitiş günü başlangıçtan önce olamaz." };
+  if (!baslangic || !bitis) return { durum: "hata", mesaj: "Başlangıç günü seçilmelidir." };
+  if (bitis < baslangic) return { durum: "hata", mesaj: "Bitiş günü, başlangıç gününden önce olamaz." };
 
   const sonuc = await rpcCagir<GunSonucu[]>("gece_isi_tetikle", { p_baslangic: baslangic, p_bitis: bitis });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -78,7 +78,7 @@ export async function geceIsiTetikle(_onceki: IslemSonucu, form: FormData): Prom
   if (hatali.length) {
     return {
       durum: "hata",
-      mesaj: `${gunler.length} günün ${hatali.length} tanesi hatalı: ${hatali[0].gun} · ${hatali[0].hata_mesaji ?? "bilinmeyen hata"}`,
+      mesaj: `İşlem tamamlanamadı: ${gunler.length} günden ${hatali.length} gün işlenemedi. Sistem yöneticisi ile iletişime geçilmelidir.`,
     };
   }
   return { durum: "tamam", mesaj: `${gunler.length} gün işlendi${ozet ? `: ${ozet}` : ""}.` };

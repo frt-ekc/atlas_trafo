@@ -59,17 +59,16 @@ export default function GirisSayfasi() {
           <AtlasIsareti className="block h-7 w-[111px] bg-vurgu" />
           <div className="flex flex-col gap-1">
             <h1 className="text-lg font-semibold">PDKS Kayıt Düzeltme</h1>
-            <p className="text-[0.8125rem] text-muted-foreground">Kurum e-postanız ve şifrenizle giriş yapın.</p>
+            <p className="text-[0.8125rem] text-muted-foreground">Kurumsal e-posta adresi ve şifre ile giriş yapılır.</p>
           </div>
         </div>
         {ayarlarHazir ? (
           <GirisFormu />
         ) : (
           <Alert>
-            <AlertTitle>Supabase ayarları eksik</AlertTitle>
+            <AlertTitle>Sistem yapılandırması eksik</AlertTitle>
             <AlertDescription>
-              <code>.env.example</code> dosyasını <code>.env.local</code> olarak kopyalayın, değerleri
-              doldurun ve geliştirme sunucusunu yeniden başlatın.
+              Sistem yöneticisi ile iletişime geçilmelidir.
             </AlertDescription>
           </Alert>
         )}

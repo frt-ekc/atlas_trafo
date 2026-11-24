@@ -107,7 +107,7 @@ select test.dogrula('kendi kartı: dosya reddedilmez, 3 okutma yazılır',
     (select satir_sayisi = 3 from pdks.aktarim where dosya_adi = 'yu_kendi.csv'));
 select test.dogrula('kendi kartı: dosya başına bir uyarı (kim, hangi dosya, kaç okutma)',
     (select count(*) = 1 and bool_and(calisan_id = test.c('YUI1') and not goruldu
-            and mesaj = 'AdYUI1 Örnek (YUI1) kendi kartının 2 okutmasını içeren yu_kendi.csv dosyasını yükledi (09.09.2026).')
+            and mesaj = 'AdYUI1 Örnek (YUI1), kendi kartına ait 2 okutma içeren yu_kendi.csv dosyasını yükledi (09.09.2026).')
      from test.uyari(test.aktarim_id('yu_kendi.csv'))));
 select test.yukle('pdks', 'yu_kucuk_harf.csv', '2026-09-09', 'kyui1 12:30 cikis') \g /dev/null
 select test.dogrula('kart numarası küçük harfle yazılsa da yakalanır',
@@ -120,7 +120,7 @@ select test.dogrula('kapı (kanıt) dosyasında da yakalanır ve yükleyen yazı
 -- 3) Geçici kart ------------------------------------------------------------
 select test.yukle('pdks', 'yu_gecici.csv', '2026-09-10', 'GK-YU1 08:05 giris, GK-YU1 17:00 cikis') \g /dev/null
 select test.dogrula('geçici kart yükleyende zimmetliyken yakalanır',
-    (select count(*) = 1 and bool_and(mesaj like '%kartının 2 okutmasını%') from test.uyari(test.aktarim_id('yu_gecici.csv'))));
+    (select count(*) = 1 and bool_and(mesaj like '%kartına ait 2 okutma içeren%') from test.uyari(test.aktarim_id('yu_gecici.csv'))));
 select test.yukle('pdks', 'yu_gecici_baska.csv', '2026-09-11', 'GK-YU1 08:05 giris') \g /dev/null
 select test.dogrula('aynı geçici kart başkasındayken uyarı yok',
     (select count(*) from test.uyari(test.aktarim_id('yu_gecici_baska.csv'))) = 0);

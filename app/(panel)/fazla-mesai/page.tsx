@@ -7,6 +7,7 @@ import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-l
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
 import { Secim } from "@/components/panel/secim";
+import { vardiyaAdi } from "@/components/panel/vardiya-etiketi";
 import { aramaSuzgeci } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { DurumIslem } from "@/components/liste/durum-islem";
@@ -15,7 +16,7 @@ import { Sekmeler } from "@/components/liste/sekmeler";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { Zaman } from "@/components/liste/zaman";
 import { tekDeger } from "@/lib/arama";
-import { tarih } from "@/lib/bicim";
+import { sureMetni, tarih } from "@/lib/bicim";
 import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
@@ -230,22 +231,21 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Fazla mesai · {yil}</h1>
         <p className="text-sm text-muted-foreground">
-          Fazla mesai önceden planlanır: amir talep eder, İK onaylar. Yazılı onayı olmayan çalışana plan yapılamaz;
-          günlük 11 saat ve yıllık {saat(yillikSinir)} sınırını veritabanı denetler.
+          Fazla mesai, amirin talebi ve İK onayı ile planlanır. Yazılı onayı bulunmayan çalışan için plan yapılamaz. Günlük sınır 11 sa, yıllık sınır {saat(yillikSinir)} olarak uygulanır.
         </p>
       </div>
 
       {talepEdebilir && (
         <div className="flex flex-col gap-2 self-start">
           <IslemPenceresi
-            dugme="Fazla mesai talebi aç"
+            dugme="Talep oluştur"
             dugmeTuru="default"
             baslik="Fazla mesai talebi"
-            aciklama="Talep İK onayına gider. Çalışanın o yıl için yazılı onayı yoksa ya da günlük 11 saat aşılıyorsa veritabanı talebi reddeder."
-            onay="Talebi aç"
+            aciklama="Talep İK onayına gönderilir. Çalışanın ilgili yıla ait yazılı onayı bulunmalı ve günlük 11 saat sınırı aşılmamalıdır."
+            onay="Talebi gönder"
             islem={fazlaMesaiTalepEt}
           >
-            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
               <Input id="sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
@@ -268,10 +268,10 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
         etiket="Fazla mesai bölümleri"
         sekmeler={[
           { ad: "Planlar", adres: sekmeAdresi("planlar"), sayi: bekleyenSayisi || undefined, sayiAciklama: "karar bekliyor", aktif: sekme === "planlar" },
-          { ad: "Onaysız çalışma", adres: sekmeAdresi("havuz"), sayi: havuzBekleyen.length || undefined, sayiAciklama: "karar bekliyor", aktif: sekme === "havuz" },
+          { ad: "Onaysız fazla mesai", adres: sekmeAdresi("havuz"), sayi: havuzBekleyen.length || undefined, sayiAciklama: "karar bekliyor", aktif: sekme === "havuz" },
           { ad: "Yıllık sınır", adres: sekmeAdresi("yillik"), aktif: sekme === "yillik" },
           ...(onaylariGorur
-            ? [{ ad: "Yazılı onaylar", adres: sekmeAdresi("onaylar"), sayi: onaySizlar.length || undefined, sayiAciklama: "çalışanın onayı yok", aktif: sekme === "onaylar" }]
+            ? [{ ad: "Yazılı onaylar", adres: sekmeAdresi("onaylar"), sayi: onaySizlar.length || undefined, sayiAciklama: "çalışanın yazılı onayı yok", aktif: sekme === "onaylar" }]
             : []),
         ]}
       />
@@ -288,7 +288,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
           </FiltreAlani>
         )}
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
@@ -297,11 +297,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
           <div className="flex flex-col gap-1">
             <h2 id="planlar-baslik" className="text-lg font-semibold">Planlar</h2>
             <p className="text-sm text-muted-foreground">
-              {planlar.length} plan{bekleyenSayisi > 0 && ` · ${bekleyenSayisi} tanesi İK kararı bekliyor`}
+              {planlar.length} plan{bekleyenSayisi > 0 && ` · ${bekleyenSayisi} kayıt İK kararı bekliyor`}
             </p>
           </div>
           {gosterilenPlanlar.length === 0 ? (
-            <BosDurum aciklama={planlar.length === 0 ? `${yil} yılında fazla mesai planı yok.` : "Süzgeçlere uyan plan yok."} />
+            <BosDurum aciklama={planlar.length === 0 ? "Kayıt bulunmuyor." : "Seçilen filtrelere uygun kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
@@ -321,11 +321,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                     <TableRow key={p.id}>
                       <TableCell className="tarih-hucre">{tarih(p.is_gunu)}</TableCell>
                       <TableCell><KisiAdi kisi={p.calisan} /></TableCell>
-                      <TableCell>{p.vardiya?.kod === "GUNDUZ" ? "Gündüz" : (p.vardiya?.kod ?? "—")}</TableCell>
+                      <TableCell>{p.vardiya ? vardiyaAdi(p.vardiya.kod) : "—"}</TableCell>
                       <TableCell className="text-right tabular-nums">{saat(p.planli_dk)}</TableCell>
                       <TableCell className="min-w-56 whitespace-normal">
                         {p.gerekce}
-                        {p.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar notu: {p.karar_aciklama}</div>}
+                        {p.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar açıklaması: {p.karar_aciklama}</div>}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         <div>{p.talep_eden?.ad_soyad ?? "—"}</div>
@@ -365,9 +365,9 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       {sekme === "havuz" && (
         <section aria-labelledby="havuz-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 id="havuz-baslik" className="text-lg font-semibold">Onaysız fazla çalışma</h2>
+            <h2 id="havuz-baslik" className="text-lg font-semibold">Onaysız fazla mesai</h2>
             <p className="text-sm text-muted-foreground">
-              Planı olmadan vardiya sonrasında ya da tatilde çalışılan süre. İK kararına kadar puantaja girmez.
+              Onaylı planı olmadan vardiya sonrasında veya tatilde çalışılan süreler. İK kararı verilene kadar puantaja dahil edilmez.
               {havuzBekleyen.length > 0 && ` ${havuzBekleyen.length} kayıt karar bekliyor.`}
             </p>
           </div>
@@ -375,8 +375,8 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             <BosDurum
               aciklama={
                 havuz.length === 0
-                  ? `${yil} yılında onaysız fazla çalışma kaydı yok. Kayıtlar gece işi çalışınca oluşur.`
-                  : "Süzgeçlere uyan kayıt yok."
+                  ? "Kayıt bulunmuyor."
+                  : "Seçilen filtrelere uygun kayıt bulunmuyor."
               }
             />
           ) : (
@@ -398,28 +398,28 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       <TableCell><KisiAdi kisi={h.calisan} /></TableCell>
                       <TableCell className="whitespace-normal">
                         {HAVUZ_TURU[h.tur]}
-                        {h.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar notu: {h.karar_aciklama}</div>}
+                        {h.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar açıklaması: {h.karar_aciklama}</div>}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{h.dakika} dk</TableCell>
+                      <TableCell className="text-right tabular-nums">{sureMetni(h.dakika)}</TableCell>
                       <TableCell>
                         <DurumIslem durum={<Badge variant={HAVUZ_DURUMU[h.durum].tur}>{HAVUZ_DURUMU[h.durum].ad}</Badge>}>
                           {h.karar_zamani && (
                             <span className="text-xs text-muted-foreground">
                               {h.karar_veren?.ad_soyad ?? "—"} · {tarih(h.karar_zamani)}
-                              {h.fark_satiri && " · sonraki aya fark"}
+                              {h.fark_satiri && " · izleyen aya fark satırı"}
                             </span>
                           )}
                           {ik && h.durum === "inceleme_bekliyor" && (
                             <IslemPenceresi
                               dugme="Karar ver"
                               dugmeTuru="default"
-                              baslik={`${h.calisan ? `${h.calisan.ad} ${h.calisan.soyad}` : "Çalışan"} · ${tarih(h.is_gunu)} · ${h.dakika} dk`}
-                              aciklama={`${HAVUZ_TURU[h.tur]}. Onaylanırsa puantaja fazla mesai olarak girer; ay kilitliyse sonraki aya fark satırı olur. Yıllık sınır aşılsa da onaylanır, ayrıca uyarı yazılır.`}
+                              baslik={`${h.calisan ? `${h.calisan.ad} ${h.calisan.soyad}` : "Çalışan"} · ${tarih(h.is_gunu)} · ${sureMetni(h.dakika)}`}
+                              aciklama={`${HAVUZ_TURU[h.tur]}. Onaylanan süre puantaja fazla mesai olarak eklenir; kilitli aya ait süre izleyen aya fark satırı olarak aktarılır. Yıllık sınır aşıldığında uyarı oluşturulur.`}
                               onay="Kararı kaydet"
                               islem={havuzKarari}
                               gizli={{ inceleme_id: h.id }}
                             >
-                              <KararAlanlari retUyarisi="Ret çalışan aleyhine bir karardır; süre puantaja girmez." />
+                              <KararAlanlari retUyarisi="Ret kararı çalışan aleyhine kaydedilir ve süre puantaja dahil edilmez." />
                             </IslemPenceresi>
                           )}
                         </DurumIslem>
@@ -438,11 +438,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
           <div className="flex flex-col gap-1">
             <h2 id="yillik-baslik" className="text-lg font-semibold">Yıllık sınır</h2>
             <p className="text-sm text-muted-foreground">
-              Onaylı planların toplamı; sınır {saat(yillikSinir)}. Sınırın %{yaklasmaYuzde}&apos;ine gelen çalışan için İK&apos;ya uyarı düşer.
+              Onaylı fazla mesai toplamı. Yıllık sınır {saat(yillikSinir)}. Sınırın %{yaklasmaYuzde} oranına ulaşıldığında İK&apos;ya uyarı iletilir.
             </p>
           </div>
           {gosterilenYillik.length === 0 ? (
-            <BosDurum aciklama={yillikSatirlar.length === 0 ? "Bu yıl fazla mesai planı olan çalışan yok." : "Aramaya uyan çalışan yok."} />
+            <BosDurum aciklama={yillikSatirlar.length === 0 ? "Kayıt bulunmuyor." : "Seçilen filtrelere uygun kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
@@ -452,7 +452,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                     <TableHead className="text-right">Onaylı</TableHead>
                     <TableHead className="text-right">Bekleyen talep</TableHead>
                     <TableHead className="text-right">Kalan</TableHead>
-                    <TableHead className="w-full min-w-48">Doluluk</TableHead>
+                    <TableHead className="w-full min-w-48">Kullanım oranı</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -483,18 +483,17 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             <div className="flex flex-col gap-1">
               <h2 id="onay-baslik" className="text-lg font-semibold">Yazılı onaylar</h2>
               <p className="text-sm text-muted-foreground">
-                {calisanlar.length - onaySizlar.length} çalışanın {yil} için geçerli yazılı onayı var
-                {geriAlinanlar.length > 0 && ` · ${geriAlinanlar.length} onay geri alındı`}.
-                Onayı olmayan çalışana fazla mesai planlanamaz.
+                {calisanlar.length - onaySizlar.length} çalışanın {yil} yılı için geçerli yazılı onayı bulunuyor
+                {geriAlinanlar.length > 0 && ` · ${geriAlinanlar.length} onay geri alındı`}. Yazılı onayı bulunmayan çalışan için fazla mesai planlanamaz.
               </p>
             </div>
             {ik && (
               <div className="flex flex-wrap gap-2">
                 <IslemPenceresi
-                  dugme="Yazılı onay gir"
+                  dugme="Yazılı onay ekle"
                   dugmeTuru="default"
                   baslik="Yıllık yazılı fazla mesai onayı"
-                  aciklama="Çalışanın imzaladığı yıllık onay belgesi. Onayı olmayan çalışana fazla mesai planlanamaz."
+                  aciklama="Çalışanın imzaladığı yıllık onay belgesi kaydedilir."
                   onay="Kaydet"
                   islem={yaziliOnayGir}
                 >
@@ -517,7 +516,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                   dugme="Onayı geri al"
                   dugmeTuru="outline"
                   baslik="Yazılı onayın geri alınması"
-                  aciklama="Çalışan onayını yazılı bildirimle geri çeker; onay bildirimden 30 gün sonra geçersiz olur."
+                  aciklama="Çalışanın yazılı bildirimi kaydedilir. Onay, bildirim tarihinden 30 gün sonra geçersiz olur."
                   onay="Geri al"
                   onayTuru="destructive"
                   islem={yaziliOnayGeriAl}
@@ -538,14 +537,14 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             )}
           </div>
           {gosterilenOnaysizlar.length === 0 ? (
-            <BosDurum aciklama={onaySizlar.length === 0 ? "Bütün çalışanların geçerli yazılı onayı var." : "Aramaya uyan çalışan yok."} />
+            <BosDurum aciklama={onaySizlar.length === 0 ? "Kayıt bulunmuyor." : "Seçilen filtrelere uygun kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Onayı olmayan çalışan</TableHead>
-                    <TableHead className="w-full">Bölüm</TableHead>
+                    <TableHead className="w-full">Departman</TableHead>
                     <TableHead>Durum</TableHead>
                   </TableRow>
                 </TableHeader>

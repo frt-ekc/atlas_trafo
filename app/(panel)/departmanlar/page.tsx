@@ -12,7 +12,8 @@ import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { tekDeger } from "@/lib/arama";
 import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
-import { ayAdi, ayKaydir, saatDakika } from "@/lib/puantaj";
+import { sureMetni } from "@/lib/bicim";
+import { ayAdi, ayKaydir } from "@/lib/puantaj";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ function sayilastir<T extends Record<string, unknown>>(satir: T): T {
 // "+1:30" / "−0:45": esnek mesaide hedefin üstü ya da altı
 function isaretliSure(dk: number): string {
   if (dk === 0) return "0:00";
-  return `${dk > 0 ? "+" : "−"}${saatDakika(Math.abs(dk))}`;
+  return `${dk > 0 ? "+" : "−"}${sureMetni(Math.abs(dk))}`;
 }
 
 // Yönetici paneli: departmanların aylık devam özeti. Yönetici ve İK tüm departmanları,
@@ -109,8 +110,8 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
         <h1 className="text-2xl font-semibold">Departmanlar · {ayAdi(ay)}</h1>
         <p className="text-sm text-muted-foreground">
           {kullanici.rol === "amir"
-            ? "Sorumlu olduğunuz departmanların aylık devam özeti."
-            : "Departmanların aylık devam özeti. Sayılar gece işinin kurduğu günlük kayıtlardan gelir."}
+            ? "Sorumlu olunan departmanların aylık devam özeti."
+            : "Departmanların aylık devam özeti."}
         </p>
       </div>
 
@@ -124,7 +125,7 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
         etiket="Departman bölümleri"
         sekmeler={[
           { ad: "Devam özeti", adres: `/departmanlar?ay=${ay}`, sayi: departmanlar.length, aktif: !esnekSekmesi },
-          { ad: "Esnek mesai", adres: `/departmanlar?ay=${ay}&sekme=esnek`, sayi: esnek.length, aktif: esnekSekmesi },
+          { ad: "Esnek çalışma", adres: `/departmanlar?ay=${ay}&sekme=esnek`, sayi: esnek.length, aktif: esnekSekmesi },
         ]}
       />
 
@@ -137,13 +138,13 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
             name="ara"
             type="search"
             defaultValue={araMetni}
-            placeholder={esnekSekmesi ? "Ad, sicil ya da departman" : "ör. Bobinaj"}
+            placeholder={esnekSekmesi ? "Ad, sicil veya departman" : "ör. Bobinaj"}
           />
         </FiltreAlani>
       </FiltreCubugu>
 
       {!esnekSekmesi && (departmanlar.length === 0 ? (
-        <BosDurum aciklama="Bu ay için günlük kayıt yok. Özet, gece işi çalışınca oluşur." />
+        <BosDurum aciklama="Kayıt bulunmuyor." />
       ) : (
         <>
           <OzetIzgarasi>
@@ -155,12 +156,12 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
             />
             <OzetKarti
               baslik="Geç kalma"
-              deger={saatDakika(top("gec_kalma_dk"))}
-              aciklama={`${top("gec_kalinan_gun")} gün · erken çıkış ${saatDakika(top("erken_cikis_dk"))} (sa:dk)`}
+              deger={sureMetni(top("gec_kalma_dk"))}
+              aciklama={`${top("gec_kalinan_gun")} gün · erken çıkış ${sureMetni(top("erken_cikis_dk"))}`}
             />
-            <OzetKarti baslik="Fazla mesai" deger={saatDakika(top("fazla_mesai_dk"))} aciklama="Onaylı, sa:dk" />
+            <OzetKarti baslik="Fazla mesai" deger={sureMetni(top("fazla_mesai_dk"))} aciklama="Onaylı" />
             <OzetKarti
-              baslik="Açık iş"
+              baslik="Açık işlem"
               deger={acikIs}
               aciklama={`${top("acik_soru")} soru · ${top("acik_itiraz")} itiraz · ${top("bekleyen_gun")} kesinleşmemiş gün`}
               ton={acikIs ? "dikkat" : "iyi"}
@@ -168,7 +169,7 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
           </OzetIzgarasi>
 
           {gosterilenDepartmanlar.length === 0 ? (
-            <BosDurum aciklama="Aramaya uyan departman yok." />
+            <BosDurum aciklama="Seçilen filtrelere uygun kayıt bulunmuyor." />
           ) : (
           // Dar ekranda sayı sütunları yana kayar; departman adı solda sabit kalır
           <TabloKutusu>
@@ -182,7 +183,7 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                   <TableHead className="text-right">Geç kalma</TableHead>
                   <TableHead className="text-right">Erken çıkış</TableHead>
                   <TableHead className="text-right">Fazla mesai</TableHead>
-                  <TableHead className="text-right">Açık iş</TableHead>
+                  <TableHead className="text-right">Açık işlem</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -196,11 +197,11 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                     <TableCell className="text-right tabular-nums">{d.calisilan_gun}</TableCell>
                     <TableCell className={cn("text-right tabular-nums", d.devamsiz_gun > 0 && "font-medium text-destructive")}>{d.devamsiz_gun || "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {d.gec_kalma_dk ? saatDakika(d.gec_kalma_dk) : "—"}
+                      {d.gec_kalma_dk ? sureMetni(d.gec_kalma_dk) : "—"}
                       {d.gec_kalinan_gun > 0 && <div className="text-xs text-muted-foreground">{d.gec_kalinan_gun} gün</div>}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">{d.erken_cikis_dk ? saatDakika(d.erken_cikis_dk) : "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{d.fazla_mesai_dk ? saatDakika(d.fazla_mesai_dk) : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{d.erken_cikis_dk ? sureMetni(d.erken_cikis_dk) : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{d.fazla_mesai_dk ? sureMetni(d.fazla_mesai_dk) : "—"}</TableCell>
                     <TableCell className="text-right">
                       {d.acik_soru + d.acik_itiraz > 0 ? (
                         <Badge variant="default">{d.acik_soru + d.acik_itiraz}</Badge>
@@ -221,14 +222,13 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
       {esnekSekmesi && (
       <section aria-labelledby="esnek-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h2 id="esnek-baslik" className="text-lg font-semibold">Esnek mesai</h2>
+          <h2 id="esnek-baslik" className="text-lg font-semibold">Esnek çalışma</h2>
           <p className="text-sm text-muted-foreground">
-            Esnek mesaili çalışanlar geliş saatini seçer; ay sonunda günlük hedefin toplamına bakılır. Eksi değer hedefin altını
-            gösterir. İzinli ve tatil günleri hedefe girmez.
+            Esnek çalışan personelin aylık hedef ve gerçekleşen süreleri. Eksi değer, hedefin altında kalan süreyi gösterir. İzin ve tatil günleri hedefe dahil edilmez.
           </p>
         </div>
         {gosterilenEsnek.length === 0 ? (
-          <BosDurum aciklama={esnek.length === 0 ? "Bu ay esnek mesaili çalışan kaydı yok." : "Aramaya uyan çalışan yok."} />
+          <BosDurum aciklama={esnek.length === 0 ? "Kayıt bulunmuyor." : "Seçilen filtrelere uygun kayıt bulunmuyor."} />
         ) : (
           <TabloKutusu>
             <Table>
@@ -253,8 +253,8 @@ export default async function DepartmanlarSayfasi({ searchParams }: PageProps<"/
                       </TableCell>
                       <TableCell className="whitespace-normal text-sm">{c?.departman?.ad ?? "—"}</TableCell>
                       <TableCell className="text-right tabular-nums">{e.hedef_gun}</TableCell>
-                      <TableCell className="text-right tabular-nums">{saatDakika(e.hedef_dk)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{saatDakika(e.gerceklesen_dk)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{sureMetni(e.hedef_dk)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{sureMetni(e.gerceklesen_dk)}</TableCell>
                       <TableCell className={cn("text-right font-medium tabular-nums", e.fark_dk < 0 ? "text-destructive" : "text-iyi")}>
                         {isaretliSure(e.fark_dk)}
                         {e.bekleyen_gun > 0 && <div className="text-xs font-normal text-muted-foreground">{e.bekleyen_gun} gün bekliyor</div>}

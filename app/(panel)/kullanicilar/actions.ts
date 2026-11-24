@@ -12,8 +12,8 @@ const ROLLER = ["amir", "ik", "guvenlik", "yonetici", "isg", "admin"];
 export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const eposta = metinAl(form, "eposta");
   const rol = metinAl(form, "rol");
-  if (!eposta) return { durum: "hata", mesaj: "E-posta yazın." };
-  if (!rol || !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Rolü seçin." };
+  if (!eposta) return { durum: "hata", mesaj: "E-posta adresi girilmelidir." };
+  if (!rol || !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Rol seçilmelidir." };
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
@@ -26,15 +26,15 @@ export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promi
   });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/kullanicilar");
-  return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı Supabase Auth'ta aynı e-postayla açılmalı.` };
+  return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı aynı e-posta adresiyle oluşturulmalıdır.` };
 }
 
 // Rol, üst amir ya da aktiflik değişir; gönderilmeyen alan değişmez. Admin kendi hesabını değiştiremez.
 export async function kullaniciGuncelle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const kullaniciId = sayiAl(form, "kullanici_id");
   const rol = metinAl(form, "rol");
-  if (!kullaniciId) return { durum: "hata", mesaj: "Kullanıcı seçilmedi." };
-  if (rol && !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Geçersiz rol." };
+  if (!kullaniciId) return { durum: "hata", mesaj: "Kullanıcı seçilmelidir." };
+  if (rol && !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Geçerli bir rol seçilmelidir." };
 
   const sonuc = await rpcCagir("kullanici_guncelle", {
     p_kullanici_id: kullaniciId,

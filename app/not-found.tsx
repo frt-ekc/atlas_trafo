@@ -12,7 +12,7 @@ export default function Bulunamadi() {
       simge={<CompassIcon className="size-6" />}
       ust="404"
       baslik="Sayfa bulunamadı"
-      aciklama="Aradığınız sayfa ya da kayıt yok. Adres yanlış yazılmış ya da bu kayda erişim yetkiniz olmayabilir."
+      aciklama="Sayfa veya kayıt bulunamadı ya da erişim yetkisi yok."
     >
       <Link href="/" className={buttonVariants()}>
         Ana sayfaya dön

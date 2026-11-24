@@ -85,13 +85,12 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">İSG</h1>
         <p className="text-sm text-muted-foreground">
-          İSG eğitimi ve periyodik sağlık muayenesinin yalnızca geçerlilik tarihi tutulur; sonuç ya da teşhis tutulmaz. Kapı
-          kilitlenmez: belgesi olmayan ya da yetkisiz bölgeye giren çalışan için uyarı üretilir.
+          İSG eğitimi ve periyodik sağlık muayenesinin yalnızca geçerlilik tarihi kaydedilir; sağlık bilgisi tutulmaz (KVKK). Belgesi eksik olan veya yetkisiz bölgeye giren çalışan için uyarı oluşturulur.
         </p>
       </div>
 
       <OzetIzgarasi>
-        <OzetKarti baslik="Kayıt yok" deger={say("yok")} aciklama="Mavi yaka, belge türü başına" ton={say("yok") ? "dikkat" : "iyi"} />
+        <OzetKarti baslik="Kayıt yok" deger={say("yok")} aciklama="Mavi yaka, belge türü bazında" ton={say("yok") ? "dikkat" : "iyi"} />
         <OzetKarti baslik="Süresi dolmuş" deger={say("dolmus")} ton={say("dolmus") ? "dikkat" : "iyi"} />
         <OzetKarti baslik="Süresi doluyor" deger={say("doluyor")} aciklama="Uyarı süresi içinde" ton={say("doluyor") ? "dikkat" : "notr"} />
         <OzetKarti baslik="Geçerli" deger={say("gecerli")} ton="iyi" />
@@ -100,7 +99,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
       <Sekmeler
         etiket="İSG bölümleri"
         sekmeler={[
-          { ad: "Belgeler", adres: "/isg", sayi: eksikler.length || undefined, sayiAciklama: "eksik ya da dolan belge", aktif: !bolgeSekmesi },
+          { ad: "Belgeler", adres: "/isg", sayi: eksikler.length || undefined, sayiAciklama: "eksik veya süresi dolan belge", aktif: !bolgeSekmesi },
           { ad: "Bölge yetkileri", adres: "/isg?sekme=bolge", aktif: bolgeSekmesi },
         ]}
       />
@@ -110,19 +109,19 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h2 id="belge-baslik" className="text-lg font-semibold">Belgeler</h2>
-              <p className="text-sm text-muted-foreground">{gosterilen.length} satır</p>
+              <p className="text-sm text-muted-foreground">{gosterilen.length} kayıt</p>
             </div>
             {isg && (
               <div>
                 <IslemPenceresi
-                  dugme="Belge gir"
+                  dugme="Belge ekle"
                   dugmeTuru="default"
                   baslik="İSG belgesi"
-                  aciklama="Yenileme yeni kayıttır; en son girilen geçerli sayılır. Kendi belgenizi giremezsiniz."
+                  aciklama="Yenilenen belge yeni kayıt olarak eklenir ve son kayıt geçerli olur. Kullanıcı kendi belgesini ekleyemez."
                   onay="Kaydet"
                   islem={isgBelgeGir}
                 >
-                  <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+                  <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
                     <Input id="sicil" name="sicil" list="isg-calisanlar" required autoComplete="off" inputMode="numeric" />
                   </Alan>
                   <Alan etiket="Tür" htmlFor="tur">
@@ -148,18 +147,18 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
           <FiltreCubugu temizleAdres="/isg" suzgecVar={goster === "tumu" || Boolean(araMetni)}>
             <FiltreAlani etiket="Göster" htmlFor="goster">
               <Secim id="goster" name="goster" defaultValue={goster}>
-                <option value="eksik">Eksik / dolan (mavi yaka)</option>
+                <option value="eksik">Eksik veya süresi dolan (mavi yaka)</option>
                 <option value="tumu">Tümü</option>
               </Secim>
             </FiltreAlani>
             <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-              <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+              <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
             </FiltreAlani>
           </FiltreCubugu>
           {gosterilen.length === 0 ? (
             <BosDurum
               aciklama={
-                araMetni ? "Aramaya uyan belge kaydı yok." : goster === "eksik" ? "Mavi yakada eksik ya da süresi dolan belge yok." : "Belge kaydı yok."
+                araMetni ? "Seçilen filtrelere uygun kayıt bulunmuyor." : goster === "eksik" ? "Kayıt bulunmuyor." : "Kayıt bulunmuyor."
               }
             />
           ) : (
@@ -201,12 +200,11 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
           <div className="flex flex-col gap-1">
             <h2 id="bolge-baslik" className="text-lg font-semibold">Bölge giriş yetkileri</h2>
             <p className="text-sm text-muted-foreground">
-              Yetkisiz departmandan biri bölge kapısında okutursa İK ve İSG&apos;ye uyarı düşer. Verme ve kaldırma kim / ne zaman
-              bilgisiyle saklanır. ✓ yetkili, — yetkisiz.
+              Yetkisiz bölge girişlerinde İK ve İSG birimine uyarı iletilir. Yetki değişiklikleri tarih ve kullanıcı bilgisiyle saklanır. ✓ yetkili, — yetkisiz.
             </p>
           </div>
           {bolgeler.length === 0 ? (
-            <BosDurum aciklama="Tanımlı bölge yok." />
+            <BosDurum aciklama="Kayıt bulunmuyor." />
           ) : (
             <TabloKutusu>
               <Table>
@@ -241,7 +239,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                               )}
                               {isg && (
                                 <HizliIslem
-                                  dugme={var_ ? "Kaldır" : "Ver"}
+                                  dugme={var_ ? "Yetkiyi kaldır" : "Yetki ver"}
                                   dugmeTuru="ghost"
                                   islem={bolgeYetkisi}
                                   gizli={{ bolge_id: b.id, departman_id: d.id, islem: var_ ? "kaldir" : "ver" }}

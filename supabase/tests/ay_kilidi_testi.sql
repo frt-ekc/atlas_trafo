@@ -199,7 +199,7 @@ select test.dogrula('zorla kilit özeti: geçilen kalemler, kodsuz gün sayısı
     (select r - 'kodsuz_gun_listesi'
             = '{"donem": "2026-09", "zorla": true, "kodsuz_gun": 1,
                 "zorla_gecilen": {"acik_soru_gun": 1, "acik_itiraz": 1, "bekleyen_fazla_mesai": 0, "bekleyen_plan_onayi": 1},
-                "mesaj": "9/2026 kilitlendi. Zorla geçilenler: 1 açık sorulu gün, 1 açık itiraz, 1 onay bekleyen geriye dönük plan, 1 kodsuz gün."}'::jsonb
+                "mesaj": "9/2026 kilitlendi. Sonuçlanmadan kilitlenen kayıtlar: 1 açık sorulu gün, 1 açık itiraz, 1 onay bekleyen geriye dönük plan, 1 kodsuz gün."}'::jsonb
         and jsonb_array_length(r -> 'kodsuz_gun_listesi') = 1
         and r -> 'kodsuz_gun_listesi' @> '[{"sicil": "AK02", "gun": "2026-09-07"}]'::jsonb
      from (select pdks.ay_kilitle(2026::smallint, 9::smallint, true) as r) x));
@@ -227,9 +227,9 @@ from unnest(array['AK01', 'AK06']) s;   -- AK06 o gün henüz işe girmemişti: 
 set local role authenticated;
 select test.oturum('ak_ik1@ornek.test');
 select test.hata('işlenmemiş planlı gün varken kilit reddedilir; mesaj gün, kişi ve ilk günü söyler',
-    '10/2026 döneminde gece işinden geçmemiş 1 planlı gün var (1 çalışan; ilk gün 07.10.2026)',
+    '10/2026 döneminde işlenmemiş 1 planlı gün bulunuyor (1 çalışan, ilk gün 07.10.2026)',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint)$$);
-select test.hata('zorla seçeneği işlenmemiş günü geçemez', 'zorla geçilemez',
+select test.hata('zorla seçeneği işlenmemiş günü geçemez', 'bu günler işlenmelidir',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true)$$);
 reset role;
 select test.dogrula('reddedilen kilit ayı açık bıraktı ve hesabı geri aldı (tek işlem)',
@@ -303,7 +303,7 @@ select pdks.soru_ik_karari((test.soru('1001', '2026-11-26')).id, false, 'Üretim
 select pdks.fazla_mesai_inceleme_karar(f.id, f.calisan_id = test.c('3004'), 'Yazılı onay ya da plan yok')
 from pdks.fazla_mesai_inceleme f where f.durum = 'inceleme_bekliyor' order by f.id;
 select test.hata('uçtan uca: Okan''ın (S13) onay bekleyen planının günü işlenmedi; kilit zorla da reddeder',
-    '11/2026 döneminde gece işinden geçmemiş 1 planlı gün var (1 çalışan; ilk gün 13.11.2026); 1 günün geriye dönük planı İK onayı bekliyor',
+    '11/2026 döneminde işlenmemiş 1 planlı gün bulunuyor (1 çalışan, ilk gün 13.11.2026); 1 günün geriye dönük planı İK onayı bekliyor',
     $$select pdks.ay_kilitle(2026::smallint, 11::smallint, true)$$);
 -- Planı İK uzmanı girdi; görevler ayrılığı gereği İK müdürü onaylar
 select test.oturum('ahmet.er@atlastrafo.example.com');
@@ -349,7 +349,7 @@ select test.dogrula('uçtan uca: kilitli Kasım günü değişmedi, düzeltme Ar
 set local role authenticated;
 select test.oturum('elif.sen@atlastrafo.example.com');
 select test.hata('uçtan uca: Aralık kilidi 7 Aralık''ın işlenmemiş 10 planlı günü yüzünden reddedilir (zorla da)',
-    '12/2026 döneminde gece işinden geçmemiş 10 planlı gün var (10 çalışan; ilk gün 07.12.2026)',
+    '12/2026 döneminde işlenmemiş 10 planlı gün bulunuyor (10 çalışan, ilk gün 07.12.2026)',
     $$select pdks.ay_kilitle(2026::smallint, 12::smallint, true)$$);
 reset role;
 delete from pdks.vardiya_plani where tarih = '2026-12-07';

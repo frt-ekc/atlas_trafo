@@ -143,6 +143,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261213010000_yukleyen.sql` | Dosyayı yükleyen kaydedilir (`aktarim.yukleyen_id`); yükleyenin kendi okutmasını içeren dosyada diğer İK'ya uyarı (T-13) |
 | `20261214010000_rapor_gizliligi.sql` | Rapor gerekçesi amire gizli: amir düzeltmeleri `v_duzeltme_amir`'den okur (T-12) |
 | `20261215010000_ik_karar_gerekcesi.sql` | İK'nın soru kararındaki gerekçe amire gizli; amir yalnızca sonucu görür (`amir_sorusu.ik_karari`) (T-106) |
+| `20261216010000_ekran_metinleri.sql` | Ayar adı, kategorisi ve açıklaması; uyarı, soru ve gerekçe metinleri; süreler "sa dk" (yalnızca metin, kural değişmez) |
 
 ---
 
@@ -235,6 +236,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Yükleyen (T-13): yükleyen kaydı, kendi asıl / geçici kartını içeren dosyada uyarı, uyarıyı yükleyen görmez ve kapatamaz (21 test) | ✅ |
 | Rapor gizliliği (T-12): amir düzeltme tablosunu okuyamaz; görünümde durum / izin gerekçesi gizli, "raporlu" yok; başka departman görünmez (19 test) | ✅ |
 | İK karar gerekçesi (T-106): amir ve üst amir gerekçeyi hiçbir tablo / görünümden okuyamaz, sonucu görür; İK ve yönetici görür (13 test) | ✅ |
+| Ekran metinleri: ayar adları, süre ve cevap adları, eski ifadelerin kalmadığı (8 test); envanter: `docs/metin_envanteri.md` | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

@@ -13,8 +13,8 @@ export const ROL_ADI: Record<Rol, string> = {
   ik: "İnsan Kaynakları",
   guvenlik: "Güvenlik",
   yonetici: "Yönetici",
-  isg: "İSG Uzmanı",
-  admin: "Sistem Yöneticisi",
+  isg: "İSG uzmanı",
+  admin: "Sistem yöneticisi",
 };
 
 export type OturumKullanicisi = {

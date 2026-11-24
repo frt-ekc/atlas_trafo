@@ -20,9 +20,9 @@ type KilitOzeti = {
 // Bitmemiş ay burada da reddedilir (T-89: veritabanı şimdilik ileri ayı bile kilitleyebiliyor).
 export async function ayKilitle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const ay = metinAl(form, "ay");
-  if (!ay || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ay)) return { durum: "hata", mesaj: "Ay seçilmedi." };
-  if (!ayBittiMi(ay, bugun())) return { durum: "hata", mesaj: "Bu ay henüz bitmedi; yalnızca bitmiş ay kilitlenebilir." };
-  if (metinAl(form, "onay") !== "evet") return { durum: "hata", mesaj: "Kilidin geri açılamayacağını onaylayın." };
+  if (!ay || !/^\d{4}-(0[1-9]|1[0-2])$/.test(ay)) return { durum: "hata", mesaj: "Ay seçilmelidir." };
+  if (!ayBittiMi(ay, bugun())) return { durum: "hata", mesaj: "Yalnızca tamamlanmış aylar kilitlenebilir." };
+  if (metinAl(form, "onay") !== "evet") return { durum: "hata", mesaj: "Kilidin geri açılamayacağı onaylanmalıdır." };
   const [yil, ayNo] = ay.split("-").map(Number);
 
   const sonuc = await rpcCagir<KilitOzeti>("ay_kilitle", { p_yil: yil, p_ay: ayNo, p_zorla: metinAl(form, "zorla") === "evet" });
@@ -36,7 +36,7 @@ export async function ayKilitle(_onceki: IslemSonucu, form: FormData): Promise<I
   const kodsuz = (sonuc.veri?.kodsuz_gun ?? 0) > 0;
   return {
     durum: "tamam",
-    mesaj: `${ozet} Puantaj yazıldı; Excel ve ERP dosyaları artık kesin.${kodsuz ? " Kodsuz günler bordroda elle kontrol edilmeli." : ""}`,
+    mesaj: `${ozet} Puantaj yazıldı; Excel ve ERP dosyaları artık kesin.${kodsuz ? " Kodsuz günler bordroda ayrıca kontrol edilmelidir." : ""}`,
     uyari: kodsuz || Boolean(sonuc.veri?.zorla),
   };
 }

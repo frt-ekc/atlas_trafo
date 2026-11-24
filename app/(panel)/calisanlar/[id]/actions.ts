@@ -13,13 +13,13 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
   const gunKaydiId = sayiAl(form, "gun_kaydi_id");
   const alan = metinAl(form, "alan") as (typeof ALANLAR)[number] | null;
   const gerekce = metinAl(form, "gerekce");
-  if (!gunKaydiId) return { durum: "hata", mesaj: "Gün seçilmedi." };
-  if (!alan || !ALANLAR.includes(alan)) return { durum: "hata", mesaj: "Düzeltilecek alanı seçin." };
-  if (!gerekce || gerekce.length < 5) return { durum: "hata", mesaj: "Gerekçeyi yazın." };
+  if (!gunKaydiId) return { durum: "hata", mesaj: "Gün seçilmelidir." };
+  if (!alan || !ALANLAR.includes(alan)) return { durum: "hata", mesaj: "Düzeltilecek alan seçilmelidir." };
+  if (!gerekce || gerekce.length < 5) return { durum: "hata", mesaj: "Gerekçe girilmelidir." };
 
   const yeniDeger = alan === "durum" ? metinAl(form, "yeni_deger") : zamanAl(form, "yeni_deger");
   if (!yeniDeger || (alan === "durum" && !DURUMLAR.includes(yeniDeger))) {
-    return { durum: "hata", mesaj: "Yeni değeri girin." };
+    return { durum: "hata", mesaj: "Yeni değer girilmelidir." };
   }
 
   const sonuc = await rpcCagir<number>("kayit_duzelt", {
@@ -36,7 +36,7 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
   revalidatePath("/");
   return {
     durum: "tamam",
-    mesaj: `Düzeltme kaydedildi (no ${sonuc.veri}), gün yeniden hesaplandı. Ay kilitliyse fark satırı olarak sonraki aya geçer.`,
+    mesaj: "Düzeltme kaydedildi ve gün kaydı güncellendi.",
   };
 }
 
@@ -46,8 +46,8 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
 export async function itirazGir(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const gunKaydiId = sayiAl(form, "gun_kaydi_id");
   const metin = metinAl(form, "metin");
-  if (!gunKaydiId) return { durum: "hata", mesaj: "Gün seçilmedi." };
-  if (!metin || metin.length < 5) return { durum: "hata", mesaj: "Çalışanın itirazını en az birkaç kelimeyle yazın." };
+  if (!gunKaydiId) return { durum: "hata", mesaj: "Gün seçilmelidir." };
+  if (!metin || metin.length < 5) return { durum: "hata", mesaj: "İtiraz metni girilmelidir (en az 5 karakter)." };
 
   const sonuc = await rpcCagir<number>("itiraz_gir", { p_gun_kaydi_id: gunKaydiId, p_metin: metin });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -55,7 +55,7 @@ export async function itirazGir(_onceki: IslemSonucu, form: FormData): Promise<I
   revalidatePath("/itirazlar");
   revalidatePath("/calisanlar", "layout");
   revalidatePath("/");
-  return { durum: "tamam", mesaj: `İtiraz kaydedildi (no ${sonuc.veri}). Kararı İK verecek.` };
+  return { durum: "tamam", mesaj: "İtiraz kaydedildi ve İK'ya iletildi." };
 }
 
 const IPTAL_NEDENLERI = ["kayip", "yenilendi", "isten_cikis", "diger"];
@@ -64,23 +64,23 @@ const IPTAL_NEDENLERI = ["kayip", "yenilendi", "isten_cikis", "diger"];
 export async function kartTanimla(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const calisanId = sayiAl(form, "calisan_id");
   const kartNo = metinAl(form, "kart_no")?.toUpperCase() ?? null;
-  if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmedi." };
-  if (!kartNo || !/^[A-Z0-9-]{1,32}$/.test(kartNo)) return { durum: "hata", mesaj: "Kart numarası harf, rakam ve tireden oluşmalı." };
+  if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmelidir." };
+  if (!kartNo || !/^[A-Z0-9-]{1,32}$/.test(kartNo)) return { durum: "hata", mesaj: "Kart numarası yalnızca harf, rakam ve tire içermelidir." };
 
   const sonuc = await rpcCagir<number>("kart_tanimla", { p_calisan_id: calisanId, p_kart_no: kartNo });
   if (!sonuc.tamam) {
-    return { durum: "hata", mesaj: sonuc.mesaj === "Bu kayıt zaten var." ? `${kartNo} numaralı kart başka bir kayıtta kullanılıyor.` : sonuc.mesaj };
+    return { durum: "hata", mesaj: sonuc.mesaj === "Bu kayıt daha önce eklenmiştir." ? `${kartNo} numaralı kart başka bir kayıtta kullanılıyor.` : sonuc.mesaj };
   }
   revalidatePath("/calisanlar", "layout");
-  return { durum: "tamam", mesaj: `${kartNo} kartı tanımlandı.` };
+  return { durum: "tamam", mesaj: `${kartNo} numaralı kart tanımlandı.` };
 }
 
 // Kayıp, yenileme ya da işten çıkışta kart iptal edilir. İptal edilen kart okutulursa uyarı üretilir.
 export async function kartIptalEt(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const kartId = sayiAl(form, "kart_id");
   const neden = metinAl(form, "neden");
-  if (!kartId) return { durum: "hata", mesaj: "Kart seçilmedi." };
-  if (!neden || !IPTAL_NEDENLERI.includes(neden)) return { durum: "hata", mesaj: "İptal nedenini seçin." };
+  if (!kartId) return { durum: "hata", mesaj: "Kart seçilmelidir." };
+  if (!neden || !IPTAL_NEDENLERI.includes(neden)) return { durum: "hata", mesaj: "İptal nedeni seçilmelidir." };
 
   const sonuc = await rpcCagir("kart_iptal_et", { p_kart_id: kartId, p_neden: neden });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -103,8 +103,8 @@ export async function istenCikis(_onceki: IslemSonucu, form: FormData): Promise<
   const calisanId = sayiAl(form, "calisan_id");
   const adSoyad = metinAl(form, "ad_soyad") ?? "Çalışan";
   const cikisTarihi = tarihAl(form, "cikis_tarihi");
-  if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmedi." };
-  if (!cikisTarihi) return { durum: "hata", mesaj: "Son çalışma gününü girin." };
+  if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmelidir." };
+  if (!cikisTarihi) return { durum: "hata", mesaj: "Son çalışma günü girilmelidir." };
 
   const sonuc = await rpcCagir<CikisOzeti>("isten_cikis_gir", {
     p_calisan_id: calisanId,
@@ -115,12 +115,12 @@ export async function istenCikis(_onceki: IslemSonucu, form: FormData): Promise<
 
   const o = sonuc.veri;
   const parcalar = [
-    o?.iptal_edilen_kart ? `${o.iptal_edilen_kart} kart iptal` : null,
-    o?.silinen_plan ? `${o.silinen_plan} plan silindi` : null,
-    o?.iptal_edilen_izin ? `${o.iptal_edilen_izin} izin iptal` : null,
-    o?.iptal_edilen_fm_talebi ? `${o.iptal_edilen_fm_talebi} fazla mesai talebi iptal` : null,
-    o?.vardiya_yok_yapilan_gun ? `${o.vardiya_yok_yapilan_gun} gün "vardiya yok"` : null,
-    o?.pasif_yapilan_hesap ? "kullanıcı hesabı pasif" : null,
+    o?.iptal_edilen_kart ? `${o.iptal_edilen_kart} kart iptal edildi` : null,
+    o?.silinen_plan ? `${o.silinen_plan} vardiya planı silindi` : null,
+    o?.iptal_edilen_izin ? `${o.iptal_edilen_izin} izin iptal edildi` : null,
+    o?.iptal_edilen_fm_talebi ? `${o.iptal_edilen_fm_talebi} fazla mesai talebi iptal edildi` : null,
+    o?.vardiya_yok_yapilan_gun ? `${o.vardiya_yok_yapilan_gun} gün "Vardiya planı yok" olarak güncellendi` : null,
+    o?.pasif_yapilan_hesap ? "kullanıcı hesabı pasife alındı" : null,
   ].filter(Boolean);
 
   revalidatePath("/", "layout");

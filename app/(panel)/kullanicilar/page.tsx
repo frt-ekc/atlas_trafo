@@ -74,27 +74,26 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Kullanıcılar</h1>
         <p className="text-sm text-muted-foreground">
-          Sisteme giren her kişi bir çalışan kaydına bağlıdır. Giriş hesabı Supabase Auth&apos;ta aynı e-postayla açılır; açılınca
-          kendiliğinden bağlanır. Kullanıcı silinmez, pasif yapılır.
+          Her kullanıcı bir çalışan kaydına bağlıdır. Giriş hesabı aynı e-posta adresiyle oluşturulduğunda kullanıcıya otomatik olarak bağlanır. Kullanıcılar silinmez, pasife alınır.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {kullanicilar.length} kullanıcı · {kullanicilar.filter((k) => !k.auth_kullanici_id).length} tanesinin giriş hesabı yok
+          {kullanicilar.length} kullanıcı · {kullanicilar.filter((k) => !k.auth_kullanici_id).length} giriş hesabı bekliyor
         </p>
         <IslemPenceresi
           dugme="Kullanıcı ekle"
           dugmeTuru="default"
           baslik="Yeni kullanıcı"
-          aciklama="Kendinize hesap açamazsınız. Aynı e-posta ya da hesabı olan çalışan reddedilir."
+          aciklama="Her çalışan ve e-posta adresi için yalnızca bir kullanıcı tanımlanabilir. Kullanıcı kendisine hesap tanımlayamaz."
           onay="Ekle"
           islem={kullaniciEkle}
         >
           <Alan
             etiket="Çalışanın sicil numarası"
             htmlFor="sicil"
-            ipucu="Yazmaya başlayınca liste açılır. Ad soyad çalışan kaydından gelir."
+            ipucu="Ad soyad bilgisi çalışan kaydından alınır."
           >
             <Input id="sicil" name="sicil" list="k-calisanlar" required autoComplete="off" inputMode="numeric" />
           </Alan>
@@ -131,16 +130,16 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
             <option value="">Tümü</option>
             <option value="aktif">Aktif</option>
             <option value="pasif">Pasif</option>
-            <option value="hesapsiz">Giriş hesabı olmayanlar</option>
+            <option value="hesapsiz">Giriş hesabı bekleyenler</option>
           </Secim>
         </FiltreAlani>
         <FiltreAlani etiket="Ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, e-posta ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, e-posta veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
       {gosterilen.length === 0 ? (
-        <BosDurum aciklama={suzgecVar ? "Süzgeçlere uyan kullanıcı yok. Süzgeçleri temizleyip yeniden deneyin." : "Henüz kullanıcı tanımlanmadı."} />
+        <BosDurum aciklama={suzgecVar ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
       ) : (
       <TabloKutusu>
         <Table>
@@ -169,7 +168,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                     durum={
                       <span className="flex items-center gap-1.5 whitespace-nowrap">
                         {k.aktif ? <span className="text-sm">Aktif</span> : <DurumRozeti ton="notr">Pasif</DurumRozeti>}
-                        {!k.auth_kullanici_id && <span className="text-xs text-muted-foreground">· hesap yok</span>}
+                        {!k.auth_kullanici_id && <span className="text-xs text-muted-foreground">· giriş hesabı yok</span>}
                       </span>
                     }
                   >
@@ -179,7 +178,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                           dugme="Düzenle"
                           dugmeTuru="ghost"
                           baslik={k.ad_soyad}
-                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. Pasif kullanıcı giriş yapamaz."
+                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. Pasif kullanıcılar sisteme giriş yapamaz."
                           onay="Kaydet"
                           islem={kullaniciGuncelle}
                           gizli={{ kullanici_id: k.id }}
@@ -190,9 +189,9 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                                 {roller.map(([r, ad]) => <option key={r} value={r}>{ad}</option>)}
                               </Secim>
                             </Alan>
-                            <Alan etiket="Üst amir" htmlFor={`ust-${k.id}`} ipucu="Kaldırılamaz, yalnızca değiştirilir.">
+                            <Alan etiket="Üst amir" htmlFor={`ust-${k.id}`} ipucu="Üst amir kaldırılamaz, değiştirilebilir.">
                               <Secim id={`ust-${k.id}`} name="ust_amir_id" defaultValue={k.ust_amir_id ?? ""} className="h-9">
-                                <option value="">Değiştirme</option>
+                                <option value="">Değişiklik yok</option>
                                 {amirler.filter((a) => a.id !== k.id).map((a) => <option key={a.id} value={a.id}>{a.ad_soyad}</option>)}
                               </Secim>
                             </Alan>

@@ -11,7 +11,7 @@ export async function girisYap(_onceki: GirisDurumu, form: FormData): Promise<Gi
   const sifre = String(form.get("sifre") ?? "");
 
   if (!eposta || !sifre) {
-    return { hata: "E-posta ve şifre girin.", eposta };
+    return { hata: "E-posta ve şifre girilmelidir.", eposta };
   }
 
   const supabase = await sunucuIstemcisi();
@@ -19,7 +19,7 @@ export async function girisYap(_onceki: GirisDurumu, form: FormData): Promise<Gi
 
   if (error) {
     // Hangi bilginin yanlış olduğunu söylemiyoruz (hesap var mı yok mu belli olmasın).
-    return { hata: "E-posta ya da şifre hatalı.", eposta };
+    return { hata: "E-posta veya şifre hatalı.", eposta };
   }
 
   redirect("/");

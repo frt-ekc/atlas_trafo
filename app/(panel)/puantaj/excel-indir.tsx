@@ -54,10 +54,10 @@ export function ExcelIndir({
 
       const bilgi = XLSX.utils.aoa_to_sheet([
         ["Dönem", ayAdi(ay)],
-        ["Durum", durum === "kilitli" ? "Kilitli (kesin)" : "Açık (canlı hesap, kesin değil)"],
+        ["Durum", durum === "kilitli" ? "Kilitli" : "Açık (kesinleşmemiş)"],
         ["Hazırlayan", hazirlayan],
         ["Hazırlanma zamanı", new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })],
-        ["Not", "Ücret hesaplanmaz; yalnızca gün ve dakika vardır. Fark satırları önceki aylara ait düzeltmelerdir."],
+        ["Not", "Dosya yalnızca gün ve süre bilgisi içerir. Fark satırları önceki aylara ait düzeltmelerdir."],
         [
           "Kodlar",
           "NÇ normal çalışma · FM50 hafta içi fazla mesai · FM100 Pazar / resmi tatil çalışması · Yİ yıllık izin · RPR rapor · MZR mazeret · ÜCSZ ücretsiz izin · Dİ diğer izin · DVMSZ devamsız · RT resmi tatil · HT hafta tatili. Kod sayfası yalnızca kilitli ayda vardır.",
@@ -74,7 +74,7 @@ export function ExcelIndir({
 
   return (
     <Button onClick={indir} disabled={hazirlaniyor || satirlar.length === 0}>
-      {hazirlaniyor ? "Hazırlanıyor…" : durum === "kilitli" ? "Excel olarak indir" : "Taslağı Excel olarak indir"}
+      {hazirlaniyor ? "Hazırlanıyor…" : durum === "kilitli" ? "Excel indir" : "Taslak Excel indir"}
     </Button>
   );
 }

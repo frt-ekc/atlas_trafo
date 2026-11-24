@@ -75,7 +75,7 @@ select cron.unschedule('pdks-gece-isi');
 select count(*) as kalan_zamanlama from cron.job where jobname = 'pdks-gece-isi';   -- 0 olmalı
 ```
 
-Demo günü gece işi ekrandaki **Gece işini çalıştır** düğmesiyle tetiklenir.
+Demo günü gece işi ekrandaki **Gece işlemini başlat** düğmesiyle tetiklenir.
 
 ## 6. Kasım'ı gece işinden geçirme (SQL Editor)
 Seed yalnızca girdileri yazar: okutmalar, planlar, izinler. Gün kayıtlarını, soruları ve uyarıları gece işi üretir. Kasım'ın her günü sırayla işlenir:
