@@ -275,7 +275,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-36 | Düşük | Endpoint | `kart_tanimla` kart numarasının biçimini denetlemiyor | K11 | — | Sınırlılık |
 | T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | ✅ Düzeltildi (PR #40) |
 | T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | ✅ Düzeltildi (PR #37) |
-| T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | ✅ Düzeltildi (PR #..) |
+| T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | ✅ Düzeltildi (PR #55) |
 | T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | Düzelt |
 | T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | Düzelt |
 | T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
@@ -1848,7 +1848,7 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   - `gece_isi_eskale` `eskale` durumundaki ve süresi ikinci kez dolan soruları İK'ya (`ik_sorumlusu`) yeniden eskale etsin; yeni bir `ikinci_eskale_zamani` ya da sayaç.
   - Ayrıca `soru_ik_karari` her açık soruyu kabul edebilir (İK son karar verici). Ya da `kayit_duzelt` açık soruyu kapatsın (T-40 ile birlikte).
   - Yeni migration ve `gece_isi_testi`'ne ikinci kademe testi.
-- **Durum:** ✅ Düzeltildi — PR #.. (migration: `20261210010000_ikinci_eskale.sql`, test: `soru_eskale_testi.sql`).
+- **Durum:** ✅ Düzeltildi — PR #55 (migration: `20261210010000_ikinci_eskale.sql`, test: `soru_eskale_testi.sql`).
   - `gece_isi_eskale`: amir → üst amir → İK. Üst amir de son cevap tarihinden `soru_eskalasyon_gun` (3) gün sonra cevaplamadıysa soru `ik_karari_bekliyor` olur; üst amirin adı (`eskale_edilen_id`) silinmez, yeni `amir_sorusu.ik_eskale_zamani` dolar, İK'ya uyarı yazılır. Bir gecede en çok bir kademe. Üst amiri olmayan amirin sorusu ilk kademede İK'ya gider, bir daha taşınmaz.
   - `soru_ik_karari`: İK her açık soruya (`acik` / `eskale` / `ik_karari_bekliyor`) karar verebilir; son karar İK'da (K2 kural 1).
   - Ekran (Sorular, İK karar penceresi): "Amir ve üst amir (…) süresinde cevaplamadı; soru İK'ya gitti."
@@ -3529,7 +3529,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 
 | Bulgu | Demoda nerede çıkabilir | Ne olur | Nasıl kaçınılır |
 |---|---|---|---|
-| T-39 | 1. adım, Sorular | Kasım'ın 4 sorusu: S2 ve S4 üst amirden İK'ya geçmiş, S19 Levent'te (7 Aralık'ta o da İK'da), S22 İK'da | ✅ Düzeltildi (PR #..; canlıya 20261210010000 uygulandıktan sonra): İK dört soruya da karar verebilir. Anlatım: "amir → üst amir → İK" |
+| T-39 | 1. adım, Sorular | Kasım'ın 4 sorusu: S2 ve S4 üst amirden İK'ya geçmiş, S19 Levent'te (7 Aralık'ta o da İK'da), S22 İK'da | ✅ Düzeltildi (PR #55; canlıya 20261210010000 uygulandıktan sonra): İK dört soruya da karar verebilir. Anlatım: "amir → üst amir → İK" |
 | T-40 | 4–5. adım | Ali'nin ya da Mustafa'nın sorusu açıkken İK günü `kayit_duzelt` ile düzeltirse, sonraki amir cevabı İK'nın düzeltmesini ezer | Sıra belgedeki gibi: önce amir, sonra İK kararı. İK, açık sorulu günü Çalışanlar ekranından düzeltmesin |
 | T-41 | 4. adım | Amir "Saat farklı" deyip yalnızca bir saat girerse gün askıda kalır, soru kapanır | Ali için "Geldi, saat doğru" (saat girmeden); Mustafa için "Bilmiyorum". Doğaçlama yapılmasın |
 | T-46 | 4–6. adım | 7 Aralık işlendikten sonra o güne izin girilirse gün değişmez | Demoda izin girilecekse işlenmemiş bir güne (ör. 8 Aralık sonrası) girilsin |
