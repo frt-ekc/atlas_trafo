@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 17 | 12 | 5 (T-39, T-45, T-89, T-90, T-104) | 12 (25 Kasım'a kadar) | 0 |
+| Yüksek | 17 | 11 | 6 (T-39, T-45, T-71, T-89, T-90, T-104) | 11 (25 Kasım'a kadar) | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **104** | **90** | **14** | **62** | **31** |
+| **Toplam** | **104** | **89** | **15** | **61** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -307,7 +307,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | Düzelt |
 | T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | Düzelt (zaman kalırsa) |
 | T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | Düzelt |
-| T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | Düzelt (25 Kas) |
+| T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | ✅ Düzeltildi (PR #56) |
 | T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | Düzelt (25 Kas) |
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | Sınırlılık |
 | T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | Düzelt (25 Kas) |
@@ -2969,7 +2969,12 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#88 pasifken `izin_gir`: "Oturum bulunamadı…" · G#92 `kullanici_ekle çıkmış X1 için yeni hesap`: "Çalışan bulunamadı ya da aktif değil." · G#93 `kullanici_guncelle X1 hesabı aktif=true OK` · G#94 `X1 (yeniden aktif, çalışan çıkmış): gün kaydı sayısı OK 62` · G#95 `izin_gir W1 OK 9`.
 - **Sade dille:** İşten ayrılan bir İK çalışanının hesabı, sistem yöneticisinin tek tıklamasıyla geri açılabiliyor. Ayrılmış kişi bütün çalışanların puantajını görebilir ve kayıt değiştirebilir (KVKK açısından ciddi). Kimin, ne zaman açtığı da hiçbir yerde yazmıyor.
 - **Öneri:** `kullanici_guncelle`: `p_aktif = true` ise bağlı çalışan aktif olmalı. `oturum_kullanici_id`: `join calisan c on c.id = k.calisan_id and c.aktif`. Kalıcı test: çıkış → hesabı aç → ret; çıkış → oturum → yetki yok.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi — PR #56 (migration: `20261211010000_cikmis_hesap.sql`, test: `cikmis_hesap_testi.sql`).
+  - `kullanici_guncelle`: `p_aktif = true` iken bağlı çalışan aktif değilse ret: "Çalışan işten ayrılmış (çıkış: 14.10.2026); hesabı yeniden açılamaz."
+  - `oturum_kullanici_id`: hesap aktif olsa bile bağlı çalışan aktif değilse oturum yok; bütün yetki fonksiyonları ve RLS buradan geçtiği için çıkmış çalışanın açık kalmış hesabı hiçbir şey göremez, işlem yapamaz ("Oturum bulunamadı…").
+  - Temizlik: çalışanı aktif olmayan ama hesabı açık kalmış kayıtlar migration'da kapatılır.
+  - Yerelde ekranda doğrulandı (Elif çıkışı girdi → Alper hesabı açtı → Ahmet İK ekranlarına girdi; düzeltmeden sonra Ahmet "Hesabınız sisteme bağlı değil", Alper'in yeniden açma denemesi hata).
+  - Kapsam dışı: hesabı kimin ne zaman açtığının izi (`kullanici_gecmisi`, T-33 / T-72).
 
 ### T-72 · Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "admin karar vermez" kuralını aşabiliyor
 - **Adım:** 11 · **Önem:** Yüksek

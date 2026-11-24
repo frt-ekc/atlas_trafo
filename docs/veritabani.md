@@ -9,7 +9,8 @@ olarak veritabanının içinde çalışır.
 - **Giriş:** Supabase Auth. Her kullanıcının `pdks.kullanici` satırı `auth_kullanici_id` sütunuyla
   Supabase Auth kullanıcısına, `calisan_id` sütunuyla kendi çalışan kaydına bağlanır. Rol `kullanici.rol`
   sütunundadır: `amir`, `ik`, `guvenlik`, `yonetici`, `isg` (İSG uzmanı), `admin` (sistem yöneticisi). Oturumdaki kullanıcıyı `pdks.oturum_kullanici_id()`,
-  rolünü `pdks.oturum_rolu()` verir.
+  rolünü `pdks.oturum_rolu()` verir. Oturum için hem hesap (`kullanici.aktif`) hem bağlı çalışan (`calisan.aktif`)
+  aktif olmalı: işten ayrılan çalışanın hesabı açık kalsa bile oturumu yoktur ve hesap yeniden açılamaz (T-71).
 - **Yetki:** Her tabloda RLS (satır düzeyinde güvenlik) açıktır. Politikalar oturumdaki kullanıcının rolüne
   bakar. Örneğin amir yalnızca kendi departmanının sorularını görür, güvenlik yalnızca geçici kart ekranını kullanır.
 - **Veri bağlantısı:** Next.js uygulaması supabase-js ile bağlanır. Okuma sorgu oluşturucusuyla, kural içeren
@@ -88,6 +89,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/kodsuz_gun_testi.sql` | Kodsuz gün: zorlamadan ret ve mesajdaki gün listesi (10 gün sınırı), zorla kilit özeti, kodsuz gün yokken kilit için 8 test |
 | `supabase/migrations/20261210010000_ikinci_eskale.sql` | `amir_sorusu.ik_eskale_zamani`; `gece_isi_eskale` ikinci kademe (üst amir de cevaplamazsa `ik_karari_bekliyor`); `soru_ik_karari` her açık soruyu kabul eder (T-39) |
 | `supabase/tests/soru_eskale_testi.sql` | Soru eskalasyonu: amir → üst amir → İK, süre sınırları, bir gecede bir kademe, üst amiri olmayan amir, İK'nın her açık soruya kararı ve gün hesabı için 17 test |
+| `supabase/migrations/20261211010000_cikmis_hesap.sql` | `kullanici_guncelle` işten ayrılmış çalışanın hesabını açmaz; `oturum_kullanici_id` bağlı çalışanın aktif olmasını şart koşar; açık kalmış hesaplar kapatılır (T-71) |
+| `supabase/tests/cikmis_hesap_testi.sql` | Çıkmış çalışanın hesabı: yeniden açma reddi, elle açık hesapla oturum ve işlem yok, çalışmaya devam edenin hesabı için 8 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
