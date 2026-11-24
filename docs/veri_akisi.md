@@ -32,7 +32,7 @@ Değişen sütunlar ayrıca yazıldı.
 | `dosya_yukle` | İK | `aktarim` +1, `ham_okutma` +1 | `aktarim.yukleyen_id` (T-13 düzeltildi) | ✅ SQL'de. ✅ HTTP'de (T-31 düzeltildi) |
 | `gece_isi_tetikle` | İK | `gece_isi` +1, `gun_kaydi` +76, `amir_sorusu` +1, `duzeltme` +2, `fazla_mesai_inceleme` +1, `okutma_isareti` +7, `uyari` +7 | `duzeltme`, `gece_isi` | ✅ |
 | `soru_cevapla` | amir | `amir_sorusu` ~1 (cevap, cevap_giris, cevap_zamani, cevaplayan_id, durum), `duzeltme` +1, `gun_kaydi` ~1 (giriş + bütün dakika alanları) | `duzeltme` | ✅ Gün hemen yeniden hesaplanıyor |
-| `soru_ik_karari` | İK | `amir_sorusu` ~1 (cevap_aciklama, **cevaplayan_id**, durum), `duzeltme` +1, `gun_kaydi` ~1 | `duzeltme` | ⚠️ Amirin adı soru kaydından siliniyor (T-32) |
+| `soru_ik_karari` | İK | `amir_sorusu` ~1 (ik_karari, **cevaplayan_id**, durum), `duzeltme` +1, `gun_kaydi` ~1 | `duzeltme` | ⚠️ Amirin adı soru kaydından siliniyor (T-32) |
 | `kayit_duzelt` | İK | `duzeltme` +1, `gun_kaydi` ~1 (giris_zamani, giris_kaynagi) | `duzeltme` | ✅ Gün yeniden hesaplanıyor; bu örnekte dakikalar değişmedi (erken geliş sayılmaz). ⚠️ Başka günün itirazı bağlanabiliyor (T-34) |
 | `itiraz_gir` | amir, İK | `itiraz` +1 | `itiraz` (giren, zaman) | ✅ |
 | `itiraz_incelemeye_al` | İK | `itiraz` ~1 (yalnızca durum) | — | ⚠️ Kim / ne zaman yok (T-35) |

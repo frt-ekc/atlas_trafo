@@ -97,6 +97,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/yukleyen_testi.sql` | Yükleyen: kayıt, asıl ve geçici kart, kapı dosyası, yeniden gelen okutma, uyarıyı kim görür / kapatır için 21 test |
 | `supabase/migrations/20261214010000_rapor_gizliligi.sql` | `duzeltme.amir_okur` kaldırıldı; `v_duzeltme_amir` görünümü (kendi çalışanları, gizli gerekçe, "raporlu" → "izinli") (T-12) |
 | `supabase/tests/rapor_gizliligi_testi.sql` | Rapor gizliliği: tablo amire kapalı, görünümün gizlediği ve gösterdiği alanlar, departman sınırı, yetkiler için 19 test |
+| `supabase/migrations/20261215010000_ik_karar_gerekcesi.sql` | `amir_sorusu.ik_karari`; `soru_ik_karari` gerekçeyi yalnızca `duzeltme`'ye yazar; `v_duzeltme_amir` İK soru kararında da gerekçeyi gizler; eski kayıtlar temizlenir (T-106) |
+| `supabase/tests/ik_karar_gerekcesi_testi.sql` | İK karar gerekçesi: amirin okuyabildiği her yer taranır, sonuç ve amirin kendi notu görünür, İK / yönetici gerekçeyi görür için 13 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
