@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 8 | 11 (T-12, T-13, T-39, T-45, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 8 | 0 |
+| Yüksek | 19 | 7 | 12 (T-12, T-13, T-39, T-45, T-47, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 7 | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **86** | **20** | **58** | **31** |
+| **Toplam** | **106** | **85** | **21** | **57** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -283,7 +283,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | Düzelt (25 Kas) |
-| T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | Düzelt (25 Kas) |
+| T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | Düzelt |
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | Düzelt |
 | T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | Düzelt |
@@ -2128,7 +2128,7 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** İK önce yanlışlıkla yıllık izin girip sonra doğru olan raporu girerse sistem ikisini de kabul ediyor. Günü de ilk girilene, yani yıllık izne göre yazıyor. Çalışan raporluyken yıllık izin hakkından gün düşer ve puantaj ERP'ye yanlış kodla gider. İki İK uzmanı aynı izni ayrı ayrı girerse de bunu fark eden bir şey yok.
 - **Öneri:** `izin` tablosuna `exclude using gist (calisan_id with =, daterange(baslangic, bitis, '[]') with &&) where (iptal_zamani is null)` (btree_gist gerekir) ya da `izin_gir`'de denetim ve Türkçe hata. Saatlik izin, tam gün izinli güne girilmemeli. Bu eklenmezse gece işinde rapor öncelikli seçilmeli.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T47-cakisan-izin). Migration: `20261218010000_cakisan_izin.sql`, test: `cakisan_izin_testi.sql`. `izin_gir` kesişen geçerli izni, `saatlik_izin_gir` tam gün izinli günü Türkçe mesajla reddeder; iki fonksiyon da çalışan satırını kilitler (iki İK aynı anda giremez). Ters yön (saatlik izinden sonra aynı güne tam gün izin) bilerek açık: viziteden sonra rapor alınabilir, saatlik izin silinemez.
 
 ### T-48 · Kilitli aya izin girilebiliyor
 - **Adım:** 8 · **Önem:** Orta
