@@ -25,6 +25,8 @@ import { AktarimFormu } from "./aktarim-formu";
 export const metadata = { title: "Veri aktarımı" };
 
 type Aktarim = { id: number; kaynak: Kaynak; dosya_adi: string; veri_tarihi: string; satir_sayisi: number; aktarim_zamani: string };
+// Yükleyen boşsa: T-13'ten önce ya da SQL ile yüklenmiş dosya
+type SonAktarim = Aktarim & { yukleyen: { ad_soyad: string } | null };
 
 const KAYNAKLAR = Object.keys(KAYNAK_ADI) as Kaynak[];
 const SON_AKTARIM_SAYISI = 20;
@@ -104,9 +106,9 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
     ),
     supabase
       .from("aktarim")
-      .select("id, kaynak, dosya_adi, veri_tarihi, satir_sayisi, aktarim_zamani")
-      .order("veri_tarihi", { ascending: false })
-      .order("kaynak")
+      .select("id, kaynak, dosya_adi, veri_tarihi, satir_sayisi, aktarim_zamani, yukleyen:kullanici!yukleyen_id(ad_soyad)")
+      // Son yüklenen en üstte: geçmiş bir güne sonradan yüklenen dosya da listede görünür (T-13)
+      .order("id", { ascending: false })
       .limit(SON_AKTARIM_SAYISI),
     supabase
       .from("gece_isi")
@@ -124,7 +126,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
   if (sonlar.error) throw new Error(`Aktarımlar okunamadı: ${sonlar.error.message}`);
 
   const okuyucular = (okuyucuSonucu.data ?? []) as Okuyucu[];
-  const sonAktarimlar = (sonlar.data ?? []) as Aktarim[];
+  const sonAktarimlar = (sonlar.data ?? []) as unknown as SonAktarim[];
   const geceIsleri = (geceIsiSonucu.data ?? []) as GeceIsi[];
   const arizalar = (arizaSonucu.data ?? []) as unknown as Ariza[];
   const ik = kullanici.rol === "ik";
@@ -272,6 +274,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                   <TableHead>Tür</TableHead>
                   <TableHead className="w-full">Dosya</TableHead>
                   <TableHead className="text-right">Satır</TableHead>
+                  <TableHead>Yükleyen</TableHead>
                   <TableHead>Aktarım zamanı</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,6 +285,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                     <TableCell>{KAYNAK_ADI[a.kaynak]}</TableCell>
                     <TableCell className="font-mono text-xs">{a.dosya_adi}</TableCell>
                     <TableCell className="text-right tabular-nums">{a.satir_sayisi.toLocaleString("tr-TR")}</TableCell>
+                    <TableCell className={a.yukleyen ? undefined : "text-muted-foreground"}>{a.yukleyen?.ad_soyad ?? "Bilinmiyor"}</TableCell>
                     <TableCell className="tarih-hucre">{tarihSaat(a.aktarim_zamani)}</TableCell>
                   </TableRow>
                 ))}

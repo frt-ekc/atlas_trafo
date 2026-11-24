@@ -140,6 +140,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261210010000_ikinci_eskale.sql` | Soru amir → üst amir → İK: üst amir de cevaplamazsa İK'ya geçer; İK her açık soruya karar verir (T-39) |
 | `20261211010000_cikmis_hesap.sql` | İşten ayrılan çalışanın hesabı yeniden açılamaz; açık kalsa bile oturum yok (T-71) |
 | `20261212010000_ayar_sinirlari.sql` | Ayarlara aralık (`en_az` / `en_cok`) ve yasal sınır; mola sıralaması; puantajı etkileyen ayar değişince İK'ya uyarı (T-74) |
+| `20261213010000_yukleyen.sql` | Dosyayı yükleyen kaydedilir (`aktarim.yukleyen_id`); yükleyenin kendi okutmasını içeren dosyada diğer İK'ya uyarı (T-13) |
 
 ---
 
@@ -229,6 +230,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Soru eskalasyonu (T-39): amir → üst amir → İK; bir gecede en çok bir kademe; İK her açık soruya karar verir, gün hesaplanır (17 test) | ✅ |
 | Çıkmış çalışanın hesabı (T-71): admin yeniden açamaz; elle açılsa bile oturum ve işlem yok; çalışmaya devam edenin hesabı açılıp kapanır (8 test) | ✅ |
 | Ayar sınırları (T-74): her ayarda aralık dışı ret, sınır değer kabul; mola sıralaması; sayı olmayan giriş Türkçe mesajla ret; İK'ya uyarı (68 test) | ✅ |
+| Yükleyen (T-13): yükleyen kaydı, kendi asıl / geçici kartını içeren dosyada uyarı, uyarıyı yükleyen görmez ve kapatamaz (21 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
