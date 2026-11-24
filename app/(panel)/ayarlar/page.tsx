@@ -92,23 +92,22 @@ export default async function AyarlarSayfasi({ searchParams }: PageProps<"/ayarl
                   <TableRow>
                     <TableHead className="w-full">Ayar</TableHead>
                     <TableHead className="text-right">Değer</TableHead>
-                    <TableHead className="text-right">İzin verilen aralık</TableHead>
-                    <TableHead>Son değişiklik</TableHead>
+                    <TableHead className="max-sm:hidden">Son değişiklik</TableHead>
                     <TableHead><span className="sr-only">İşlem</span></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {gosterilenAyarlar.map((a) => (
                     <TableRow key={a.anahtar}>
-                      <TableCell className="min-w-72 whitespace-normal">
+                      <TableCell className="min-w-32 whitespace-normal break-words sm:min-w-48">
                         <div className="text-sm">{a.aciklama}</div>
-                        <div className="font-mono text-xs text-muted-foreground">{a.anahtar}</div>
+                        <div className="font-mono text-xs break-all text-muted-foreground">{a.anahtar}</div>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {a.deger.toLocaleString("tr-TR")} <span className="text-muted-foreground">{a.birim}</span>
+                        <div className="text-xs text-muted-foreground"><span className="sr-only">İzin verilen aralık: </span>{aralik(a)}</div>
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{aralik(a)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground max-sm:hidden">
                         {a.guncelleyen ? (
                           <>
                             {a.guncelleyen.ad_soyad}
