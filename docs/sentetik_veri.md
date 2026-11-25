@@ -39,6 +39,24 @@ from generate_series(date '2026-10-01', date '2026-10-31', interval '1 day') g;
 
 Betik tek işlemdir: hata olursa hiçbir şey yazılmaz. İkinci kez çalıştırılırsa yazmadan durur. Canlı Supabase'e yüklemek Fırat'ın onayıyla yapılır; önce yerelde denenir.
 
+## Seed'siz canlı kurulum (`--kurulum`)
+
+```bash
+node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-11-29   # ilk kurulum (30 Kasım)
+node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-12-06   # ikinci kurulum (6 Aralık)
+```
+
+Seed'in 4 haneli demo kişileri olmadan (Elif Şen ve Ahmet Er burada İnsan Kaynakları departmanındadır), boş veritabanına yüklenecek bütün veriyi üretir. Çıktı `veri/kurulum/` klasörüne yazılır. `--kurulum` verilmezse betiğin çıktısı eskisiyle birebir aynıdır.
+
+- **Önce** `supabase/canli/kurulum.sql` (yalnızca yapı) yüklenir, sonra `veri/kurulum/yukle.sql`. Adımlar: `docs/canli_kurulum.md`.
+- **Kadro:** sisteme giren 25 kişi (`scripts/kadro.mjs`) departmanlarının mevcuduna dahildir; toplam yine 180 çalışan (+ geçmişte ayrılmış pasifler). 8 haneli sicil, kart, plan, okutma ve hata oranları diğerleriyle aynıdır. Sicilleri sabit tohumla üretilir: `--tohum` ya da tarih değişse de aynı kalır.
+- **`kullanicilar.csv`:** e-posta, rol, sicil. `yukle.sql` çalışanlardan sonra kullanıcıları, üst amir zincirini, departman amirlerini, Bobinaj vekilini ve bölge yetkilerini kurar.
+- **Girenler:** izin ve planı İK uzmanı (kendi kaydını İK müdürü), İSG belgesini İSG uzmanı, geçici kartı güvenlik görevlisi girer; kimse kendi kaydında işlem yapmaz.
+- **Arife:** 28 Ekim'de çalışma 13:00'te biter, 13:00'te ya da sonra başlayan vardiyaya gelinmez (T-28).
+- **Son gün:** üretim hep 7 Aralık'a kadar yapılır, okutmalar `--bit`'te kesilir. Bu yüzden ortak günler birebir aynıdır ve vardiya planları 7 Aralık dahil hazırdır. `--bit`'ten sonrasına dosya, zimmet, rapor ve mazeret izni yazılmaz; önceden girilmiş yıllık izin kalabilir.
+- **Yazılı fazla mesai onayı:** çalışanların ~%90'ında (164), 5 Ocak 2026 imzalı; 2026'da girenlerde işe giriş tarihli.
+- **Kontrol bloğu:** `yukle.sql` sonunda; tutmazsa bütün yükleme geri alınır.
+
 ## Gerçeğe benzerlik ölçütleri
 
 | Alan | Nasıl üretildi |
@@ -77,5 +95,5 @@ Kesin sayılar her üretimde `veri/sentetik/ozet.md` dosyasındadır.
 ## Bilerek yapılmayanlar
 
 - **TC kimlik no, doğum tarihi, adres, telefon üretilmez.** Şemada yoktur ve PDKS için gerekmez (KVKK: veri en aza indirme).
-- **Fazla mesai yazılı onayı üretilmez**; bu yüzden vardiya sonrası kalanlar havuza düşer.
+- **Fazla mesai yazılı onayı üretilmez** (`--kurulum` hariç); bu yüzden vardiya sonrası kalanlar havuza düşer.
 - Yeni çalışanların Kasım planı yoktur; Kasım ekranlarında yalnızca seed'in 76 kişisi işlenir.

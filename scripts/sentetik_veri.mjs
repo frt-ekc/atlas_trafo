@@ -8,6 +8,8 @@
 // Çalıştırma (repo kökünde):
 //   node scripts/sentetik_veri.mjs                 # varsayılan: Ekim 2026, 180 kişi
 //   node scripts/sentetik_veri.mjs --bas 2026-10-01 --bit 2026-10-31 --tohum 7
+//   node scripts/sentetik_veri.mjs --kurulum       # seed'siz canlı kurulum: kadro (25 kullanıcı) dahil,
+//                                                  # planlar 7 Aralık dahil, okutmalar --bit'e kadar; çıktı veri/kurulum/
 //
 // Çıktı: veri/sentetik/ (git'e girmez; her çalıştırmada aynı tohumla birebir aynı çıkar)
 //   calisanlar.csv, kartlar.csv, vardiya_plani.csv, izinler.csv, isg_belgeleri.csv,
@@ -20,6 +22,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as I from "./isimler.mjs";
+import { KADRO, BOBINAJ_VEKILI, MAVI_UST_AMIR, BEYAZ_UST_AMIR } from "./kadro.mjs";
 
 // ---------------------------------------------------------------------
 // 0. Parametreler
@@ -28,10 +31,16 @@ const arg = (ad, varsayilan) => {
   const i = process.argv.indexOf(`--${ad}`);
   return i > 0 ? process.argv[i + 1] : varsayilan;
 };
+// --kurulum: seed'siz kurulum. Verilmezse davranış ve çıktı eskisiyle birebir aynıdır.
+const KURULUM = process.argv.includes("--kurulum");
 const BAS = arg("bas", "2026-10-01");
-const BIT = arg("bit", "2026-10-31");
+const BIT = arg("bit", KURULUM ? "2026-12-06" : "2026-10-31");
+// Kurulumda üretim hep bu güne kadar yapılır, okutmalar sonra --bit'te kesilir: --bit değişse de
+// ortak günler birebir aynı kalır ve demo gününün (7 Aralık) planları hazır olur.
+const KURULUM_PLAN_BIT = "2026-12-07";
+if (KURULUM && BIT > KURULUM_PLAN_BIT) throw new Error(`--kurulum için --bit en çok ${KURULUM_PLAN_BIT} olabilir.`);
 const TOHUM = Number(arg("tohum", "20261001"));
-const CIKTI = arg("cikti", "veri/sentetik");
+const CIKTI = arg("cikti", KURULUM ? "veri/kurulum" : "veri/sentetik");
 const BUGUN = arg("bugun", "2026-11-20"); // "aktif" alanı ve İSG belge tarihleri buna göre
 
 // Tohumlu rastgele sayı üreteci (mulberry32): aynı tohum → aynı veri
@@ -80,7 +89,9 @@ const haftaGunu = (d) => ((d.getUTCDay() + 6) % 7) + 1; // 1 = Pazartesi … 7 =
 
 const RESMI_TATIL = new Set(["2026-01-01", "2026-03-20", "2026-03-21", "2026-03-22", "2026-04-23", "2026-05-01",
   "2026-05-19", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-07-15", "2026-08-30", "2026-10-29"]);
-// Arifelerde (28 Ekim vb.) tam gün okutma üretilir; 13:00 sonrası sistemde FM100 ya da havuz olur (docs/veritabani.md).
+// Kurulumda arife günü çalışma 13:00'te biter; 13:00'te ya da sonra başlayan vardiyaya gelinmez (T-28).
+const ARIFE = new Set(["2026-03-19", "2026-05-26", "2026-10-28"]);
+// Kurulum dışında arifelerde (28 Ekim vb.) tam gün okutma üretilir; 13:00 sonrası sistemde FM100 ya da havuz olur (docs/veritabani.md).
 
 // Vardiya tanımları (veritabanındaki pdks.vardiya_tanim ile aynı kodlar)
 const VARDIYA = {
@@ -170,7 +181,8 @@ function dogumYili(iseGiris, yaka) {
 //           biçim, ör. 0004817263). Her kart tek; geçici kartlar (GK-..) ile çakışmaz.
 // ---------------------------------------------------------------------
 const donemBas = gun(BAS);
-const donemBit = gun(BIT);
+const donemBit = gun(KURULUM ? KURULUM_PLAN_BIT : BIT);
+const okutmaSonu = gunEkle(gun(BIT), 1); // bu andan önceki okutmalar yazılır (kurulum)
 const bugun = gun(BUGUN);
 
 function iseGirisTarihi(yaka) {
@@ -182,9 +194,42 @@ function iseGirisTarihi(yaka) {
   return haftaGunu(d) >= 6 ? gunEkle(d, 8 - haftaGunu(d)) : d; // işe giriş hafta içi
 }
 
+// Kurulum kadrosunun sicilleri: kendi sabit tohumuyla üretilir; --tohum ya da tarih değişse de aynı çıkar.
+// Biçim ve sıra kuralı diğer çalışanlarla aynıdır (aşağıda "Sicil").
+const YILLIK_ISE_ALIM = 30;
+const siraHedefi = (d) => 1 + Math.floor(((d - gun(`${d.getUTCFullYear()}-01-01`)) / 86400000 / 366) * YILLIK_ISE_ALIM);
+const kadroSicilleri = new Set();
+const kadro = KURULUM ? KADRO.map((x) => ({ ...x, ise_giris: gun(x.ise_giris) })) : [];
+if (KURULUM) {
+  const kr = uretec(20260101);
+  [...kadro].sort((a, b) => a.ise_giris - b.ise_giris).forEach((x) => {
+    if (haftaGunu(x.ise_giris) >= 6) throw new Error(`Kadro işe giriş tarihi hafta sonu: ${x.ad} ${x.soyad}`);
+    let sira = siraHedefi(x.ise_giris) + Math.floor(kr() * 2);
+    const no = () => `${x.ise_giris.getUTCFullYear()}${String(sira).padStart(4, "0")}`;
+    while (kadroSicilleri.has(no())) sira += 1;
+    x.sicil = no();
+    kadroSicilleri.add(x.sicil);
+  });
+  for (const x of kadro) if (!DEPARTMANLAR.some((d) => d.ad === x.departman)) throw new Error(`Kadro departmanı yok: ${x.departman}`);
+}
+
 const kisiler = [];
 DEPARTMANLAR.forEach((dep) => {
+  const depKadro = kadro.filter((x) => x.departman === dep.ad); // departmanın ilk kişileri kadrodur
+  if (depKadro.length > dep.kisi) throw new Error(`Kadro departman mevcudunu aşıyor: ${dep.ad}`);
   for (let i = 0; i < dep.kisi; i++) {
+    const x = depKadro[i];
+    if (x) {
+      kisiler.push({
+        kadro: x, ad: x.ad, soyad: x.soyad, sicil: x.sicil, dogum: x.dogum, dep, duzen: dep.duzen(i),
+        ise_giris: x.ise_giris, isten_cikis: null,
+        servis: olasilik(dep.yaka === "mavi" ? 0.65 : 0.22) ? sec(SERVISLER) : null,
+        yemek: dep.yaka === "mavi" ? 0.9 : 0.72,
+        erkenci: normal(13, 5),
+        kapi: olasilik(0.8) ? "KAPI-1" : "KAPI-2",
+      });
+      continue;
+    }
     const cinsiyet = olasilik(dep.yaka === "mavi" ? 0.07 : 0.42) ? "K" : "E";
     const iseGiris = iseGirisTarihi(dep.yaka);
     const duzen = dep.duzen(i);
@@ -203,15 +248,17 @@ DEPARTMANLAR.forEach((dep) => {
 const donemGunleri = [];
 for (let d = donemBas; d <= donemBit; d = gunEkle(d, 1)) donemGunleri.push(d);
 const isGunleri = donemGunleri.filter((d) => haftaGunu(d) <= 5 && !RESMI_TATIL.has(gunMetni(d)));
-const mavi = kisiler.filter((k) => k.dep.yaka === "mavi");
+// Kurulumda giriş / çıkışlar geçmişte kalır (veri ileri tarihli günleri de kapsar)
+const hareketGunleri = KURULUM ? isGunleri.filter((d) => d < bugun) : isGunleri;
+const mavi = kisiler.filter((k) => k.dep.yaka === "mavi" && !k.kadro);
 for (let i = 0; i < 2; i++) {
   const k = sec(mavi);
-  k.ise_giris = sec(isGunleri.slice(1, -3));
+  k.ise_giris = sec(hareketGunleri.slice(1, -3));
   k.dogum = dogumYili(k.ise_giris, "mavi");
 }
 for (let i = 0; i < 2; i++) {
-  const k = sec(kisiler.filter((x) => x.ise_giris < donemBas && !x.isten_cikis));
-  k.isten_cikis = sec(isGunleri.slice(3, -1));
+  const k = sec(kisiler.filter((x) => x.ise_giris < donemBas && !x.isten_cikis && !x.kadro));
+  k.isten_cikis = sec(hareketGunleri.slice(3, -1));
 }
 // Geçmişte ayrılmış ~8 eski çalışan (pasif; okutması yok, ama çalışan listesinde görünür)
 DEPARTMANLAR.filter((d) => d.yaka === "mavi").forEach((dep) => {
@@ -227,19 +274,18 @@ DEPARTMANLAR.filter((d) => d.yaka === "mavi").forEach((dep) => {
 });
 
 // Adlar (kuşağa göre)
-kisiler.forEach((k) => (k.ad = adSec(k.cinsiyet, k.dogum)));
+kisiler.forEach((k) => { if (!k.kadro) k.ad = adSec(k.cinsiyet, k.dogum); });
 
 // Sicil: <işe giriş yılı (4 hane)><o yıl içindeki sıra no (4 hane)> = 8 hane, ör. 20180214
 //   (2018'de işe giren 14. kişi). Firma her yıl ~YILLIK_ISE_ALIM kişi işe alır ve yılbaşında
 //   sıra 0001'den başlar. Ayrılanın numarası yeniden verilmez; bugün çalışanlar o yılın işe
 //   alınanlarından kalanlardır: eski yıllarda numaralar seyrek, son yıllarda sık.
-const YILLIK_ISE_ALIM = 30;
+//   Kurulumda kadronun numaraları ayrılmıştır; diğerleri onları atlar.
 const oncekiSira = new Map();
-[...kisiler].sort((a, b) => a.ise_giris - b.ise_giris).forEach((k) => {
+[...kisiler].filter((k) => !k.kadro).sort((a, b) => a.ise_giris - b.ise_giris).forEach((k) => {
   const yil = k.ise_giris.getUTCFullYear();
-  const yilinGunu = (k.ise_giris - gun(`${yil}-01-01`)) / 86400000;
-  const hedef = 1 + Math.floor((yilinGunu / 366) * YILLIK_ISE_ALIM);
-  const sira = Math.max((oncekiSira.get(yil) ?? 0) + 1, hedef + aralik(0, 1));
+  let sira = Math.max((oncekiSira.get(yil) ?? 0) + 1, siraHedefi(k.ise_giris) + aralik(0, 1));
+  while (kadroSicilleri.has(`${yil}${String(sira).padStart(4, "0")}`)) sira += 1;
   oncekiSira.set(yil, sira);
   k.sicil = `${yil}${String(sira).padStart(4, "0")}`;
 });
@@ -317,7 +363,8 @@ aktifKisiler.forEach((k) => {
 const okutmalar = []; // { kaynak, okuyucu, kart, zaman(Date), yon }
 const ekle = (kaynak, okuyucu, kart, zaman, yon) => okutmalar.push({ kaynak, okuyucu, kart, zaman, yon });
 const sayac = {};
-const say = (ad) => (sayac[ad] = (sayac[ad] ?? 0) + 1);
+let sayilir = true; // kurulumda okutması yazılmayan günler özete sayılmaz
+const say = (ad) => { if (sayilir) sayac[ad] = (sayac[ad] ?? 0) + 1; };
 
 // Servis seferleri: aynı gün, aynı hat, aynı vardiya için tek sefer → kişiler birkaç saniye arayla okutur
 const sefer = new Map();
@@ -337,12 +384,18 @@ const zimmetler = [];
 
 planlar.forEach(({ k, d, v }) => {
   const tarih = gunMetni(d);
+  sayilir = !KURULUM || d < okutmaSonu;
   if (k.izin && d >= k.izin.bas && d <= k.izin.bit) return say("izinli_gun");
   if (olasilik(0.003)) return say("devamsiz_gun"); // haber vermeden gelmedi: hiç okutma yok
 
   const [bs, bt] = VARDIYA[v];
   const bas = saatte(d, bs);
-  const bit = saatte(v === "AKSAM_8" || v === "V3" ? gunEkle(d, 1) : d, bt);
+  let bit = saatte(v === "AKSAM_8" || v === "V3" ? gunEkle(d, 1) : d, bt);
+  const arife = KURULUM && ARIFE.has(tarih) ? saatte(d, "13:00") : null;
+  if (arife) {
+    if (bas >= arife) return say("arife_tatil_gunu");
+    if (bit > arife) bit = arife;
+  }
 
   // PDKS giriş ve çıkış saatleri
   let giris, cikis;
@@ -350,6 +403,7 @@ planlar.forEach(({ k, d, v }) => {
   if (v === "ESNEK") {
     giris = dkEkle(saatte(d, "08:00"), aralik(0, 90) + r());
     cikis = dkEkle(giris, 540 + aralik(-35, 35));
+    if (arife) cikis = dkEkle(arife, aralik(1, 10) + r());
   } else {
     giris = dkEkle(bas, -Math.max(1, normal(k.erkenci, 4)) + r());
     if (olasilik(0.03)) { giris = dkEkle(bas, aralik(6, 45) + r()); gec = true; say("gec_kalma"); }
@@ -365,7 +419,8 @@ planlar.forEach(({ k, d, v }) => {
   if (olasilik(0.0025)) {
     // Kart boşta mı? (kesin veriliş / iade saati, o günün okutmaları yazıldıktan sonra belirlenir)
     const gk = geciciKartlar.find((g) => g.bosZaman < dkEkle(giris, -20));
-    if (gk) {
+    // Kartı veren güvenlik görevlisi kendine kart veremez (görevler ayrılığı)
+    if (gk && k.kadro?.rol !== "guvenlik") {
       kart = gk.no;
       gecici = gk;
       say("gecici_kart_gunu");
@@ -440,7 +495,16 @@ okutmalar.forEach((o) => {
   o.zaman = new Date(Math.floor(o.zaman.getTime() / 1000) * 1000);
   benzersiz.set(`${o.okuyucu}|${o.kart}|${o.zaman.getTime()}`, o);
 });
-const tumOkutmalar = [...benzersiz.values()].sort((a, b) => a.zaman - b.zaman);
+const tumOkutmalar = [...benzersiz.values()].filter((o) => !KURULUM || o.zaman < okutmaSonu).sort((a, b) => a.zaman - b.zaman);
+if (KURULUM) {
+  // Son günden sonra verilen kart yazılmaz; son günden sonra iade edilecek kart iade edilmemiş kalır
+  const sinir = zamanMetni(okutmaSonu);
+  const kalan = zimmetler.filter((z) => z.verilis < sinir).map((z) => (z.iade < sinir ? z : { ...z, iade: "" }));
+  zimmetler.splice(0, zimmetler.length, ...kalan);
+  // İleri tarihli rapor ve mazeret bilinemez; yıllık / ücretsiz izin önceden girilmiş olabilir
+  const gecerli = izinler.filter((i) => i.bas <= BIT || !["rapor", "mazeret"].includes(i.tur));
+  izinler.splice(0, izinler.length, ...gecerli);
+}
 
 // ---------------------------------------------------------------------
 // 7. Dosyaları yaz
@@ -455,6 +519,7 @@ yaz("calisanlar.csv",
   ["sicil_no", "ad", "soyad", "departman", "yaka", "vardiya_duzeni", "ise_giris_tarihi", "isten_cikis_tarihi", "kart_no", "servis"],
   tumKisiler.map((k) => [k.sicil, k.ad, k.soyad, k.dep.ad, k.dep.yaka, k.duzen, gunMetni(k.ise_giris),
     k.isten_cikis ? gunMetni(k.isten_cikis) : "", k.kart, k.servis ?? ""]));
+if (KURULUM) yaz("kullanicilar.csv", ["eposta", "rol", "sicil_no"], kadro.map((x) => [x.eposta, x.rol, x.sicil]));
 yaz("kartlar.csv", ["kart_no", "sicil_no", "durum", "iptal_nedeni", "verilis_tarihi", "iptal_zamani"],
   kartlar.map((c) => [c.no, c.sicil, c.durum, c.neden, gunMetni(c.verilis), c.iptal]));
 yaz("vardiya_plani.csv", ["sicil_no", "tarih", "vardiya_kod"], planlar.map((p) => [p.k.sicil, gunMetni(p.d), p.v]));
@@ -477,10 +542,24 @@ aktifKisiler.filter((k) => k.dep.yaka === "mavi").forEach((k) => {
 });
 yaz("isg_belgeleri.csv", ["sicil_no", "tur", "gecerlilik_bitis", "belge_no"], isg);
 
+// Yazılı fazla mesai onayı (yalnızca kurulum): çalışanların ~%90'ında, 2026 yılbaşı imzalı; yıl içinde
+// girenlerde işe giriş tarihli. Kendi üretecini kullanır, diğer veriyi etkilemez.
+const fmOnaylari = [];
+if (KURULUM) {
+  const fr = uretec(TOHUM + 1);
+  [...aktifKisiler].sort((a, b) => a.sicil.localeCompare(b.sicil)).forEach((k) => {
+    if (fr() >= 0.9) return;
+    const yilBasi = gun("2026-01-05"); // yılın ilk iş haftası
+    fmOnaylari.push([k.sicil, gunMetni(k.ise_giris > yilBasi ? k.ise_giris : yilBasi), `FMO-2026-${k.sicil}`]);
+  });
+  yaz("fazla_mesai_onaylari.csv", ["sicil_no", "imza_tarihi", "belge_no"], fmOnaylari);
+}
+
 // Okutma dosyaları: her kaynak için her gün bir dosya (uygulamanın Veri Aktarımı ekranındaki biçim)
 const dosyalar = [];
 // Dönemin her günü (+ ertesi sabah) için dosya yazılır, boş olsa bile: "dosya gelmedi" uyarısı çıkmasın
-const gunler = [...new Set([...donemGunleri, gunEkle(donemBit, 1)].map(gunMetni)
+// Kurulumda son günden sonrasına boş dosya yazılmaz: o günün dosyası demoda yüklenecek olabilir
+const gunler = [...new Set((KURULUM ? donemGunleri.filter((d) => d < okutmaSonu) : [...donemGunleri, gunEkle(donemBit, 1)]).map(gunMetni)
   .concat(tumOkutmalar.map((o) => gunMetni(o.zaman))))].sort();
 for (const kaynak of ["pdks", "kapi", "yemekhane", "servis"]) {
   for (const g of gunler) {
@@ -500,10 +579,117 @@ yaz("okutma/dosyalar.csv", ["kaynak", "dosya_adi", "veri_tarihi", "satir_sayisi"
 // ---------------------------------------------------------------------
 const yol = (ad) => `${CIKTI}/${ad}`.replaceAll("\\", "/");
 const kopya = (tablo, ad) => `\\copy ${tablo} from '${yol(ad)}' with (format csv, header true, delimiter ';', encoding 'UTF8')`;
+// Kayıtları giren kullanıcılar. Kurulumda kadrodan, yoksa seed'in demo sicillerinden bulunur.
+const kisiBul = (rol, gorev) => kadro.find((x) => x.rol === rol && (!gorev || x.gorev === gorev))?.sicil;
+const SICIL_IK = KURULUM ? kisiBul("ik", "İK uzmanı") : "4001";
+const SICIL_IK_MUDUR = KURULUM ? kisiBul("ik", "İK müdürü") : null;
+const SICIL_GUVENLIK = KURULUM ? kisiBul("guvenlik") : "4003";
+const SICIL_ISG = KURULUM ? kisiBul("isg") : "6602";
+const kullaniciSec = (sicil, rol) =>
+  `(select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '${sicil}' and k.rol = '${rol}')`;
+// İK uzmanının kendi kayıtlarını İK müdürü girer (görevler ayrılığı)
+const girenIk = (sutun) => (KURULUM
+  ? `case when ${sutun} = '${SICIL_IK}' then ${kullaniciSec(SICIL_IK_MUDUR, "ik")} else ${kullaniciSec(SICIL_IK, "ik")} end`
+  : kullaniciSec(SICIL_IK, "ik"));
+const tirnak = (x) => `'${x.replaceAll("'", "''")}'`;
+
+const onKosul = KURULUM ? `do $$
+begin
+    if (select count(*) from pdks.departman) <> 19 or not exists (select 1 from pdks.bolge where kod = 'YG-LAB') then
+        raise exception 'Önce supabase/canli/kurulum.sql yüklenmeli (19 departman ve bölgeler yok).';
+    end if;
+    if exists (select 1 from pdks.calisan) or exists (select 1 from pdks.kullanici) then
+        raise exception 'Veritabanında çalışan ya da kullanıcı var; kurulum yalnızca boş veriye yüklenir.';
+    end if;
+end $$;` : `do $$
+begin
+    if not exists (select 1 from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4001' and k.rol = 'ik') then
+        raise exception 'Önce supabase/seed.sql yüklenmeli (sicil 4001 İK kullanıcısı yok).';
+    end if;
+    if exists (select 1 from pdks.calisan where sicil_no ~ '^(19|20)[0-9]{6}$') then
+        raise exception 'Sentetik veri zaten yüklü (20180214 biçiminde 8 haneli sicil var); işlem yapılmadı.';
+    end if;
+end $$;`;
+
+// Kullanıcılar: çalışanlardan sonra, kartlardan önce (iptal eden, giren ve veren kullanıcılar gerekir)
+const depYaka = (ad) => DEPARTMANLAR.find((d) => d.ad === ad).yaka;
+const ustAmir = (x) => (x.amiri && ![MAVI_UST_AMIR, BEYAZ_UST_AMIR].includes(x.eposta)
+  ? (depYaka(x.departman) === "mavi" ? MAVI_UST_AMIR : BEYAZ_UST_AMIR) : null);
+const kullaniciSql = KURULUM ? `
+-- Kullanıcılar (hepsi bir çalışana bağlı). İK ve admin hesapları AKTİF açılır: ilk kurulumda rol önerisini
+-- onaylayacak İK henüz yoktur; kullanici_gecmisi'ne "yapan" boş yazılır (T-72, T-33).
+create temp table s_kullanici (eposta text, rol text, sicil_no text) on commit drop;
+${kopya("s_kullanici", "kullanicilar.csv")}
+insert into pdks.kullanici (ad_soyad, eposta, rol, calisan_id, aktif)
+select '', s.eposta, s.rol, c.id, true   -- ad_soyad'ı trigger çalışan kaydından yazar (T-105)
+from s_kullanici s join pdks.calisan c on c.sicil_no = s.sicil_no
+order by s.eposta;
+
+-- Üst amir zinciri, departman amirleri ve vekil
+update pdks.kullanici k set ust_amir_id = u.id
+from (values
+${kadro.filter(ustAmir).map((x) => `    (${tirnak(x.eposta)}, ${tirnak(ustAmir(x))})`).join(",\n")}) v(eposta, ust)
+join pdks.kullanici u on u.eposta = v.ust
+where k.eposta = v.eposta;
+
+update pdks.departman d set amir_id = k.id
+from (values
+${kadro.filter((x) => x.amiri).map((x) => `    (${tirnak(x.amiri)}, ${tirnak(x.eposta)})`).join(",\n")}) v(departman, eposta)
+join pdks.kullanici k on k.eposta = v.eposta
+where d.ad = v.departman;
+
+update pdks.departman set vekil_amir_id = (select id from pdks.kullanici where eposta = ${tirnak(BOBINAJ_VEKILI)}) where ad = 'Bobinaj';
+
+-- Bölge yetkileri (İSG uzmanı verir)
+insert into pdks.bolge_yetkisi (bolge_id, departman_id, veren_id)
+select b.id, d.id, ${kullaniciSec(SICIL_ISG, "isg")}
+from (values ('YG-LAB', 'Kalite Kontrol ve YG Test Laboratuvarı'), ('YG-LAB', 'Bakım ve Onarım'),
+             ('BOYAHANE', 'Boyahane ve Yüzey İşlem'), ('BOYAHANE', 'Bakım ve Onarım')) v(bolge, departman)
+join pdks.bolge b on b.kod = v.bolge join pdks.departman d on d.ad = v.departman;
+` : "";
+
+const fmOnaySql = KURULUM ? `
+-- Yazılı fazla mesai onayları (İş K. m.41)
+create temp table s_fm_onay (sicil_no text, imza_tarihi date, belge_no text) on commit drop;
+${kopya("s_fm_onay", "fazla_mesai_onaylari.csv")}
+insert into pdks.fazla_mesai_onayi (calisan_id, yil, imza_tarihi, belge_no, giren_id)
+select c.id, 2026, f.imza_tarihi, f.belge_no, ${girenIk("f.sicil_no")}
+from s_fm_onay f join pdks.calisan c on c.sicil_no = f.sicil_no;
+` : "";
+
+const kontrolSql = KURULUM ? `
+-- Kontrol bloğu: biri tutmazsa bütün yükleme geri alınır
+do $$
+declare
+    v_hata text;
+begin
+    v_hata := concat_ws('; ',
+        case when (select count(*) from pdks.kullanici where rol = 'ik' and aktif) < 2 then 'aktif İK 2''den az' end,
+        case when (select count(*) from pdks.kullanici where rol = 'admin' and aktif) < 1 then 'aktif admin yok' end,
+        case when (select count(*) from pdks.kullanici) <> 25 then 'kullanıcı sayısı 25 değil' end,
+        case when exists (select 1 from pdks.kullanici k left join pdks.calisan c on c.id = k.calisan_id
+                          where c.id is null or not c.aktif) then 'çalışana bağlı olmayan ya da çalışanı pasif kullanıcı var' end,
+        case when exists (select 1 from pdks.departman d left join pdks.kullanici k on k.id = d.amir_id and k.aktif and k.rol = 'amir'
+                          where k.id is null) then 'aktif amiri olmayan departman var' end,
+        case when exists (select 1 from pdks.calisan group by sicil_no having count(*) > 1) then 'sicil tekrarı var' end,
+        case when exists (select 1 from pdks.calisan where sicil_no !~ '^(19|20)[0-9]{6}$') then '8 haneli olmayan sicil var' end,
+        case when exists (select 1 from pdks.kart group by kart_no having count(*) > 1)
+               or exists (select 1 from pdks.kart where durum = 'aktif' group by calisan_id having count(*) > 1)
+               or exists (select 1 from pdks.kart k join pdks.gecici_kart g on g.kart_no = k.kart_no) then 'kart tekrarı var' end,
+        case when exists (select 1 from pdks.kullanici k where not exists
+                          (select 1 from pdks.kart x where x.calisan_id = k.calisan_id and x.durum = 'aktif')) then 'kartı olmayan kullanıcı var' end);
+    if v_hata <> '' then
+        raise exception 'Kurulum kontrolü tutmadı: %', v_hata;
+    end if;
+    raise notice 'Kurulum kontrolü tamam: 25 kullanıcı, % aktif İK, % aktif admin, 19 departman amirli.',
+        (select count(*) from pdks.kullanici where rol = 'ik' and aktif), (select count(*) from pdks.kullanici where rol = 'admin' and aktif);
+end $$;
+` : "";
+
 const sql = `-- =====================================================================
 -- Sentetik veri seti yükleyici (scripts/sentetik_veri.mjs üretti; elle değiştirmeyin)
 -- Dönem: ${BAS} – ${BIT} · tohum ${TOHUM}
--- Önce supabase/seed.sql yüklenmiş olmalı (departmanlar; İK 4001, güvenlik 4003, İSG 6602 kullanıcıları).
+${KURULUM ? "-- Önce supabase/canli/kurulum.sql yüklenmiş olmalı (seed'siz kurulum; docs/canli_kurulum.md)." : "-- Önce supabase/seed.sql yüklenmiş olmalı (departmanlar; İK 4001, güvenlik 4003, İSG 6602 kullanıcıları)."}
 -- Repo kökünden çalıştırın:
 --   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ${yol("yukle.sql")}
 -- Ardından gece işini dönemin her günü için çalıştırın (iş günü başına ~1 dk):
@@ -514,15 +700,7 @@ const sql = `-- ================================================================
 begin;
 set local timezone = 'Europe/Istanbul';
 
-do $$
-begin
-    if not exists (select 1 from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4001' and k.rol = 'ik') then
-        raise exception 'Önce supabase/seed.sql yüklenmeli (sicil 4001 İK kullanıcısı yok).';
-    end if;
-    if exists (select 1 from pdks.calisan where sicil_no ~ '^(19|20)[0-9]{6}$') then
-        raise exception 'Sentetik veri zaten yüklü (20180214 biçiminde 8 haneli sicil var); işlem yapılmadı.';
-    end if;
-end $$;
+${onKosul}
 
 create temp table s_calisan (sicil_no text, ad text, soyad text, departman text, yaka text, vardiya_duzeni text,
     ise_giris_tarihi date, isten_cikis_tarihi date, kart_no text, servis text) on commit drop;
@@ -563,41 +741,41 @@ select s.sicil_no, s.ad, s.soyad, d.id, s.ise_giris_tarihi, s.isten_cikis_tarihi
        s.isten_cikis_tarihi is null or s.isten_cikis_tarihi >= current_date
 from s_calisan s join pdks.departman d on d.ad = s.departman
 order by s.sicil_no;
-
+${kullaniciSql}
 insert into pdks.kart (kart_no, calisan_id, durum, iptal_nedeni, verilis_tarihi, iptal_zamani, iptal_eden_id)
 select k.kart_no, c.id, k.durum, nullif(k.iptal_nedeni, ''), k.verilis_tarihi, k.iptal_zamani,
-       case when k.durum = 'iptal' then (select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4001' and k.rol = 'ik') end
+       case when k.durum = 'iptal' then ${girenIk("k.sicil_no")} end
 from s_kart k join pdks.calisan c on c.sicil_no = k.sicil_no
 order by k.durum desc, k.verilis_tarihi;  -- önce iptal edilmiş eski kartlar (tek aktif kart kuralı)
 
 -- Vardiya planı (dönemden önce girilmiş sayılır), izinler, İSG belgeleri
 insert into pdks.vardiya_plani (calisan_id, tarih, vardiya_id, giren_id, giris_zamani)
-select c.id, p.tarih, v.id, (select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4001' and k.rol = 'ik'),
+select c.id, p.tarih, v.id, ${girenIk("p.sicil_no")},
        timestamptz '${gunMetni(gunEkle(donemBas, -6))} 10:00'
 from s_plan p join pdks.calisan c on c.sicil_no = p.sicil_no join pdks.vardiya_tanim v on v.kod = p.vardiya_kod;
 
 insert into pdks.izin (calisan_id, tur, baslangic, bitis, aciklama, giren_id)
-select c.id, i.tur, i.baslangic, i.bitis, i.aciklama, (select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4001' and k.rol = 'ik')
+select c.id, i.tur, i.baslangic, i.bitis, i.aciklama, ${girenIk("i.sicil_no")}
 from s_izin i join pdks.calisan c on c.sicil_no = i.sicil_no;
 
 insert into pdks.isg_belge (calisan_id, tur, gecerlilik_bitis, belge_no, giren_id)
-select c.id, b.tur, b.gecerlilik_bitis, b.belge_no, (select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '6602' and k.rol = 'isg')
+select c.id, b.tur, b.gecerlilik_bitis, b.belge_no, ${kullaniciSec(SICIL_ISG, "isg")}
 from s_isg b join pdks.calisan c on c.sicil_no = b.sicil_no;
-
+${fmOnaySql}
 -- Geçici kartlar ve zimmetler: kurallar gereği önce verilir, sonra iade alınır (sırayla)
 insert into pdks.gecici_kart (kart_no) select distinct gecici_kart_no from s_zimmet on conflict (kart_no) do nothing;
 do $$
 declare
     r record;
     v_id bigint;
-    v_guv bigint := (select k.id from pdks.kullanici k join pdks.calisan x on x.id = k.calisan_id where x.sicil_no = '4003' and k.rol = 'guvenlik');
+    v_guv bigint := ${kullaniciSec(SICIL_GUVENLIK, "guvenlik")};
 begin
     for r in select * from s_zimmet order by verilis_zamani loop
         insert into pdks.gecici_kart_zimmet (gecici_kart_id, calisan_id, verilis_zamani, veren_id, aciklama)
         values ((select id from pdks.gecici_kart where kart_no = r.gecici_kart_no),
                 (select id from pdks.calisan where sicil_no = r.sicil_no), r.verilis_zamani, v_guv, 'Kartını evde unuttu')
         returning id into v_id;
-        update pdks.gecici_kart_zimmet set iade_zamani = r.iade_zamani, iade_alan_id = v_guv where id = v_id;
+        ${KURULUM ? "if r.iade_zamani is null then continue; end if;\n        " : ""}update pdks.gecici_kart_zimmet set iade_zamani = r.iade_zamani, iade_alan_id = v_guv where id = v_id;
     end loop;
 end $$;
 
@@ -631,7 +809,7 @@ begin
     raise notice 'Sentetik veri yüklendi: % çalışan, % plan, % okutma.',
         (select count(*) from s_calisan), (select count(*) from s_plan), (select count(*) from s_okutma);
 end $$;
-
+${kontrolSql}
 commit;
 `;
 writeFileSync(join(CIKTI, "yukle.sql"), sql, "utf8");
@@ -642,7 +820,7 @@ writeFileSync(join(CIKTI, "yukle.sql"), sql, "utf8");
 const kaynakSayisi = (k) => tumOkutmalar.filter((o) => o.kaynak === k).length;
 const ozet = `# Sentetik veri özeti
 
-Üretildi: \`node scripts/sentetik_veri.mjs --bas ${BAS} --bit ${BIT} --tohum ${TOHUM}\`
+Üretildi: \`node scripts/sentetik_veri.mjs${KURULUM ? " --kurulum" : ""} --bas ${BAS} --bit ${BIT} --tohum ${TOHUM}\`
 
 | | Adet |
 |---|---|
@@ -652,7 +830,7 @@ const ozet = `# Sentetik veri özeti
 | Vardiya planı (kişi-gün) | ${planlar.length} |
 | İzin kaydı | ${izinler.length} |
 | İSG belgesi | ${isg.length} |
-| Geçici kart zimmeti | ${zimmetler.length} |
+${KURULUM ? `| Yazılı fazla mesai onayı | ${fmOnaylari.length} |\n` : ""}| Geçici kart zimmeti | ${zimmetler.length} |
 | Okutma dosyası | ${dosyalar.length} |
 | PDKS okutması | ${kaynakSayisi("pdks")} |
 | Kapı / yemekhane / servis kaydı | ${kaynakSayisi("kapi")} / ${kaynakSayisi("yemekhane")} / ${kaynakSayisi("servis")} |
@@ -669,5 +847,12 @@ ${Object.entries(sayac).sort().map(([k, v]) => `| ${k} | ${v} |`).join("\n")}
 |---|---|---|
 ${DEPARTMANLAR.map((d) => `| ${d.ad} | ${d.yaka} | ${aktifKisiler.filter((k) => k.dep === d).length} |`).join("\n")}
 `;
-writeFileSync(join(CIKTI, "ozet.md"), ozet, "utf8");
-console.log(ozet);
+const kadroOzeti = KURULUM ? `
+## Kadro (kullanıcı hesapları)
+
+| Ad soyad | Görev | Rol | Departman | Sicil | İşe giriş |
+|---|---|---|---|---|---|
+${[...kadro].sort((a, b) => a.sicil.localeCompare(b.sicil)).map((x) => `| ${x.ad} ${x.soyad} | ${x.gorev} | ${x.rol} | ${x.departman} | ${x.sicil} | ${x.ise_giris.getUTCFullYear()} |`).join("\n")}
+` : "";
+writeFileSync(join(CIKTI, "ozet.md"), ozet + kadroOzeti, "utf8");
+console.log(ozet + kadroOzeti);
