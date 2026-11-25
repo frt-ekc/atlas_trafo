@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
-| Orta | 33 | 25 | 8 (T-33, T-38, T-40, T-58, T-59, T-61, T-62, T-76) | 17 | 8 |
+| Orta | 33 | 24 | 9 (T-33, T-38, T-40, T-48, T-58, T-59, T-61, T-62, T-76) | 16 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **72** | **34** | **44** | **31** |
+| **Toplam** | **106** | **71** | **35** | **43** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -284,7 +284,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
-| T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | Düzelt |
+| T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | ✅ Düzeltildi (T-46 ile, PR #71) |
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | Düzelt |
 | T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | Düzelt |
 | T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | Düzelt |
@@ -2150,7 +2150,12 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** Eylül kapanmış, puantajı ERP'ye gitmiş. İK yine de Eylül'e izin girebiliyor. İzin listesinde ve PDF dökümde kişi "15 Eylül'de izinli" görünüyor, puantajda ise "çalıştı". Hangisinin doğru olduğu belli değil. Saatlik izinde ve planda bu kapı kapalı, tam gün izinde açık.
 - **Öneri:** `izin_gir`'e `generate_series(baslangic, bitis)` üzerinde `donem_kilitli_mi` denetimi ve Türkçe mesaj. Ay sınırını aşan izinde de kilitli günler reddedilmeli.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (T-46 ile, PR #71; `20261225010000_gecmis_izin.sql`). Yeni kod gerekmedi; 25.11.2026'da bugünkü kodla yeniden denendi (Ekim zorla kilitli, geri alınan işlemde):
+  - Gelinmemiş güne rapor: gün değişmedi, `durum=raporlu` Kasım'a fark satırı oldu ("Ne olmalıydı"daki yol).
+  - Kilitli ve açık ayı kapsayan izin (30 Ekim – 2 Kasım): kilitli gün Kasım'a fark satırı.
+  - Çalışılmış (okutmalı) güne izin: gün `tamam` kaldı, İK'ya `izin_gununde_okutma` uyarısı; çelişki artık sessiz değil.
+  - Kalıcı test: `gecmis_izin_testi.sql` 6. bölüm (kilitli ayda izin ve iptal, net fark sıfır).
+  - Bilinen sınırlılık: kilitli aya **saatlik** izin hâlâ reddedilir ("… kilitli bir döneme ait; saatlik izin girilemez"). Dakika için fark satırı yok; reddetmek puantajı bozmaktan güvenli.
 
 ### T-49 · Geriye dönük plan geçerli planın üstüne yazılıyor; İK reddedince eski plan geri gelmiyor, gün hiç işlenmiyor
 - **Adım:** 8 · **Önem:** Orta
