@@ -112,39 +112,41 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
               const z = kimde.get(k.id);
               const gec = z ? gecikti(z) : false;
               return (
+                // Sade kart: üstte numara ve durum, ortada kısa bilgi, sağ altta küçük işlem düğmesi
                 <li
                   key={k.id}
                   className={cn(
-                    "flex flex-col gap-2 rounded-lg border bg-card p-3",
-                    gec && "border-l-4 border-l-kotu",
-                    (k.durum === "kayip" || k.durum === "iptal") && "bg-card/50 text-muted-foreground",
+                    "group relative flex flex-col gap-3 overflow-hidden rounded-xl border bg-card p-3.5 transition-shadow hover:shadow-md",
+                    gec && "border-kotu/40",
+                    (k.durum === "kayip" || k.durum === "iptal") && "opacity-60",
                   )}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-mono text-base font-semibold whitespace-nowrap">{k.kart_no}</span>
+                  {/* Üstte ince renk şeridi: durumun rengi */}
+                  <span
+                    className={cn("absolute inset-x-0 top-0 h-0.5", gec ? "bg-kotu" : z ? "bg-dikkat" : k.durum === "aktif" ? "bg-[image:var(--dugme-gecis)]" : "bg-border")}
+                    aria-hidden
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+                    <span className="font-mono text-[0.9375rem] font-semibold tracking-wide whitespace-nowrap">{k.kart_no}</span>
                     <KartDurumu durum={k.durum} zimmetli={Boolean(z)} gecikti={gec} />
                   </div>
                   {z ? (
-                    <dl className="flex flex-1 flex-col gap-1 text-sm">
+                    <dl className="flex flex-1 flex-col gap-0.5 text-sm">
                       <dt className="sr-only">Zimmetli çalışan</dt>
-                      <dd><KisiAdi kisi={z.calisan} /></dd>
-                      <dt className="sr-only">Veriliş zamanı</dt>
-                      <dd className="text-xs text-muted-foreground"><Zaman deger={z.verilis_zamani} etiket="Veriliş zamanı" /></dd>
-                      <dt className="sr-only">Süre</dt>
+                      <dd className="truncate"><KisiAdi kisi={z.calisan} /></dd>
+                      <dt className="sr-only">Veriliş zamanı ve süre</dt>
                       <dd className={cn("text-xs tabular-nums", gec ? "font-medium text-kotu" : "text-muted-foreground")}>
-                        Süre: {sure(z.verilis_zamani, null, simdi)}
+                        <Zaman deger={z.verilis_zamani} /> · {sure(z.verilis_zamani, null, simdi)}
                       </dd>
                     </dl>
                   ) : (
-                    <p className="flex-1 text-sm text-muted-foreground">
-                      {k.durum === "aktif" ? "Zimmetlenebilir." : "Kullanılamaz."}
-                    </p>
+                    <p className="flex-1 text-xs text-muted-foreground">{k.durum === "aktif" ? "Zimmet yok" : "Kullanılamaz"}</p>
                   )}
-                  {yazabilir && (z ? (
-                    <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} />
-                  ) : k.durum === "aktif" ? (
-                    <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />
-                  ) : null)}
+                  {yazabilir && (z || k.durum === "aktif") && (
+                    <div className="flex justify-end">
+                      {z ? <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} /> : <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -238,7 +240,7 @@ function IadeAlPenceresi({ kartNo, zimmet }: { kartNo: string; zimmet: ZimmetSat
   return (
     <IslemPenceresi
       dugme="İade al"
-      dugmeTuru="secondary"
+      dugmeTuru="outline"
       baslik={`${kartNo} kartını iade al`}
       aciklama={`${kisi} kartı ${tarihSaat(zimmet.verilis_zamani)} tarihinde teslim almıştır. İade zamanı sonradan değiştirilemez.`}
       onay="İade al"

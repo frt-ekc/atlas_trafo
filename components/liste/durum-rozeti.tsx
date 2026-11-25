@@ -9,7 +9,9 @@ export function DurumRozeti({ ton = "notr", children, className }: { ton?: Ton; 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.8125rem] font-medium whitespace-nowrap",
+        // İnce, renkle uyumlu bir çerçeve ve hafif ışıyan nokta: sade ama canlı
+        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tracking-[0.01em] whitespace-nowrap",
+        "ring-1 ring-inset ring-[color-mix(in_oklab,currentColor_22%,transparent)]",
         ton === "iyi" && "bg-iyi-zemin text-iyi",
         ton === "dikkat" && "bg-dikkat-zemin text-dikkat",
         ton === "kotu" && "bg-kotu-zemin text-kotu",
@@ -17,7 +19,7 @@ export function DurumRozeti({ ton = "notr", children, className }: { ton?: Ton; 
         className,
       )}
     >
-      <span className="size-1.5 rounded-full bg-current" aria-hidden />
+      <span className="size-1.5 rounded-full bg-current shadow-[0_0_0_3px_color-mix(in_oklab,currentColor_16%,transparent)]" aria-hidden />
       {children}
     </span>
   );

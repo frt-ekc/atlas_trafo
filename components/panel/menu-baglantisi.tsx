@@ -66,7 +66,8 @@ export function MenuBaglantisi({
         "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm md:py-1.5 whitespace-nowrap transition-colors outline-none",
         "text-sidebar-foreground/80 hover:bg-sidebar-foreground/[0.07] hover:text-sidebar-foreground",
         "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        acik && "bg-sidebar-accent font-medium text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        // Seçili sayfa: soldan sağa hafif ışık ve solda gök mavisi çizgi
+        acik && "bg-[linear-gradient(90deg,rgb(255_255_255/0.2),rgb(255_255_255/0.06))] font-medium text-sidebar-accent-foreground shadow-[inset_3px_0_0_#6a9bfc] hover:text-sidebar-accent-foreground",
       )}
     >
       <Simge className="size-4 shrink-0" aria-hidden />

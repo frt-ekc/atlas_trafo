@@ -51,7 +51,7 @@ export function OzetKarti({
   );
 
   return href ? (
-    <Link href={href} className={cn(sinif, "transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 outline-none")}>
+    <Link href={href} className={cn(sinif, "transition-[transform,box-shadow,background-color] hover:-translate-y-px hover:bg-accent/40 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 outline-none")}>
       {icerik}
     </Link>
   ) : (

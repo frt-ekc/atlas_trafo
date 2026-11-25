@@ -8,7 +8,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Sicil ve kart numaraları: ana yazı tipi + sabit genişlikli rakamlar (sıfırın içi çizgisiz) */
+  --font-mono: var(--font-sans);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -139,7 +140,26 @@
   --ust-bar: rgb(21 25 64 / 0.72);
 }
 
-/* Kenar çubuğu iki temada da logonun lacivertinde: uygulamanın kimliği burada */
+/* Kenar çubuğu iki temada da logonun lacivertinde: uygulamanın kimliği burada.
+   Açık temada canlı lacivert-indigo geçiş ve üstte gök ışıması; koyu temada daha derin, gece laciverti. */
+:root {
+  --kenar-zemin:
+    radial-gradient(420px 260px at 0% 0%, rgb(106 155 252 / 0.38), transparent 70%),
+    radial-gradient(360px 300px at 100% 100%, rgb(106 155 252 / 0.18), transparent 70%),
+    linear-gradient(165deg, #343b95 0%, #2c3178 45%, #1f2357 100%);
+  /* Ana düğme: lacivertten indigoya; beyaz yazı en açık uçta da okunur (5,4) */
+  --dugme-gecis: linear-gradient(135deg, #252a6c 0%, #2c3178 35%, #3b4296 70%, #4c5bc8 100%);
+  --dugme-golge: 0 1px 2px rgb(31 35 87 / 0.25), 0 6px 14px -6px rgb(59 66 150 / 0.55);
+}
+.dark {
+  --kenar-zemin:
+    radial-gradient(420px 260px at 100% 0%, rgb(106 155 252 / 0.24), transparent 70%),
+    radial-gradient(380px 320px at 0% 100%, rgb(84 94 205 / 0.35), transparent 70%),
+    linear-gradient(165deg, #1d2260 0%, #161a48 50%, #0d102e 100%);
+  /* Koyu temada gök mavisi geçiş, koyu yazı (en açık uçta 9:1) */
+  --dugme-gecis: linear-gradient(135deg, #4f82ec 0%, #6a9bfc 50%, #93b6ff 100%);
+  --dugme-golge: 0 0 0 1px rgb(255 255 255 / 0.06), 0 6px 16px -6px rgb(106 155 252 / 0.6);
+}
 :root,
 .dark {
   --sidebar: #2c3178;
@@ -150,7 +170,6 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.1);
   --sidebar-ring: #6a9bfc;
-  --kenar-zemin: linear-gradient(180deg, #2c3178 0%, #262b6b 55%, #1f2357 100%);
 }
 
 @layer base {
@@ -218,6 +237,17 @@
   }
   .dark .bg-card.border {
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  /* Sayfa başlığı: logonun renklerinde hafif bir geçiş */
+  main h1 {
+    background: linear-gradient(100deg, var(--foreground) 0%, color-mix(in oklab, var(--vurgu) 85%, var(--foreground)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   /* Tablolarda kişi adı (bağlantı) öne çıkar */
   [data-slot="table-cell"] a {

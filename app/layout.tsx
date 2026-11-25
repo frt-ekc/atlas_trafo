@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { temaOku } from "@/lib/tema";
 import "./globals.css";
@@ -13,12 +13,6 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Sicil ve kart numaraları için sabit genişlikli yazı tipi
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: { default: "Atlas Trafo PDKS", template: "%s · Atlas Trafo PDKS" },
@@ -31,7 +25,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="tr"
-      className={`${jakarta.variable} ${geistMono.variable} h-full antialiased ${tema === "koyu" ? "dark" : ""}`}
+      className={`${jakarta.variable} h-full antialiased ${tema === "koyu" ? "dark" : ""}`}
     >
       <body className="flex min-h-full flex-col">
         {children}

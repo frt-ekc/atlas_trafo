@@ -7,9 +7,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // Ana düğme: temaya göre renk geçişi (globals.css: --dugme-gecis); üzerine gelince hafif parlar
+        default:
+          "bg-primary bg-[image:var(--dugme-gecis)] text-primary-foreground shadow-[var(--dugme-golge)] hover:brightness-110 hover:saturate-[1.1] active:brightness-95",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border bg-card hover:border-ring/50 hover:bg-accent hover:text-accent-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
