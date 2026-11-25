@@ -52,6 +52,6 @@ export async function vardiyaPlaniOnayla(_onceki: IslemSonucu, form: FormData): 
     mesaj:
       karar === "onay"
         ? "Geriye dönük plan onaylandı ve gün kaydı güncellendi."
-        : "Geriye dönük plan reddedildi. Gün kaydı değişmedi.",
+        : "Geriye dönük plan reddedildi. Varsa önceki plan geri yüklendi.",
   };
 }

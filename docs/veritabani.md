@@ -124,6 +124,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/plan_onayi_hesap_testi.sql` | Sonradan plan onayı (T-61): hemen hesap, havuzun kapanması / kalan süre, iki kez sayılmama, ret, kilitli ay için 13 test |
 | `supabase/migrations/20261228010000_gecmis_plan_talebi.sql` | Geçmiş güne fazla mesai planı talebi reddedilir; geçmiş günün süresi havuzdan gelir (T-76) |
 | `supabase/tests/gecmis_plan_talebi_testi.sql` | Geçmiş güne talep (T-76): amir / İK reddi, bugün ve yarın serbest, zamanında girilen talebin sonradan onayı için 7 test |
+| `supabase/migrations/20261229010000_plan_gecmisi.sql` | Vardiya planının eski hâlleri `vardiya_plani_gecmisi` (+1 tablo); geriye dönük değişiklik reddedilince son geçerli plan geri gelir (T-49) |
+| `supabase/tests/plan_gecmisi_testi.sql` | Plan geçmişi (T-49): ret sonrası geri yükleme ve gün işleme, işlenmiş gün, iki kez değişiklik, plansız gün, onay, silinmezlik, görünürlük için 18 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -494,7 +496,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - "Bugün" her yerde `pdks.bugun()` (İstanbul tarihi) ile alınır, `current_date` kullanılmaz. Ekrandan (PostgREST) gelen istekler ve pg_cron UTC oturumla çalışır; `current_date` İstanbul 00:00–03:00 arasında dünü verir. Okutma zamanından gün türetirken de `(zaman at time zone 'Europe/Istanbul')::date` kalıbı kullanılır.
 - RLS politikalarında oturum fonksiyonları `(select pdks.oturum_rolu())` gibi `select` içinde yazılır. Böylece PostgreSQL onları satır başına değil, sorgu başına bir kez çalıştırır (T-104). Satıra bağlı bir kontrol gerekiyorsa (ör. "bu satırın çalışanı amirin mi?") önce liste bir kez alınır: `calisan_id = any ((select pdks.oturum_calisanlari())::bigint[])`. Yeni yazılan politikalar bu kalıba uyar; eski politikaların bir kısmı henüz çevrilmedi. Kural yardımcı fonksiyonların içi için de geçerlidir: bir tabloyu tarayan yardımcı (ör. `oturum_departmanlari`, `oturum_calisanlari`) oturum fonksiyonunu `where` içinde çıplak çağırırsa her satırda yeniden hesaplar (T-108).
 - `vardiya_plani` ve `izin` değiştirilebilir; bunların etkisi `gun_kaydi`'na yine `duzeltme` üzerinden yansır.
-- Geriye dönük plan, eski planın üzerine yazılır (eski plan saklanmaz). Gün çoğunlukla zaten eski planla işlenmiş olduğu için yeni plan ancak İK onayıyla, vardiya düzeltmesi olarak güne yansır; ret hiçbir şeyi değiştirmez.
+- Geriye dönük plan, eski planın üzerine yazılır; eski hâl `vardiya_plani_gecmisi`'ne yazılır (T-49). Gün çoğunlukla zaten eski planla işlenmiş olduğu için yeni plan ancak İK onayıyla, vardiya düzeltmesi olarak güne yansır. Ret son geçerli planı geri yükler; gün onay beklediği için işlenmemişse hemen işlenir. Önceden plan yoksa plan "reddedildi" kalır.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.
