@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
 import { Secim } from "@/components/panel/secim";
@@ -297,11 +299,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             islem={fazlaMesaiTalepEt}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="fm-calisanlar" id="sicil" required />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="is_gunu">
-                <Input id="is_gunu" name="is_gunu" type="date" required min={bugunTarih} defaultValue={bugunTarih} />
+                <TarihSecici id="is_gunu" name="is_gunu" required min={bugunTarih} defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Süre (saat)" htmlFor="saat">
                 <Input id="saat" name="saat" type="number" required min={0.5} max={11} step={0.5} defaultValue={2} />
@@ -570,14 +572,14 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                   islem={yaziliOnayGir}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="o-sicil">
-                    <Input id="o-sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="fm-calisanlar" id="o-sicil" required />
                   </Alan>
                   <div className="grid grid-cols-3 gap-3">
                     <Alan etiket="Yıl" htmlFor="o-yil">
                       <Input id="o-yil" name="yil" type="number" required min={2000} max={2100} defaultValue={yil} />
                     </Alan>
                     <Alan etiket="İmza tarihi" htmlFor="o-imza">
-                      <Input id="o-imza" name="imza_tarihi" type="date" required defaultValue={bugunTarih} />
+                      <TarihSecici id="o-imza" name="imza_tarihi" required defaultValue={bugunTarih} />
                     </Alan>
                     <Alan etiket="Belge no" htmlFor="o-belge">
                       <Input id="o-belge" name="belge_no" required maxLength={50} />
@@ -594,14 +596,14 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                   islem={yaziliOnayGeriAl}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="g-sicil">
-                    <Input id="g-sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="fm-calisanlar" id="g-sicil" required />
                   </Alan>
                   <div className="grid grid-cols-2 gap-3">
                     <Alan etiket="Yıl" htmlFor="g-yil">
                       <Input id="g-yil" name="yil" type="number" required min={2000} max={2100} defaultValue={yil} />
                     </Alan>
                     <Alan etiket="Bildirim tarihi" htmlFor="g-bildirim">
-                      <Input id="g-bildirim" name="bildirim_tarihi" type="date" required defaultValue={bugunTarih} />
+                      <TarihSecici id="g-bildirim" name="bildirim_tarihi" required defaultValue={bugunTarih} />
                     </Alan>
                   </div>
                 </IslemPenceresi>

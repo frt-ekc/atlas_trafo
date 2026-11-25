@@ -35,7 +35,13 @@ export function GirisFormu() {
         </Alert>
       )}
 
-      <Button type="submit" size="lg" disabled={bekliyor}>
+      <Button
+        type="submit"
+        size="lg"
+        disabled={bekliyor}
+        // Logonun lacivertinden gök mavisine geçiş; üzerine gelince geçiş kayar
+        className="mt-1 h-10 border-0 bg-[linear-gradient(110deg,#1f2357_0%,#2c3178_35%,#3b4296_65%,#6a9bfc_100%)] bg-[length:125%_100%] bg-left text-white shadow-md shadow-[#2c3178]/30 transition-[background-position,box-shadow] duration-300 hover:bg-right hover:shadow-lg hover:shadow-[#2c3178]/40 focus-visible:ring-[#6a9bfc]/50"
+      >
         {bekliyor ? "Giriş yapılıyor…" : "Giriş yap"}
       </Button>
     </form>

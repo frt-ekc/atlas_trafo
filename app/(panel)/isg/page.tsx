@@ -1,6 +1,8 @@
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { Secim } from "@/components/panel/secim";
@@ -122,7 +124,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   islem={isgBelgeGir}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-                    <Input id="sicil" name="sicil" list="isg-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="isg-calisanlar" id="sicil" required />
                   </Alan>
                   <Alan etiket="Tür" htmlFor="tur">
                     <Secim id="tur" name="tur" required defaultValue="" className="h-9">
@@ -133,7 +135,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   </Alan>
                   <div className="grid grid-cols-2 gap-3">
                     <Alan etiket="Geçerlilik bitişi" htmlFor="gecerlilik_bitis">
-                      <Input id="gecerlilik_bitis" name="gecerlilik_bitis" type="date" required />
+                      <TarihSecici id="gecerlilik_bitis" name="gecerlilik_bitis" required />
                     </Alan>
                     <Alan etiket="Belge no (isteğe bağlı)" htmlFor="belge_no">
                       <Input id="belge_no" name="belge_no" maxLength={50} />
@@ -219,12 +221,13 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                 <TableBody>
                   {departmanlar.map((d) => (
                     <TableRow key={d.id}>
-                      <TableCell className="text-sm">{d.ad}</TableCell>
+                      <TableCell className="min-w-28 text-sm whitespace-normal">{d.ad}</TableCell>
                       {bolgeler.map((b) => {
                         const var_ = yetkiVar.has(`${b.id}|${d.id}`);
                         return (
                           <TableCell key={b.id}>
-                            <div className="flex items-center gap-2">
+                            {/* Telefonda işaret ve düğme alt alta: iki bölge sütunu ekrana sığar */}
+                            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
                               {/* Her hücrede "Yetkili" rozeti yerine işaret; anlamı ekran okuyucuya yazıyla söylenir */}
                               {var_ ? (
                                 <span className="inline-flex items-center gap-1 font-medium text-iyi" title="Yetkili">

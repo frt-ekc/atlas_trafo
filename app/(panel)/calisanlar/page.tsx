@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -87,7 +88,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                 <Input id="sicil_no" name="sicil_no" required maxLength={20} autoComplete="off" className="font-mono uppercase" />
               </Alan>
               <Alan etiket="İşe giriş" htmlFor="ise_giris_tarihi">
-                <Input id="ise_giris_tarihi" name="ise_giris_tarihi" type="date" required defaultValue={bugunTarih} />
+                <TarihSecici id="ise_giris_tarihi" name="ise_giris_tarihi" required defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Ad" htmlFor="ad">
                 <Input id="ad" name="ad" required maxLength={50} />

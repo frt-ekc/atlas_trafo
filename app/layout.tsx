@@ -1,25 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { temaOku } from "@/lib/tema";
 import "./globals.css";
 
-// latin-ext: ğ, ş, ı, İ gibi Türkçe harfler için gerekli
-const geistSans = Geist({
+// Plus Jakarta Sans: geometrik, sade ve okunaklı; hem metin hem başlıkta tek aile (sakin, tutarlı görünüm).
+// latin-ext: ğ, ş, ı, İ gibi Türkçe harfler için gerekli. Yazı tipi derlemede indirilip sunucudan verilir;
+// display: swap ile sayfa yazı tipini beklemeden açılır.
+const jakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "latin-ext"],
-});
-
-// Başlıklar için yuvarlak hatlı, sade bir yazı tipi
-const outfit = Outfit({
-  variable: "--font-baslik",
-  subsets: ["latin", "latin-ext"],
-});
 
 export const metadata: Metadata = {
   title: { default: "Atlas Trafo PDKS", template: "%s · Atlas Trafo PDKS" },
@@ -32,7 +25,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased ${tema === "koyu" ? "dark" : ""}`}
+      className={`${jakarta.variable} h-full antialiased ${tema === "koyu" ? "dark" : ""}`}
     >
       <body className="flex min-h-full flex-col">
         {children}

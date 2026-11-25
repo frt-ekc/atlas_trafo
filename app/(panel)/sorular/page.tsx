@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
@@ -128,10 +129,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         </FiltreAlani>
         <div className="flex gap-3">
           <FiltreAlani etiket="Gün, başlangıç" htmlFor="bas">
-            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-36 sm:w-40" />
+            <TarihSecici id="bas" name="bas" defaultValue={bas} className="w-36 sm:w-40" />
           </FiltreAlani>
           <FiltreAlani etiket="Bitiş" htmlFor="bit">
-            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-36 sm:w-40" />
+            <TarihSecici id="bit" name="bit" defaultValue={bit} className="w-36 sm:w-40" />
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">

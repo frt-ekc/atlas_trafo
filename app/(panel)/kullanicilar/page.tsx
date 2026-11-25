@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { aramaSuzgeci } from "@/components/liste/arama";
@@ -117,7 +118,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
             htmlFor="sicil"
             ipucu="Ad soyad bilgisi çalışan kaydından alınır."
           >
-            <Input id="sicil" name="sicil" list="k-calisanlar" required autoComplete="off" inputMode="numeric" />
+            <CalisanSecici listeId="k-calisanlar" id="sicil" required />
           </Alan>
           <Alan etiket="E-posta" htmlFor="eposta">
             <Input id="eposta" name="eposta" type="email" required maxLength={200} />

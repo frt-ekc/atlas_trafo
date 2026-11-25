@@ -33,6 +33,7 @@ export async function kayitDuzelt(_onceki: IslemSonucu, form: FormData): Promise
 
   revalidatePath("/calisanlar", "layout");
   revalidatePath("/puantaj");
+  revalidatePath("/itirazlar");
   revalidatePath("/");
   return {
     durum: "tamam",

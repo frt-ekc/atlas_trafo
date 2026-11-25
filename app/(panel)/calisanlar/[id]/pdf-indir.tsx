@@ -59,24 +59,42 @@ function yaziTipiniKaydet({ Font }: ReactPdf) {
   kayitli = true;
 }
 
-const GRI = "#6b7280";
-const CIZGI = "#e5e7eb";
+// Uygulamanın renkleri: logonun laciverti, gök mavisi vurgu, sakin gri-mavi yazı ve çizgiler
+const LACIVERT = "#2c3178";
+const GOK = "#6a9bfc";
+const YAZI = "#1a1e4a";
+const GRI = "#4f5680";
+const CIZGI = "#dde3ef";
+const ZEMIN = "#f2f5fb";
 
 function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; hazirlayan: string }) {
   const { Document, Page, Text, View, Image, StyleSheet } = rp;
   const s = StyleSheet.create({
-    sayfa: { fontFamily: "Geist", fontSize: 8.5, padding: 32, paddingBottom: 48, color: "#111827" },
-    ust: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
-    logo: { width: 80 },
-    baslik: { fontSize: 14, fontWeight: 600 },
+    sayfa: { fontFamily: "Geist", fontSize: 8.5, padding: 32, paddingBottom: 48, color: YAZI },
+    // Üstte logonun lacivertinde bir şerit: beyaz logo ve başlık; altında ince gök mavisi çizgi
+    ust: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: LACIVERT,
+      marginHorizontal: -32,
+      marginTop: -32, // şerit sayfanın en üstüne dayanır; sonraki sayfalarda üst boşluk korunur
+      paddingHorizontal: 32,
+      paddingVertical: 16,
+      borderBottom: `3 solid ${GOK}`,
+      marginBottom: 16,
+    },
+    logo: { width: 86 },
+    baslik: { fontSize: 14, fontWeight: 600, color: "#ffffff" },
+    ustAlt: { color: "#c9d6ff", marginTop: 2 },
     kucuk: { color: GRI },
-    bilgi: { flexDirection: "row", flexWrap: "wrap", borderTop: `1 solid ${CIZGI}`, borderBottom: `1 solid ${CIZGI}`, paddingVertical: 8, marginBottom: 12 },
+    bilgi: { flexDirection: "row", flexWrap: "wrap", backgroundColor: ZEMIN, borderRadius: 6, paddingHorizontal: 10, paddingTop: 8, paddingBottom: 4, marginBottom: 14 },
     bilgiHucre: { width: "33%", marginBottom: 4 },
-    tablo: { borderTop: `1 solid ${CIZGI}` },
-    satir: { flexDirection: "row", borderBottom: `1 solid ${CIZGI}`, paddingVertical: 3 },
-    basSatir: { flexDirection: "row", borderBottom: `1 solid #9ca3af`, paddingVertical: 4, fontWeight: 600 },
-    haftaSonu: { color: GRI },
-    altBaslik: { fontSize: 11, fontWeight: 600, marginTop: 16, marginBottom: 6 },
+    tablo: {},
+    satir: { flexDirection: "row", borderBottom: `0.5 solid ${CIZGI}`, paddingVertical: 3.5, paddingHorizontal: 4 },
+    basSatir: { flexDirection: "row", backgroundColor: ZEMIN, color: LACIVERT, paddingVertical: 5, paddingHorizontal: 4, fontWeight: 600, borderRadius: 4 },
+    haftaSonu: { color: GRI, backgroundColor: "#fafbfe" },
+    altBaslik: { fontSize: 11, fontWeight: 600, marginTop: 18, marginBottom: 6, color: LACIVERT },
     alt: { position: "absolute", bottom: 20, left: 32, right: 32, flexDirection: "row", justifyContent: "space-between", color: GRI, fontSize: 7.5 },
   });
   const gunSutunlari = [
@@ -89,6 +107,17 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
     { b: "Not", w: "29%" },
   ];
   const { calisan, ozet } = dokum;
+  // Düzeltmeler tablosunun bir satırı (başlıkla birlikte ilk satır ve kalanlar için aynı)
+  const duzeltmeSatiri = (d: Dokum["duzeltmeler"][number], key: number) => (
+    <View key={key} style={s.satir} wrap={false}>
+      <Text style={{ width: "11%" }}>{d.gun}</Text>
+      <Text style={{ width: "9%" }}>{d.alan}</Text>
+      <Text style={{ width: "14%" }}>{d.eski}</Text>
+      <Text style={{ width: "14%" }}>{d.yeni}</Text>
+      <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
+      <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
+    </View>
+  );
 
   return (
     <Document title={`PDKS dökümü ${calisan.sicil} ${dokum.ay}`} author="Atlas Trafo PDKS" language="tr">
@@ -96,10 +125,10 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
         <View style={s.ust}>
           <View>
             <Text style={s.baslik}>PDKS kayıt dökümü</Text>
-            <Text style={s.kucuk}>{dokum.ayMetni}</Text>
+            <Text style={s.ustAlt}>{dokum.ayMetni}</Text>
           </View>
           {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image'ında alt yok */}
-          <Image style={s.logo} src={`${window.location.origin}/logo/atlas_isaret_lacivert.png`} />
+          <Image style={s.logo} src={`${window.location.origin}/logo/atlas_isaret_beyaz.png?v=2`} />
         </View>
 
         <View style={s.bilgi}>
@@ -138,26 +167,24 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
           })}
         </View>
 
-        <Text style={s.altBaslik}>Düzeltmeler</Text>
+        {/* Başlık, başlık satırı ve ilk satır birlikte: sayfa sonunda başlık tek başına kalmasın */}
         {dokum.duzeltmeler.length === 0 ? (
-          <Text style={s.kucuk}>Kayıt bulunmuyor.</Text>
+          <View wrap={false}>
+            <Text style={s.altBaslik}>Düzeltmeler</Text>
+            <Text style={s.kucuk}>Kayıt bulunmuyor.</Text>
+          </View>
         ) : (
           <View style={s.tablo}>
-            <View style={s.basSatir}>
-              {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["İşlemi yapan", "20%"]].map(([b, w]) => (
-                <Text key={b} style={{ width: w }}>{b}</Text>
-              ))}
-            </View>
-            {dokum.duzeltmeler.map((d, i) => (
-              <View key={i} style={s.satir} wrap={false}>
-                <Text style={{ width: "11%" }}>{d.gun}</Text>
-                <Text style={{ width: "9%" }}>{d.alan}</Text>
-                <Text style={{ width: "14%" }}>{d.eski}</Text>
-                <Text style={{ width: "14%" }}>{d.yeni}</Text>
-                <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
-                <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
+            <View wrap={false}>
+              <Text style={s.altBaslik}>Düzeltmeler</Text>
+              <View style={s.basSatir}>
+                {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["İşlemi yapan", "20%"]].map(([b, w]) => (
+                  <Text key={b} style={{ width: w }}>{b}</Text>
+                ))}
               </View>
-            ))}
+              {duzeltmeSatiri(dokum.duzeltmeler[0], 0)}
+            </View>
+            {dokum.duzeltmeler.slice(1).map((d, i) => duzeltmeSatiri(d, i + 1))}
           </View>
         )}
 

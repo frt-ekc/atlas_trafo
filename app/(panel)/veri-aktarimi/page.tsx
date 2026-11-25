@@ -1,7 +1,6 @@
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -200,10 +199,10 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
             >
               <div className="grid grid-cols-2 gap-3">
                 <Alan etiket="Başlangıç" htmlFor="baslangic">
-                  <Input id="baslangic" name="baslangic" type="date" required defaultValue={ayBasi <= dun ? ayBasi : dun} />
+                  <TarihSecici id="baslangic" name="baslangic" required defaultValue={ayBasi <= dun ? ayBasi : dun} />
                 </Alan>
                 <Alan etiket="Bitiş" htmlFor="bitis">
-                  <Input id="bitis" name="bitis" type="date" required defaultValue={dun} />
+                  <TarihSecici id="bitis" name="bitis" required defaultValue={dun} />
                 </Alan>
               </div>
             </IslemPenceresi>
@@ -323,10 +322,10 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
               </Alan>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Alan etiket="Başlangıç" htmlFor="ariza-bas">
-                  <Input id="ariza-bas" name="baslangic" type="datetime-local" required />
+                  <TarihSecici saatli id="ariza-bas" name="baslangic" required />
                 </Alan>
                 <Alan etiket="Bitiş (isteğe bağlı)" htmlFor="ariza-bit">
-                  <Input id="ariza-bit" name="bitis" type="datetime-local" />
+                  <TarihSecici saatli id="ariza-bit" name="bitis" />
                 </Alan>
               </div>
               <Alan etiket="Açıklama (isteğe bağlı)" htmlFor="ariza-aciklama">
@@ -366,7 +365,16 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                 eylemler={
                   ik ? (
                     <>
-                      <HizliIslem dugme="Onayla" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
+                      {/* Karar bir kez verilir: Reddet gibi pencereyle */}
+                      <IslemPenceresi
+                        dugme="Onayla"
+                        dugmeTuru="default"
+                        baslik="Arızayı onayla"
+                        aciklama="Okuyucu arızası onaylanacak ve karar sizin adınıza kaydedilecek. Bu işlem geri alınamaz."
+                        onay="Onayla"
+                        islem={arizaKarari}
+                        gizli={{ ariza_id: a.id, karar: "onay" }}
+                      />
                       <IslemMenusu>
                         {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
                         <IslemPenceresi

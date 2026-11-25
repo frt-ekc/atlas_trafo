@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HizliIslem } from "@/components/panel/hizli-islem";
@@ -36,6 +37,8 @@ type Uyari = {
 // Gruplama yalnızca ekrandadır (uyarı türüne göre); veritabanında böyle bir alan yoktur.
 // Kart paylaşımı şüphesi, kural kanıtla güçlendirilene kadar yanlış alarm ürettiği için "Bilgi" grubundadır.
 const KARAR_GEREKLI = new Set(["ariza_suphesi", "gecici_kart_cakisma"]);
+// Kart paylaşımında sistemin ayrı bir karar adımı yok (T-81): İK inceler, paylaşım varsa günü elle düzeltir.
+const PAYLASIM = "kart_paylasim_suphesi";
 
 const TARIH = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -166,7 +169,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
                 Arıza kayıtlarını aç
               </Link>
             )}
-            {karar && u.calisan && calisanSayfasi && (
+            {(karar || u.tur === PAYLASIM) && u.calisan && calisanSayfasi && (
               <Link href={`/calisanlar/${u.calisan.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Çalışan kaydını aç
               </Link>
@@ -176,6 +179,12 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         }
       >
         {u.mesaj}
+        {u.tur === PAYLASIM && (
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Sistem yalnızca uyarır. Paylaşım varsa karar, İK&apos;nın çalışan kaydında günü elle düzeltmesiyle verilir;
+            &ldquo;Görüldü&rdquo; yalnızca uyarının okunduğunu gösterir.
+          </span>
+        )}
       </ListeKarti>
     );
   };
@@ -242,10 +251,10 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         </FiltreAlani>
         <div className="flex gap-3">
           <FiltreAlani etiket="Kayıt tarihi, başlangıç" htmlFor="bas">
-            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-36 sm:w-40" />
+            <TarihSecici id="bas" name="bas" defaultValue={bas} className="w-36 sm:w-40" />
           </FiltreAlani>
           <FiltreAlani etiket="Bitiş" htmlFor="bit">
-            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-36 sm:w-40" />
+            <TarihSecici id="bit" name="bit" defaultValue={bit} className="w-36 sm:w-40" />
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">

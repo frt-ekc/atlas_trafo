@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
-import { HizliIslem } from "@/components/panel/hizli-islem";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { IslemMenusu } from "@/components/liste/islem-menusu";
 import { ListeKarti } from "@/components/liste/liste-karti";
@@ -220,11 +220,11 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             islem={vardiyaPlaniGir}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="sicil" name="sicil" list="vp-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="vp-calisanlar" id="sicil" required />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="tarih">
-                <Input id="tarih" name="tarih" type="date" required defaultValue={pazartesi <= bugunTarih && bugunTarih <= pazar ? bugunTarih : pazartesi} />
+                <TarihSecici id="tarih" name="tarih" required defaultValue={pazartesi <= bugunTarih && bugunTarih <= pazar ? bugunTarih : pazartesi} />
               </Alan>
               <Alan etiket="Vardiya" htmlFor="vardiya_id">
                 <Secim id="vardiya_id" name="vardiya_id" required defaultValue="" className="h-9">
@@ -277,7 +277,16 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
               zaman={<Zaman deger={p.giris_zamani} etiket="Kayıt" />}
               eylemler={
                 <>
-                  <HizliIslem dugme="Onayla" dugmeTuru="default" islem={vardiyaPlaniOnayla} gizli={{ plan_id: p.id, karar: "onay" }} />
+                  {/* Onay da günü yeniden hesaplatır ve geri alınamaz: Reddet gibi pencereyle */}
+                  <IslemPenceresi
+                    dugme="Onayla"
+                    dugmeTuru="default"
+                    baslik="Planı onayla"
+                    aciklama="Plan geçerli olur; gün işlenmişse kaydı bu plana göre yeniden hesaplanır. Bu işlem geri alınamaz."
+                    onay="Onayla"
+                    islem={vardiyaPlaniOnayla}
+                    gizli={{ plan_id: p.id, karar: "onay" }}
+                  />
                   <IslemMenusu>
                     {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
                     <IslemPenceresi
@@ -310,11 +319,12 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
           Seçilen filtrelere uygun kayıt bulunmuyor.
         </div>
       ) : (
-        <div className="rounded-lg border">
+        // Diğer tablolarla aynı kart zemini; soldaki sabit çalışan sütunu da kartın renginde
+        <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 z-10 min-w-44 bg-background">Çalışan</TableHead>
+                <TableHead className="sticky left-0 z-10 min-w-44 bg-[color-mix(in_oklab,var(--muted)_70%,var(--card))] shadow-[inset_-1px_0_0_var(--border)]">Çalışan</TableHead>
                 {gunler.map((g) => {
                   const tatil = tatiller.get(g.tarih);
                   const bugunMu = g.tarih === bugunTarih;
@@ -335,7 +345,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             <TableBody>
               {calisanlar.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="sticky left-0 z-10 bg-background">
+                  <TableCell className="sticky left-0 z-10 bg-card shadow-[inset_-1px_0_0_var(--border)]">
                     <div className="font-medium">{c.ad} {c.soyad}</div>
                     <div className="text-xs text-muted-foreground">
                       <span className="font-mono">{c.sicil_no}</span> · {c.departman?.ad ?? "—"}

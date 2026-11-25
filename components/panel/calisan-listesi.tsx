@@ -1,5 +1,5 @@
-// Sicil numarası alanının açılır önerileri (<input list="...">).
-// Tarayıcının kendi listesidir; JavaScript gerektirmez, yazdıkça süzülür.
+// Çalışan önerileri: sayfaya bir kez yazılır, CalisanSecici (sicil alanı) buradan okur.
+// Gizli bir <datalist>; ekranda görünmez.
 export type ListeCalisani = { sicil_no: string; ad: string; soyad: string };
 
 export function CalisanListesi({ id, calisanlar }: { id: string; calisanlar: ListeCalisani[] }) {

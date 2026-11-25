@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cikisYap } from "@/app/giris/actions";
 import { Konum } from "@/components/panel/konum";
 import { MenuBaglantisi } from "@/components/panel/menu-baglantisi";
+import { MenuGrubu } from "@/components/panel/menu-grubu";
 import { MobilMenu } from "@/components/panel/mobil-menu";
 import { TemaDugmesi } from "@/components/panel/tema-dugmesi";
 import { MENU, gruplanmisMenu } from "@/lib/menu";
@@ -62,16 +63,16 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
       style={{ background: "var(--kenar-zemin)" }}
     >
       <div className="flex flex-col gap-1 px-6 pt-6 pb-5">
-        {/* Atlas işareti, paletin şeftali rengine boyanır (beyaz PNG maske olarak kullanılır) */}
+        {/* Orijinal Atlas logosu: lacivert zeminde beyaz (beyaz PNG maske olarak kullanılır) */}
         <span
           role="img"
           aria-label="Atlas Trafo"
           className="block h-8 w-[127px] bg-sidebar-primary"
           style={{
-            maskImage: "url(/logo/atlas_isaret_beyaz.png)",
+            maskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
             maskSize: "contain",
             maskRepeat: "no-repeat",
-            WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png)",
+            WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
             WebkitMaskSize: "contain",
             WebkitMaskRepeat: "no-repeat",
           }}
@@ -79,17 +80,30 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
         <span className="text-sm text-sidebar-foreground/70">PDKS Kayıt Düzeltme</span>
       </div>
 
-      <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(234_220_200/0.25)_transparent] [scrollbar-width:thin]">
-        {gruplanmisMenu(kullanici.rol).map(({ grup, ogeler }) => (
-          <div key={grup} className="flex flex-col gap-0.5">
-            <div className="px-3 pb-1.5 text-[11px] font-semibold tracking-[0.12em] text-sidebar-foreground/70 uppercase">
-              {grup}
-            </div>
-            {ogeler.map((oge) => (
-              <MenuBaglantisi key={oge.yol} yol={oge.yol} baslik={oge.baslik} simge={oge.simge} sayi={sayilar[oge.yol]} />
-            ))}
-          </div>
-        ))}
+      {/* Ana sayfa tek başına en üstte; diğer sayfalar açılır-kapanır gruplarda. Tek sayfalık grup başlıksız görünür. */}
+      <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(255_255_255/0.25)_transparent] [scrollbar-width:thin]">
+        {gruplanmisMenu(kullanici.rol).map(({ grup, ogeler }) => {
+          const baglantilar = ogeler.map((oge) => (
+            <MenuBaglantisi key={oge.yol} yol={oge.yol} baslik={oge.baslik} simge={oge.simge} sayi={sayilar[oge.yol]} />
+          ));
+          if (grup === "Genel" || ogeler.length === 1) {
+            return (
+              <div key={grup} className="flex flex-col gap-0.5">
+                {baglantilar}
+              </div>
+            );
+          }
+          return (
+            <MenuGrubu
+              key={grup}
+              baslik={grup}
+              yollar={ogeler.map((o) => o.yol)}
+              sayi={ogeler.reduce((t, o) => t + (sayilar[o.yol] ?? 0), 0)}
+            >
+              {baglantilar}
+            </MenuGrubu>
+          );
+        })}
       </nav>
 
       <div className="flex items-center gap-3 border-t border-sidebar-border px-4 py-3">
@@ -124,7 +138,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <header
-          className="relative z-30 flex items-center gap-3 rounded-2xl border px-3 py-2 backdrop-blur-md md:px-5"
+          className="relative z-30 flex items-center gap-3 rounded-2xl border px-3 py-2 md:px-5 md:backdrop-blur-md"
           style={{ background: "var(--ust-bar)" }}
         >
           <MobilMenu>{kenarCubugu}</MobilMenu>

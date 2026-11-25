@@ -14,7 +14,7 @@ export function MobilMenu({ children }: { children: ReactNode }) {
 
   const panel = (
     <div className="fixed inset-0 z-50 md:hidden" onKeyDown={(e) => e.key === "Escape" && setAcik(false)}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAcik(false)} aria-hidden />
+      <div className="absolute inset-0 bg-black/55" onClick={() => setAcik(false)} aria-hidden />
       <div
         role="dialog"
         aria-modal="true"

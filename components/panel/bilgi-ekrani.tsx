@@ -17,7 +17,7 @@ export function BilgiEkrani({
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
       <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border bg-card p-8 text-center shadow-sm">
-        <div className="grid size-14 place-items-center rounded-2xl text-[#f4d6b0]" style={{ background: "var(--kenar-zemin)" }}>
+        <div className="grid size-14 place-items-center rounded-2xl text-white" style={{ background: "var(--kenar-zemin)" }}>
           {simge}
         </div>
         <div className="flex flex-col gap-2">
