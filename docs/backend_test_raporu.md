@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
-| Orta | 33 | 24 | 9 (T-33, T-38, T-40, T-48, T-58, T-59, T-61, T-62, T-76) | 16 | 8 |
+| Orta | 33 | 23 | 10 (T-33, T-38, T-40, T-48, T-49, T-58, T-59, T-61, T-62, T-76) | 15 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **71** | **35** | **43** | **31** |
+| **Toplam** | **106** | **70** | **36** | **42** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -285,7 +285,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | ✅ Düzeltildi (T-46 ile, PR #71) |
-| T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | Düzelt |
+| T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T49-plan-gecmisi) |
 | T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | Düzelt |
 | T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | Düzelt |
 | T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | Sınırlılık |
@@ -2174,7 +2174,11 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** Amir yanlışlıkla bir vardiya değişikliği girse, İK de "hayır" dese bile çalışanın asıl planı silinmiş oluyor. O gün hesaplanmıyor. Ay sonunda kilit "reddedilmiş plan var, doğru planı girin" diyerek durur. Doğru plan da geriye dönük olduğu için yeniden İK onayı ister. Yani İK'nın "hayır"ı fazladan iki iş doğuruyor, çalışan da o güne kadar puantajda görünmüyor. Plan geçmişi tutulmadığı için sonradan "bu gün aslında hangi vardiyaydı?" sorusunun cevabı da kayboluyor.
 - **Öneri:** Bekleyen değişikliği ayrı tutmak (ör. `vardiya_plani_talebi`) ya da `vardiya_plani`'na `onceki_vardiya_id` ekleyip ret dalında geri yüklemek. Kalıcı test: ileri plan → geriye dönük değişiklik → ret → gece işi → gün eski planla işlenmeli.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T49-plan-gecmisi). Migration: `20261229010000_plan_gecmisi.sql`, test: `plan_gecmisi_testi.sql` (18 test).
+  - Yeni tablo `vardiya_plani_gecmisi`: plan değişince ya da silinince eski hâli trigger ile yazılır; silinmez, değiştirilmez. İK / yönetici herkesi, amir kendi çalışanlarını görür.
+  - Ret, son geçerli planı (gerekmez / onaylandi) geri yükler. VP5: GÜNDÜZ geri geldi ve gün hemen işlendi (çalışma 480). VP4: plan satırı yine GÜNDÜZ, gün değişmedi. İki kez değiştirilen plan son geçerli plana döner.
+  - Önceden plan yoksa geri yüklenecek bir şey yok; plan eskisi gibi "reddedildi" kalır.
+  - `plan_onayi_testi.sql`'deki ret beklentisi yeni kurala göre güncellendi (plan "reddedildi" yerine GÜNDÜZ'e döner; gün ve düzeltme beklentisi aynı).
 
 ### T-50 · Yanlış girilen saatlik izin geri alınamıyor
 - **Adım:** 8 · **Önem:** Orta

@@ -146,8 +146,9 @@ select test.oturum('po_ik1@ornek.test');
 select pdks.vardiya_plani_gir(test.c('PO04'), '2026-10-05', test.v('GUNDUZ_8'), 'Yanlış giriş denemesi');
 select test.oturum('po_ik2@ornek.test');
 select pdks.vardiya_plani_onayla((test.plan('PO04')).id, false);
-select test.dogrula('ret: işlenmiş gün değişmedi, düzeltme yazılmadı (PO04 08-17 kalır)',
-    (test.plan('PO04')).ik_onay_durumu = 'reddedildi'
+-- T-49: ret önceki geçerli plana döner (reddedilen değişiklik vardiya_plani_gecmisi'nde kalır)
+select test.dogrula('ret: işlenmiş gün değişmedi, düzeltme yazılmadı, plan GÜNDÜZ''e döndü (PO04 08-17 kalır)',
+    (test.plan('PO04')).ik_onay_durumu = 'gerekmez' and (test.plan('PO04')).vardiya_id = test.v('GUNDUZ')
     and (select vardiya_id = test.v('GUNDUZ') and durum = 'tamam' and calisma_dk = 480 from test.gk('PO04'))
     and not exists (select 1 from pdks.duzeltme where gun_kaydi_id = (test.gk('PO04')).id));
 

@@ -36,7 +36,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 
 | Katman | Teknoloji | Not |
 |---|---|---|
-| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 37 tablo |
+| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 38 tablo |
 | İş kuralları | PostgreSQL fonksiyonları ve trigger'lar | Gece işi, düzeltme, görevler ayrılığı, ay kilidi veritabanının içinde çalışır; ekran atlansa bile kural delinemez |
 | Giriş ve yetki | **Supabase Auth + RLS** | Roller: `amir`, `ik`, `guvenlik`, `yonetici`, `isg`, `admin`. Her kullanıcı yalnızca rolünün izin verdiği satırları görür |
 | Frontend | **Next.js + TypeScript** | Tailwind CSS + shadcn/ui |
@@ -85,7 +85,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 
 ## 4. Veritabanı
 
-`pdks` şemasında **37 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
+`pdks` şemasında **38 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2 + plan geçmişi 1). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
 
 | Grup | Tablolar |
 |---|---|
@@ -156,6 +156,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261226010000_gunluk_sinir.sql` | Havuz onayında günlük 11 saat aşılırsa kayıt işaretlenir, İK'ya uyarı yazılır; süre puantaja girer (T-58) |
 | `20261227010000_plan_onayi_hesap.sql` | Gece işinden sonra onaylanan fazla mesai planı günü hemen yeniden hesaplar, havuzdaki karşılığını kapatır (T-61) |
 | `20261228010000_gecmis_plan_talebi.sql` | Geçmiş güne fazla mesai planı talebi reddedilir; süre havuzdan İK kararıyla gelir (T-76) |
+| `20261229010000_plan_gecmisi.sql` | Vardiya planı geçmişi (+1 tablo); İK geriye dönük değişikliği reddedince önceki plan geri gelir (T-49) |
 
 ---
 
@@ -261,6 +262,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Havuz onayında günlük 11 saat (T-58): işaret, uyarı, 660 / 661 dk sınırı plan yoluyla aynı ölçüde (13 test) | ✅ |
 | Sonradan plan onayı (T-61): hemen hesap, havuzun kapanması, iki kez sayılmama, kilitli ay (13 test) | ✅ |
 | Geçmiş güne plan talebi (T-76): ret, bugün / yarın serbest, zamanında talebin sonradan onayı (7 test) | ✅ |
+| Plan geçmişi (T-49): ret sonrası önceki plan ve gün işleme, silinmezlik, görünürlük (18 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

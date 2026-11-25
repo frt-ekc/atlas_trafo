@@ -292,7 +292,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
                     <IslemPenceresi
                       dugme="Reddet"
                       baslik="Planı reddet"
-                      aciklama="Plan reddedilecektir. Bu işlem geri alınamaz."
+                      aciklama="Değişiklik reddedilecek ve günün önceki planı (varsa) geri yüklenecektir. Bu işlem geri alınamaz."
                       onay="Reddet"
                       onayTuru="destructive"
                       islem={vardiyaPlaniOnayla}
