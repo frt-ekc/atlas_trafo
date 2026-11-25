@@ -43,13 +43,13 @@ Betik tek işlemdir: hata olursa hiçbir şey yazılmaz. İkinci kez çalıştı
 
 ```bash
 node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-11-29   # ilk kurulum (30 Kasım)
-node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-12-06   # ikinci kurulum (6 Aralık)
+node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-12-05   # ikinci kurulum (6 Aralık)
 ```
 
 Seed'in 4 haneli demo kişileri olmadan (Elif Şen ve Ahmet Er burada İnsan Kaynakları departmanındadır), boş veritabanına yüklenecek bütün veriyi üretir. Çıktı `veri/kurulum/` klasörüne yazılır. `--kurulum` verilmezse betiğin çıktısı eskisiyle birebir aynıdır.
 
 - **Önce** `supabase/canli/kurulum.sql` (yalnızca yapı) yüklenir, sonra `veri/kurulum/yukle.sql`. Adımlar: `docs/canli_kurulum.md`.
-- **Kadro:** sisteme giren 25 kişi (`scripts/kadro.mjs`) departmanlarının mevcuduna dahildir; toplam yine 180 çalışan (+ geçmişte ayrılmış pasifler). 8 haneli sicil, kart, plan, okutma ve hata oranları diğerleriyle aynıdır. Sicilleri sabit tohumla üretilir: `--tohum` ya da tarih değişse de aynı kalır.
+- **Kadro:** sisteme giren 25 kişi (`scripts/kadro.mjs`) departmanlarının mevcuduna dahildir; toplam yine 180 çalışan (+ geçmişte ayrılmış pasifler). 8 haneli sicil, kart, plan, okutma ve hata oranları diğerleriyle aynıdır; yalnızca bilerek devamsız gün konmaz. Sicilleri sabit tohumla üretilir: `--tohum` ya da tarih değişse de aynı kalır.
 - **`kullanicilar.csv`:** e-posta, rol, sicil. `yukle.sql` çalışanlardan sonra kullanıcıları, üst amir zincirini, departman amirlerini, Bobinaj vekilini ve bölge yetkilerini kurar.
 - **Girenler:** izin ve planı İK uzmanı (kendi kaydını İK müdürü), İSG belgesini İSG uzmanı, geçici kartı güvenlik görevlisi girer; kimse kendi kaydında işlem yapmaz.
 - **Arife:** 28 Ekim'de çalışma 13:00'te biter, 13:00'te ya da sonra başlayan vardiyaya gelinmez (T-28).

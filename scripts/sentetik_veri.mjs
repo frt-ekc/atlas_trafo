@@ -386,7 +386,8 @@ planlar.forEach(({ k, d, v }) => {
   const tarih = gunMetni(d);
   sayilir = !KURULUM || d < okutmaSonu;
   if (k.izin && d >= k.izin.bas && d <= k.izin.bit) return say("izinli_gun");
-  if (olasilik(0.003)) return say("devamsiz_gun"); // haber vermeden gelmedi: hiç okutma yok
+  // Haber vermeden gelmedi: hiç okutma yok. Kadroya (kullanıcı hesabı olanlara) bilerek konmaz.
+  if (olasilik(0.003) && !k.kadro) return say("devamsiz_gun");
 
   const [bs, bt] = VARDIYA[v];
   const bas = saatte(d, bs);

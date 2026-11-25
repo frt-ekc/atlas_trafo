@@ -24,10 +24,10 @@ node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-11-29
 İkinci kurulum (6 Aralık):
 
 ```bash
-node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-12-06
+node scripts/sentetik_veri.mjs --kurulum --bas 2026-10-01 --bit 2026-12-05
 ```
 
-Aynı tohumla iki kurulumun ortak günleri birebir aynıdır (okutma dosyaları, plan, kadro). İkinci kurulum 6 Aralık akşamı, o günün okutmaları bittikten sonra yapılır; 6 Aralık Pazar'dır ve planlı vardiya yoktur, yalnızca 7 Aralık 00-08 vardiyasının 23:50 civarı girişleri vardır. Gündüz kurulacaksa `--bit 2026-12-05` verilir.
+Aynı tohumla iki kurulumun ortak günleri birebir aynıdır (okutma dosyaları, plan, kadro). `--bit 2026-12-05` 6 Aralık'ın (Pazar, planlı vardiya yok) hiçbir okutmasını içermez. 7 Aralık 00-08 vardiyasının 6 Aralık 23:50 civarındaki girişleri de yüklenmez; demo günü işlenecekse bu girişler demo dosyalarında olmalıdır.
 
 ## 1. Yedek
 ```bash
@@ -102,7 +102,7 @@ psql "$CANLI_DB_URL" -v ON_ERROR_STOP=1 -f veri/kurulum/yukle.sql
 Beklenen son iki satır:
 
 ```
-Sentetik veri yüklendi: 188 çalışan, 8370 plan, 43182 okutma.      (30 Kasım kurulumu; 6 Aralık: 48396 okutma)
+Sentetik veri yüklendi: 188 çalışan, 8370 plan, 43242 okutma.      (30 Kasım kurulumu; 6 Aralık: 48423 okutma)
 Kurulum kontrolü tamam: 25 kullanıcı, 2 aktif İK, 1 aktif admin, 19 departman amirli.
 ```
 
@@ -133,12 +133,12 @@ SQL
 ```bash
 psql "$CANLI_DB_URL" -v ON_ERROR_STOP=1 -c '\timing on' -f - <<'SQL'
 select format('select %L as gun, pdks.gece_isi_calistir(%L)', g::date, g::date)
-from generate_series(date '2026-10-01', date '2026-12-06', interval '1 day') g \gexec
+from generate_series(date '2026-10-01', date '2026-12-05', interval '1 day') g \gexec
 select durum, count(*) from pdks.gece_isi group by durum;
 SQL
 ```
 
-Son sorgu yalnızca `basarili | 60` (ikinci kurulumda `67`) göstermeli. Yerelde 60 gün 101 sn (en uzun gün 3,4 sn), 67 gün 120 sn (en uzun gün 3,9 sn) sürdü.
+Son sorgu yalnızca `basarili | 60` (ikinci kurulumda `66`) göstermeli. Yerelde 60 gün 94 sn (en uzun gün 3,8 sn), 66 gün 112 sn (en uzun gün 3,7 sn) sürdü.
 
 ## 9. Şema yenileme
 ```sql
@@ -170,24 +170,31 @@ select (select count(*) from pdks.calisan)                                      
        (select count(*) from pdks.donem where durum = 'kilitli')                 as kilitli_ay;
 ```
 
-| | 30 Kasım kurulumu (`--bit 2026-11-29`) | 6 Aralık kurulumu (`--bit 2026-12-06`) |
+| | 30 Kasım kurulumu (`--bit 2026-11-29`) | 6 Aralık kurulumu (`--bit 2026-12-05`) |
 |---|---:|---:|
 | Çalışan (aktif) | 188 (178) | 188 (178) |
 | Kullanıcı / bağlı hesap | 25 / 25 | 25 / 25 |
 | Yazılı fazla mesai onayı | 164 | 164 |
 | Gün kaydı | 7302 | 8192 |
-| Düzeltme | 203 | 220 |
-| Soru | 44 | 48 |
-| Havuz | 35 | 39 |
-| Uyarı | 128 | 140 |
+| Düzeltme | 195 | 213 |
+| Soru | 35 | 39 |
+| Havuz | 37 | 41 |
+| Uyarı | 115 | 123 |
 | Kilitli ay | 0 | 0 |
 
 | Ay | Gün kaydı | Düzeltme | Soru | Havuz |
 |---|---:|---:|---:|---:|
-| Ekim 2026 | 3742 | 97 | 23 | 20 |
-| Kasım 2026 (29'una kadar) | 3560 | 106 | 21 | 15 |
-| Kasım 2026 (tamamı, ikinci kurulum) | 3738 | 113 | 21 | 15 |
-| 1–6 Aralık 2026 (ikinci kurulum) | 712 | 10 | 4 | 4 |
+| Ekim 2026 | 3742 | 88 | 21 | 18 |
+| Kasım 2026 (29'una kadar) | 3560 | 107 | 14 | 19 |
+| Kasım 2026 (tamamı, ikinci kurulum) | 3738 | 111 | 15 | 19 |
+| 1–5 Aralık 2026 (ikinci kurulum) | 712 | 14 | 3 | 4 |
+
+İleri tarihli okutma olmamalı (sonuç en çok `--bit` günü; yerelde 29 Kasım 23:57 ve 5 Aralık 06:16):
+
+```sql
+select max(okutma_zamani at time zone 'Europe/Istanbul')
+from (select okutma_zamani from pdks.ham_okutma union all select okutma_zamani from pdks.kanit_kaydi) x;
+```
 
 `--bit` gününe kadar işlenmemiş planlı gün 0 olmalı (sonrası planlıdır, henüz işlenmez):
 
