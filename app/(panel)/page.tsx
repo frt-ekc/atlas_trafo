@@ -83,7 +83,7 @@ async function IkOzeti({ supabase, bugunTarih, saltOkur }: { supabase: Istemci; 
       "İzinler",
     ),
     supabase.from("vardiya_plani").select("tarih").eq("ik_onay_durumu", "bekliyor").order("tarih").limit(1).maybeSingle(),
-    supabase.from("gece_isi").select("islenen_gun, durum, bitis").order("baslangic", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("gece_isi").select("islenen_gun, durum, bitis").order("baslangic", { ascending: false }).order("islenen_gun", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   const geceIsi = sonGeceIsi.data as { islenen_gun: string; durum: string; bitis: string | null } | null;
@@ -395,7 +395,7 @@ async function AdminOzeti({ supabase }: { supabase: Istemci }) {
   const [aktif, hesapsiz, sonGeceIsi] = await Promise.all([
     say(supabase.from("kullanici").select("id", SAYIM).eq("aktif", true), "Kullanıcılar"),
     say(supabase.from("kullanici").select("id", SAYIM).eq("aktif", true).is("auth_kullanici_id", null), "Kullanıcılar"),
-    supabase.from("gece_isi").select("islenen_gun, durum, hata_mesaji").order("id", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("gece_isi").select("islenen_gun, durum, hata_mesaji").order("baslangic", { ascending: false }).order("islenen_gun", { ascending: false }).limit(1).maybeSingle(),
   ]);
   const gece = sonGeceIsi.data as { islenen_gun: string; durum: string; hata_mesaji: string | null } | null;
 

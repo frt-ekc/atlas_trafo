@@ -28,7 +28,7 @@ export function VardiyaEtiketi({ kod, ustuCizili = false }: { kod: string; ustuC
   return (
     <span
       className={cn(
-        "inline-flex min-w-14 justify-center rounded px-1.5 py-0.5 text-xs font-semibold",
+        "inline-flex min-w-14 justify-center rounded px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap",
         VARDIYA_RENGI[kod] ?? "bg-secondary text-secondary-foreground",
         ustuCizili && "line-through opacity-60",
       )}

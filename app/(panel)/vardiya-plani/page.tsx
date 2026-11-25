@@ -205,7 +205,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
               ))}
             </Secim>
           </div>
-          <Button type="submit" size="sm">Göster</Button>
+          <Button type="submit" size="sm">Uygula</Button>
         </SuzgecFormu>
       </div>
 

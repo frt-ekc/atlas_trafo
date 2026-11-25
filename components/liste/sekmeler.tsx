@@ -6,9 +6,10 @@ export type Sekme = { ad: string; adres: string; sayi?: number; sayiAciklama?: s
 
 // Liste üstündeki sekmeler (ör. Yeni / Görülenler). Her sekme bir bağlantıdır; seçili olan
 // yalnızca renkle değil, kalın yazı, alt çizgi ve aria-current ile de belli olur.
+// Dar ekranda sığmayan sekme alt satıra iner; hiçbir sekme ekran dışında kalmaz.
 export function Sekmeler({ sekmeler, etiket }: { sekmeler: Sekme[]; etiket: string }) {
   return (
-    <nav aria-label={etiket} className="flex gap-1 overflow-x-auto shadow-[inset_0_-1px_0_var(--border)]">
+    <nav aria-label={etiket} className="flex flex-wrap gap-x-1 shadow-[inset_0_-1px_0_var(--border)]">
       {sekmeler.map((s) => (
         <Link
           key={s.ad}
@@ -16,7 +17,7 @@ export function Sekmeler({ sekmeler, etiket }: { sekmeler: Sekme[]; etiket: stri
           scroll={false}
           aria-current={s.aktif ? "page" : undefined}
           className={cn(
-            "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-lg border-b-2 px-3 py-2 text-sm outline-none transition-colors",
+            "relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-lg border-b-2 px-3 py-2 text-sm outline-none transition-colors",
             "focus-visible:ring-2 focus-visible:ring-ring",
             s.aktif
               ? "border-vurgu font-semibold text-foreground"

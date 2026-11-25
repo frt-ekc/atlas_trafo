@@ -1,6 +1,13 @@
 // Veritabanındaki kodların ekrandaki Türkçe karşılıkları.
 // Kod listeleri migration'lardaki CHECK kısıtlarıyla aynıdır; yeni kod eklenirse buraya da eklenir.
 
+// Durum rozetinin tonu (components/liste/durum-rozeti.tsx):
+//   iyi    → tamamlandı, sorun yok
+//   dikkat → karar ya da işlem bekliyor
+//   kotu   → çalışan aleyhine sonuç, ret, kayıp
+//   notr   → bilgi, pasif, iptal
+export type Ton = "iyi" | "dikkat" | "kotu" | "notr";
+
 export const SORU_TURU: Record<string, string> = {
   giris_yok: "Giriş kaydı yok",
   kanit_vardiya_sonrasi: "Vardiya başlangıcından sonra giriş",
@@ -10,12 +17,12 @@ export const SORU_TURU: Record<string, string> = {
   vardiya_uyusmazligi: "Vardiya uyuşmazlığı",
 };
 
-export const SORU_DURUMU: Record<string, { ad: string; tur: "default" | "secondary" | "destructive" | "outline" }> = {
-  acik: { ad: "Cevap bekliyor", tur: "default" },
-  eskale: { ad: "Üst amire iletildi", tur: "destructive" },
-  cevaplandi: { ad: "Cevaplandı", tur: "secondary" },
-  ik_karari_bekliyor: { ad: "İK kararı bekliyor", tur: "default" },
-  kapandi: { ad: "Sonuçlandı", tur: "outline" },
+export const SORU_DURUMU: Record<string, { ad: string; ton: Ton }> = {
+  acik: { ad: "Cevap bekliyor", ton: "dikkat" },
+  eskale: { ad: "Üst amire iletildi", ton: "kotu" },
+  cevaplandi: { ad: "Cevaplandı", ton: "iyi" },
+  ik_karari_bekliyor: { ad: "İK kararı bekliyor", ton: "dikkat" },
+  kapandi: { ad: "Sonuçlandı", ton: "notr" },
 };
 
 export const SORU_CEVABI: Record<string, string> = {
@@ -100,9 +107,9 @@ export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
   { ad: "İSG", turler: ["isg_belgesi_yok", "isg_belgesi_suresi_dolmus", "isg_belgesi_suresi_doluyor", "yetkisiz_bolge_okutmasi"] },
 ];
 
-export const ITIRAZ_DURUMU: Record<string, { ad: string; tur: "default" | "secondary" | "destructive" | "outline" }> = {
-  acik: { ad: "Açık", tur: "default" },
-  inceleniyor: { ad: "İnceleniyor", tur: "default" },
-  kabul: { ad: "Kabul edildi", tur: "secondary" },
-  red: { ad: "Reddedildi", tur: "destructive" },
+export const ITIRAZ_DURUMU: Record<string, { ad: string; ton: Ton }> = {
+  acik: { ad: "Açık", ton: "dikkat" },
+  inceleniyor: { ad: "İnceleniyor", ton: "dikkat" },
+  kabul: { ad: "Kabul edildi", ton: "iyi" },
+  red: { ad: "Reddedildi", ton: "kotu" },
 };

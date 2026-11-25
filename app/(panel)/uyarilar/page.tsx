@@ -16,6 +16,7 @@ import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { uyariGoruldu, uyarilarGoruldu } from "./actions";
+import { TOPLU_SINIR } from "./toplu-sinir";
 
 export const metadata = { title: "Uyarılar" };
 
@@ -241,10 +242,10 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         </FiltreAlani>
         <div className="flex gap-3">
           <FiltreAlani etiket="Kayıt tarihi, başlangıç" htmlFor="bas">
-            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-40" />
+            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-36 sm:w-40" />
           </FiltreAlani>
           <FiltreAlani etiket="Bitiş" htmlFor="bit">
-            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-40" />
+            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-36 sm:w-40" />
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
@@ -296,7 +297,16 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
           }
         />
       ) : secilebilir ? (
-        <TopluSecim idler={uyarilar.map((u) => u.id)} alanAdi="uyari_id" dugme="Seçilenleri görüldü olarak işaretle" islem={uyarilarGoruldu}>
+        // "Tümünü seç" yalnızca bilgi uyarılarını seçer: karar gerekli uyarı yanlışlıkla topluca kapatılmasın,
+        // İK isterse onu tek tek seçer. Sunucu bir seferde en fazla TOPLU_SINIR uyarı işler.
+        <TopluSecim
+          idler={uyarilar.map((u) => u.id)}
+          hepsiIdler={bilgi.slice(0, TOPLU_SINIR).map((u) => u.id)}
+          hepsiEtiketi={bilgi.length > TOPLU_SINIR ? `İlk ${TOPLU_SINIR} bilgi uyarısını seç` : "Bilgi uyarılarının tümünü seç"}
+          alanAdi="uyari_id"
+          dugme="Seçilenleri görüldü olarak işaretle"
+          islem={uyarilarGoruldu}
+        >
           {liste}
         </TopluSecim>
       ) : (

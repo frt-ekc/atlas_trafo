@@ -76,13 +76,13 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
             WebkitMaskRepeat: "no-repeat",
           }}
         />
-        <span className="text-sm text-sidebar-foreground/60">PDKS Kayıt Düzeltme</span>
+        <span className="text-sm text-sidebar-foreground/70">PDKS Kayıt Düzeltme</span>
       </div>
 
       <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(234_220_200/0.25)_transparent] [scrollbar-width:thin]">
         {gruplanmisMenu(kullanici.rol).map(({ grup, ogeler }) => (
           <div key={grup} className="flex flex-col gap-0.5">
-            <div className="px-3 pb-1.5 text-[11px] font-semibold tracking-[0.12em] text-sidebar-foreground/45 uppercase">
+            <div className="px-3 pb-1.5 text-[11px] font-semibold tracking-[0.12em] text-sidebar-foreground/70 uppercase">
               {grup}
             </div>
             {ogeler.map((oge) => (
@@ -102,7 +102,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
         </div>
         <div className="min-w-0 flex-1 leading-tight">
           <div className="truncate text-sm font-medium">{kullanici.adSoyad}</div>
-          <div className="truncate text-xs text-sidebar-foreground/60">{ROL_ADI[kullanici.rol]}</div>
+          <div className="truncate text-xs text-sidebar-foreground/70">{ROL_ADI[kullanici.rol]}</div>
         </div>
         <form action={cikisYap}>
           <button

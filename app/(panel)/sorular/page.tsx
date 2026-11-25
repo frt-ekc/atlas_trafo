@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
@@ -7,6 +6,7 @@ import { Secim } from "@/components/panel/secim";
 import { aralikta, aramaSuzgeci, tarihParametresi } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { DurumIslem } from "@/components/liste/durum-islem";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
@@ -128,10 +128,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         </FiltreAlani>
         <div className="flex gap-3">
           <FiltreAlani etiket="Gün, başlangıç" htmlFor="bas">
-            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-40" />
+            <Input id="bas" name="bas" type="date" defaultValue={bas} className="w-36 sm:w-40" />
           </FiltreAlani>
           <FiltreAlani etiket="Bitiş" htmlFor="bit">
-            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-40" />
+            <Input id="bit" name="bit" type="date" defaultValue={bit} className="w-36 sm:w-40" />
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
@@ -215,7 +215,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                     )}
                     <TableCell>
                       <DurumIslem
-                        durum={<Badge variant={SORU_DURUMU[s.durum]?.tur ?? "outline"}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</Badge>}
+                        durum={<DurumRozeti ton={SORU_DURUMU[s.durum]?.ton}>{SORU_DURUMU[s.durum]?.ad ?? s.durum}</DurumRozeti>}
                       >
                         {amir && (s.durum === "acik" || s.durum === "eskale") && <CevaplaPenceresi soru={s} />}
                         {/* Görevler ayrılığı: İK kendi günündeki soruya karar veremez; soru diğer İK'ya düşer */}

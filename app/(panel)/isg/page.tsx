@@ -1,20 +1,20 @@
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
-import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { Secim } from "@/components/panel/secim";
 import { CheckIcon } from "lucide-react";
 import { aramaSuzgeci } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
+import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { Sekmeler } from "@/components/liste/sekmeler";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { Zaman } from "@/components/liste/zaman";
 import { tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
+import type { Ton } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -31,11 +31,11 @@ type Yetki = { bolge_id: number; departman_id: number; verilis_zamani: string };
 type Gecmis = { id: number; bolge_id: number; departman_id: number; islem: "verildi" | "kaldirildi"; zaman: string; yapan: { ad_soyad: string } | null };
 
 const TUR_ADI: Record<string, string> = { isg_egitimi: "İSG eğitimi", saglik_muayenesi: "Sağlık muayenesi" };
-const DURUM: Record<Durum, { ad: string; tur: "default" | "secondary" | "destructive" | "outline" }> = {
-  yok: { ad: "Kayıt yok", tur: "destructive" },
-  dolmus: { ad: "Süresi dolmuş", tur: "destructive" },
-  doluyor: { ad: "Süresi doluyor", tur: "default" },
-  gecerli: { ad: "Geçerli", tur: "secondary" },
+const DURUM: Record<Durum, { ad: string; ton: Ton }> = {
+  yok: { ad: "Kayıt yok", ton: "kotu" },
+  dolmus: { ad: "Süresi dolmuş", ton: "kotu" },
+  doluyor: { ad: "Süresi doluyor", ton: "dikkat" },
+  gecerli: { ad: "Geçerli", ton: "iyi" },
 };
 
 // İSG: eğitim / sağlık muayenesi geçerliliği ve bölge giriş yetkileri. Kapı kilitlenmez; sistem yalnızca uyarır.
@@ -185,7 +185,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                       </TableCell>
                       <TableCell>{TUR_ADI[d.tur] ?? d.tur}</TableCell>
                       <TableCell className="tabular-nums">{d.gecerlilik_bitis ? tarih(d.gecerlilik_bitis) : "—"}</TableCell>
-                      <TableCell><Badge variant={DURUM[d.durum].tur}>{DURUM[d.durum].ad}</Badge></TableCell>
+                      <TableCell><DurumRozeti ton={DURUM[d.durum].ton}>{DURUM[d.durum].ad}</DurumRozeti></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -238,9 +238,18 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                                 </span>
                               )}
                               {isg && (
-                                <HizliIslem
+                                // Güvenlik yetkisi: satırlar birbirine yakın olduğu için tek tıkla değil, onay penceresiyle
+                                <IslemPenceresi
                                   dugme={var_ ? "Yetkiyi kaldır" : "Yetki ver"}
                                   dugmeTuru="ghost"
+                                  baslik={var_ ? "Bölge yetkisini kaldır" : "Bölge yetkisi ver"}
+                                  aciklama={
+                                    var_
+                                      ? `${d.ad} departmanının ${b.ad} yetkisi kaldırılacak. Bu bölgede okutan çalışanları için uyarı düşer.`
+                                      : `${d.ad} departmanına ${b.ad} yetkisi verilecek. Bu bölgede okutan çalışanları için uyarı düşmez.`
+                                  }
+                                  onay={var_ ? "Yetkiyi kaldır" : "Yetki ver"}
+                                  onayTuru={var_ ? "destructive" : "default"}
                                   islem={bolgeYetkisi}
                                   gizli={{ bolge_id: b.id, departman_id: d.id, islem: var_ ? "kaldir" : "ver" }}
                                 />
