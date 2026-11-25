@@ -93,9 +93,12 @@
   --chart-4: #d6ecef;
   --chart-5: #1f2357;
   --radius: 0.75rem;
+  /* Üç katman: sol üstte gök mavisi, sağ altta buz, sağ üstte çok hafif indigo. Fark edilir, yazının arkasında kalır. */
   --zemin:
-    radial-gradient(1200px 760px at 22% 0%, rgb(106 155 252 / 0.2), transparent 65%),
-    radial-gradient(1100px 700px at 100% 100%, rgb(214 236 239 / 0.95), transparent 66%), #f4f7fb;
+    radial-gradient(1100px 720px at 20% -4%, rgb(106 155 252 / 0.34), transparent 64%),
+    radial-gradient(900px 600px at 92% 8%, rgb(59 66 150 / 0.1), transparent 62%),
+    radial-gradient(1200px 760px at 100% 100%, rgb(190 226 232 / 1), transparent 66%),
+    linear-gradient(180deg, #f3f6fc 0%, #eef5f8 100%);
   --ust-bar: rgb(255 255 255 / 0.78);
 }
 
@@ -127,8 +130,10 @@
   --chart-5: #2c3178;
   --zemin:
     /* Işımanın merkezi kenar çubuğunun sağında: köşede olsa en parlak yeri çubuğun altında kalır */
-    radial-gradient(1200px 760px at 22% 0%, rgb(59 66 150 / 0.6), transparent 66%),
-    radial-gradient(1100px 700px at 100% 100%, rgb(106 155 252 / 0.13), transparent 66%), #0e1130;
+    radial-gradient(1100px 720px at 20% -4%, rgb(59 66 150 / 0.8), transparent 64%),
+    radial-gradient(900px 600px at 95% 6%, rgb(106 155 252 / 0.12), transparent 60%),
+    radial-gradient(1200px 760px at 100% 100%, rgb(106 155 252 / 0.2), transparent 66%),
+    linear-gradient(180deg, #10143a 0%, #0c0f2a 100%);
   --ust-bar: rgb(21 25 64 / 0.72);
 }
 
@@ -174,6 +179,35 @@
   select option {
     background-color: var(--popover);
     color: var(--popover-foreground);
+  }
+  /* Seçilen yazı ve ince, temaya uyan kaydırma çubukları */
+  ::selection {
+    background: rgb(106 155 252 / 0.3);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 35%, transparent) transparent;
+  }
+  /* Sayfa değişince içerik yumuşakça belirir (hareket azaltma tercihine uyar) */
+  @media (prefers-reduced-motion: no-preference) {
+    main > * {
+      animation: sayfa-gir 180ms ease-out both;
+    }
+  }
+  /* Tablo başlığı: ince, sakin bir şerit */
+  [data-slot="table-header"] [data-slot="table-head"] {
+    background: color-mix(in oklab, var(--muted) 70%, transparent);
+    color: var(--muted-foreground);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  /* Kartlar zeminden hafif bir gölgeyle ayrılır */
+  .bg-card.border {
+    box-shadow: 0 1px 2px rgb(31 35 87 / 0.05), 0 4px 14px -6px rgb(31 35 87 / 0.08);
+  }
+  .dark .bg-card.border {
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
   }
   /* Tablolarda kişi adı (bağlantı) öne çıkar */
   [data-slot="table-cell"] a {
@@ -255,4 +289,11 @@
   --grafik-amir: #d16b9c;
   --grafik-ik: #3a93cf;
   --grafik-bekliyor: #bd7a2c;
+}
+
+@keyframes sayfa-gir {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }

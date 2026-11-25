@@ -1,3 +1,4 @@
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
@@ -134,7 +135,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   </Alan>
                   <div className="grid grid-cols-2 gap-3">
                     <Alan etiket="Geçerlilik bitişi" htmlFor="gecerlilik_bitis">
-                      <Input id="gecerlilik_bitis" name="gecerlilik_bitis" type="date" required />
+                      <TarihSecici id="gecerlilik_bitis" name="gecerlilik_bitis" required />
                     </Alan>
                     <Alan etiket="Belge no (isteğe bağlı)" htmlFor="belge_no">
                       <Input id="belge_no" name="belge_no" maxLength={50} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Textarea } from "@/components/ui/textarea";
 import { SORU_CEVABI } from "@/lib/etiketler";
 import { zorunluSaatler } from "./zorunlu-saatler";
@@ -40,11 +40,11 @@ export function CevapAlanlari({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="giris" className="text-sm font-medium">Giriş{zorunlu.giris && <span className="text-destructive"> (zorunlu)</span>}{kayitliGiris && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliGiris})</span>}</label>
-            <Input id="giris" name="giris" type="datetime-local" defaultValue={girisVarsayilan} required={zorunlu.giris} />
+            <TarihSecici saatli id="giris" name="giris" defaultValue={girisVarsayilan} required={zorunlu.giris} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="cikis" className="text-sm font-medium">Çıkış{zorunlu.cikis && <span className="text-destructive"> (zorunlu)</span>}{kayitliCikis && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliCikis})</span>}</label>
-            <Input id="cikis" name="cikis" type="datetime-local" defaultValue={cikisVarsayilan} required={zorunlu.cikis} />
+            <TarihSecici saatli id="cikis" name="cikis" defaultValue={cikisVarsayilan} required={zorunlu.cikis} />
           </div>
           <p className="text-xs text-muted-foreground sm:col-span-2">
             {zorunlu.giris && zorunlu.cikis

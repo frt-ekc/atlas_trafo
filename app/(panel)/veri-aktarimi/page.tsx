@@ -1,5 +1,5 @@
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
@@ -200,10 +200,10 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
             >
               <div className="grid grid-cols-2 gap-3">
                 <Alan etiket="Başlangıç" htmlFor="baslangic">
-                  <Input id="baslangic" name="baslangic" type="date" required defaultValue={ayBasi <= dun ? ayBasi : dun} />
+                  <TarihSecici id="baslangic" name="baslangic" required defaultValue={ayBasi <= dun ? ayBasi : dun} />
                 </Alan>
                 <Alan etiket="Bitiş" htmlFor="bitis">
-                  <Input id="bitis" name="bitis" type="date" required defaultValue={dun} />
+                  <TarihSecici id="bitis" name="bitis" required defaultValue={dun} />
                 </Alan>
               </div>
             </IslemPenceresi>
@@ -323,10 +323,10 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
               </Alan>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Alan etiket="Başlangıç" htmlFor="ariza-bas">
-                  <Input id="ariza-bas" name="baslangic" type="datetime-local" required />
+                  <TarihSecici saatli id="ariza-bas" name="baslangic" required />
                 </Alan>
                 <Alan etiket="Bitiş (isteğe bağlı)" htmlFor="ariza-bit">
-                  <Input id="ariza-bit" name="bitis" type="datetime-local" />
+                  <TarihSecici saatli id="ariza-bit" name="bitis" />
                 </Alan>
               </div>
               <Alan etiket="Açıklama (isteğe bağlı)" htmlFor="ariza-aciklama">

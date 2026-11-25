@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -289,7 +290,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="is_gunu">
-                <Input id="is_gunu" name="is_gunu" type="date" required defaultValue={bugunTarih} />
+                <TarihSecici id="is_gunu" name="is_gunu" required defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Süre (saat)" htmlFor="saat">
                 <Input id="saat" name="saat" type="number" required min={0.5} max={11} step={0.5} defaultValue={2} />
@@ -551,7 +552,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       <Input id="o-yil" name="yil" type="number" required min={2000} max={2100} defaultValue={yil} />
                     </Alan>
                     <Alan etiket="İmza tarihi" htmlFor="o-imza">
-                      <Input id="o-imza" name="imza_tarihi" type="date" required defaultValue={bugunTarih} />
+                      <TarihSecici id="o-imza" name="imza_tarihi" required defaultValue={bugunTarih} />
                     </Alan>
                     <Alan etiket="Belge no" htmlFor="o-belge">
                       <Input id="o-belge" name="belge_no" required maxLength={50} />
@@ -575,7 +576,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       <Input id="g-yil" name="yil" type="number" required min={2000} max={2100} defaultValue={yil} />
                     </Alan>
                     <Alan etiket="Bildirim tarihi" htmlFor="g-bildirim">
-                      <Input id="g-bildirim" name="bildirim_tarihi" type="date" required defaultValue={bugunTarih} />
+                      <TarihSecici id="g-bildirim" name="bildirim_tarihi" required defaultValue={bugunTarih} />
                     </Alan>
                   </div>
                 </IslemPenceresi>

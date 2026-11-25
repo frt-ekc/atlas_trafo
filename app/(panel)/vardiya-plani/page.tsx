@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
 import { CalisanSecici } from "@/components/panel/calisan-secici";
@@ -225,7 +225,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="tarih">
-                <Input id="tarih" name="tarih" type="date" required defaultValue={pazartesi <= bugunTarih && bugunTarih <= pazar ? bugunTarih : pazartesi} />
+                <TarihSecici id="tarih" name="tarih" required defaultValue={pazartesi <= bugunTarih && bugunTarih <= pazar ? bugunTarih : pazartesi} />
               </Alan>
               <Alan etiket="Vardiya" htmlFor="vardiya_id">
                 <Secim id="vardiya_id" name="vardiya_id" required defaultValue="" className="h-9">

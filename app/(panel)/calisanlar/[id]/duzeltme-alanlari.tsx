@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Textarea } from "@/components/ui/textarea";
 import { Secim } from "@/components/panel/secim";
 import { ITIRAZ_DURUMU } from "@/lib/etiketler";
@@ -52,14 +52,7 @@ export function DuzeltmeAlanlari({
             {Object.entries(DURUMLAR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </Secim>
         ) : (
-          <Input
-            key={alan}
-            id="yeni_deger"
-            name="yeni_deger"
-            type="datetime-local"
-            required
-            defaultValue={alan === "giris_zamani" ? girisVarsayilan : cikisVarsayilan}
-          />
+          <TarihSecici saatli key={alan} id="yeni_deger" name="yeni_deger" required defaultValue={alan === "giris_zamani" ? girisVarsayilan : cikisVarsayilan} />
         )}
       </div>
 

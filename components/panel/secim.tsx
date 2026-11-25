@@ -103,7 +103,7 @@ export function Secim({ id, name, defaultValue, value, onChange, required, disab
         ref={tetik}
         id={id}
         aria-label={rest["aria-label"]}
-        style={{ minWidth: `min(100%, calc(${enUzun}ch + 2.75rem))` }}
+        style={{ minWidth: `min(calc(${enUzun}ch + 2.75rem), calc(100vw - 4.5rem))` }}
         className={cn(
           "flex h-9 min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-card px-2.5 text-left text-sm outline-none transition-colors",
           "hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 data-[popup-open]:border-ring",

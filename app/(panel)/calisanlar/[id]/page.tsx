@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -152,7 +153,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
               gizli={{ calisan_id: calisanId, ad_soyad: calisan.adSoyad }}
             >
               <label htmlFor="cikis_tarihi" className="text-sm font-medium">Son çalışma günü</label>
-              <Input id="cikis_tarihi" name="cikis_tarihi" type="date" required max={bugunTarih} defaultValue={bugunTarih} />
+              <TarihSecici id="cikis_tarihi" name="cikis_tarihi" required max={bugunTarih} defaultValue={bugunTarih} />
               <label htmlFor="cikis_aciklama" className="text-sm font-medium">Açıklama (isteğe bağlı)</label>
               <Textarea id="cikis_aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. İstifa" />
             </IslemPenceresi>

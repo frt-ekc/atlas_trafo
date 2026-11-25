@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,10 +159,10 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Başlangıç" htmlFor="baslangic">
-                <Input id="baslangic" name="baslangic" type="date" required defaultValue={bugunTarih} />
+                <TarihSecici id="baslangic" name="baslangic" required defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Bitiş" htmlFor="bitis">
-                <Input id="bitis" name="bitis" type="date" required defaultValue={bugunTarih} />
+                <TarihSecici id="bitis" name="bitis" required defaultValue={bugunTarih} />
               </Alan>
             </div>
             <Alan etiket="Açıklama (isteğe bağlı)" htmlFor="aciklama">
@@ -181,7 +182,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             </Alan>
             <div className="grid grid-cols-3 gap-3">
               <Alan etiket="Gün" htmlFor="s-tarih">
-                <Input id="s-tarih" name="tarih" type="date" required defaultValue={bugunTarih} />
+                <TarihSecici id="s-tarih" name="tarih" required defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Başlangıç" htmlFor="s-bas">
                 <Input id="s-bas" name="bas_saat" type="time" required defaultValue="10:00" />
