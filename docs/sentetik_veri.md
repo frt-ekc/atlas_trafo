@@ -52,7 +52,7 @@ Betik tek işlemdir: hata olursa hiçbir şey yazılmaz. İkinci kez çalıştı
 | Kıdem | Üstel dağılım (mavi yaka ort. 6, beyaz yaka 8 yıl); dönem içinde 2 işe giriş, 2 işten çıkış; geçmişte ayrılmış 7 pasif çalışan |
 | Departman büyüklüğü | 19 departman, 180 çalışan: 147 mavi / 33 beyaz yaka (Bobinaj 32, Montaj 30, Kazan 21, Nüve 17, Kalite 11, Depo 11, İdari 9, Boyahane 8, Bakım 8; beyaz yakada 2–6 kişi) |
 | Vardiya | Bobinaj V1/V2/V3, Nüve-Kazan ve güvenlik 08-16/16-24/00-08 haftalık dönüşüm; Ar-Ge ve Satış'ın yarısı esnek |
-| Tatil | 29 Ekim tatil (plan yok). 28 Ekim arife, firma kuralı gereği normal tam iş günü olarak çalışılır (`docs/veritabani.md`) |
+| Tatil | 29 Ekim tatil (plan yok). 28 Ekim arife: üretilen veride tam gün çalışılır; 13:00 sonrası sistemde FM100 ya da havuz olur (`docs/veritabani.md`) |
 | Saatler | Kişinin kendi alışkanlığı (hep erken gelen / son dakika gelen); servisle gelenler aynı sefer saatinde, birkaç saniye arayla okutur |
 | Okuyucular | Seed'dekilere ek PDKS-3 (Kazan-Nüve atölyesi), KAPI-2 (personel kapısı), 5 servis hattı (Karşıyaka, Çiğli, Menemen, Kemalpaşa, Torbalı) |
 

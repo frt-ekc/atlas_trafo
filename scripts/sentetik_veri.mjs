@@ -80,8 +80,7 @@ const haftaGunu = (d) => ((d.getUTCDay() + 6) % 7) + 1; // 1 = Pazartesi … 7 =
 
 const RESMI_TATIL = new Set(["2026-01-01", "2026-03-20", "2026-03-21", "2026-03-22", "2026-04-23", "2026-05-01",
   "2026-05-19", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-07-15", "2026-08-30", "2026-10-29"]);
-// Arifeler (28 Ekim vb.) firma kuralı gereği normal tam iş günüdür (docs/veritabani.md, FM50 / FM100);
-// bu yüzden ayrı işlenmez.
+// Arifelerde (28 Ekim vb.) tam gün okutma üretilir; 13:00 sonrası sistemde FM100 ya da havuz olur (docs/veritabani.md).
 
 // Vardiya tanımları (veritabanındaki pdks.vardiya_tanim ile aynı kodlar)
 const VARDIYA = {
