@@ -49,6 +49,8 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
   const bugunTarih = bugun();
   // Günler ve düzeltmeler ayrı sekmelerde (?sekme=duzeltme)
   const duzeltmeSekmesi = tekDeger(parametre.sekme) === "duzeltme";
+  // İtiraz kabulünden gelindiyse (?duzelt=<gün kaydı no>) o günün düzeltme penceresi açık başlar (T-52)
+  const acikDuzeltme = Number(tekDeger(parametre.duzelt)) || null;
   const adres = (a: string) => `/calisanlar/${calisanId}?ay=${a}${duzeltmeSekmesi ? "&sekme=duzeltme" : ""}`;
   // İtirazı amir ve İK girer; yönetici yalnızca okur. Kimse kendi kaydına itiraz giremez
   // (veritabanı da reddeder; düğme hiç gösterilmez).
@@ -240,6 +242,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                               onay="Düzeltmeyi kaydet"
                               islem={kayitDuzelt}
                               gizli={{ gun_kaydi_id: g.gunKaydiId }}
+                              acikBaslasin={g.gunKaydiId === acikDuzeltme}
                             >
                               <DuzeltmeAlanlari
                                 girisVarsayilan={yerelZamanGirdisi(g.girisZamani ?? g.planliBaslangic)}

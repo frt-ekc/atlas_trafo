@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { kararAl, metinAl, rpcCagir, sayiAl } from "@/lib/supabase/rpc";
+import { sunucuIstemcisi } from "@/lib/supabase/server";
 
 function yenile() {
   revalidatePath("/itirazlar");
@@ -22,6 +23,8 @@ export async function itirazIncelemeyeAl(_onceki: IslemSonucu, form: FormData): 
 
 // İtirazı kabul ya da red. Red çalışan aleyhine karardır: yalnızca İK verir, gerekçe zorunludur.
 // Kabul kaydı kendiliğinden düzeltmez; düzeltme çalışan sayfasından bu itiraza bağlanarak yapılır.
+// Bu yüzden kabulden sonra İK doğrudan o günün düzeltme penceresine götürülür (T-52).
+// Gidilecek gün formdan değil, veritabanındaki itiraz kaydından okunur.
 export async function itirazKarar(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const itirazId = sayiAl(form, "itiraz_id");
   const kabul = kararAl(form);
@@ -33,8 +36,20 @@ export async function itirazKarar(_onceki: IslemSonucu, form: FormData): Promise
   const sonuc = await rpcCagir("itiraz_karar", { p_itiraz_id: itirazId, p_kabul: kabul, p_aciklama: aciklama });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   yenile();
+  if (!kabul) return { durum: "tamam", mesaj: "İtiraz reddedildi." };
+
+  const supabase = await sunucuIstemcisi();
+  const { data } = await supabase
+    .from("itiraz")
+    .select("calisan_id, gun_kaydi_id, gun:gun_kaydi_id(is_gunu)")
+    .eq("id", itirazId)
+    .maybeSingle();
+  const kayit = data as { calisan_id: number; gun_kaydi_id: number; gun: { is_gunu: string } | null } | null;
   return {
     durum: "tamam",
-    mesaj: kabul ? "İtiraz kabul edildi. Kayıt, çalışan sayfasından düzeltilmelidir." : "İtiraz reddedildi.",
+    mesaj: "İtiraz kabul edildi. Şimdi kaydı düzeltip bu itiraza bağlayın.",
+    adres: kayit?.gun
+      ? `/calisanlar/${kayit.calisan_id}?ay=${kayit.gun.is_gunu.slice(0, 7)}&duzelt=${kayit.gun_kaydi_id}`
+      : undefined,
   };
 }
