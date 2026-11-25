@@ -221,12 +221,13 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                 <TableBody>
                   {departmanlar.map((d) => (
                     <TableRow key={d.id}>
-                      <TableCell className="text-sm">{d.ad}</TableCell>
+                      <TableCell className="min-w-28 text-sm whitespace-normal">{d.ad}</TableCell>
                       {bolgeler.map((b) => {
                         const var_ = yetkiVar.has(`${b.id}|${d.id}`);
                         return (
                           <TableCell key={b.id}>
-                            <div className="flex items-center gap-2">
+                            {/* Telefonda işaret ve düğme alt alta: iki bölge sütunu ekrana sığar */}
+                            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
                               {/* Her hücrede "Yetkili" rozeti yerine işaret; anlamı ekran okuyucuya yazıyla söylenir */}
                               {var_ ? (
                                 <span className="inline-flex items-center gap-1 font-medium text-iyi" title="Yetkili">

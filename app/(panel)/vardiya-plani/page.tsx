@@ -311,11 +311,12 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
           Seçilen filtrelere uygun kayıt bulunmuyor.
         </div>
       ) : (
-        <div className="rounded-lg border">
+        // Diğer tablolarla aynı kart zemini; soldaki sabit çalışan sütunu da kartın renginde
+        <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 z-10 min-w-44 bg-background">Çalışan</TableHead>
+                <TableHead className="sticky left-0 z-10 min-w-44 bg-[color-mix(in_oklab,var(--muted)_70%,var(--card))] shadow-[inset_-1px_0_0_var(--border)]">Çalışan</TableHead>
                 {gunler.map((g) => {
                   const tatil = tatiller.get(g.tarih);
                   const bugunMu = g.tarih === bugunTarih;
@@ -336,7 +337,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             <TableBody>
               {calisanlar.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="sticky left-0 z-10 bg-background">
+                  <TableCell className="sticky left-0 z-10 bg-card shadow-[inset_-1px_0_0_var(--border)]">
                     <div className="font-medium">{c.ad} {c.soyad}</div>
                     <div className="text-xs text-muted-foreground">
                       <span className="font-mono">{c.sicil_no}</span> · {c.departman?.ad ?? "—"}
