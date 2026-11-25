@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 5 | 14 (T-12, T-13, T-39, T-45, T-47, T-56, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 5 | 0 |
-| Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
+| Yüksek | 19 | 4 | 15 (T-12, T-13, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 4 | 0 |
+| Orta | 33 | 30 | 3 (T-38, T-59, T-62) | 22 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **83** | **23** | **55** | **31** |
+| **Toplam** | **106** | **81** | **25** | **53** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -293,12 +293,12 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | Düzelt (zaman kalırsa) |
 | T-55 | Düşük | 8 | Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor | K12 | — | Sınırlılık |
 | T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T56-havuz-yazili-onay) |
-| T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | Düzelt (25 Kas) |
+| T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam) |
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | Düzelt |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | Düzelt |
-| T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | Düzelt |
+| T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | Düzelt |
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
@@ -2388,7 +2388,8 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Kanun bir işçiye yılda en fazla 270 saat fazla mesai yaptırılmasına izin veriyor. Sistem bu sınırı yalnızca "önceden planlanmış" fazla mesai için uyguluyor. Habersiz kalınan saatler İK onayıyla eklenince sınır aşılıyor ve sistem yalnızca "aşıldı" diye not düşüyor. Pazar ve bayram mesaileri ise hiç sayılmıyor. Ay sonunda bir çalışanın 300 saat fazla mesaisi olabilir; sistem ekranında "kalan 0" yazar ama kimse durdurmaz.
 - **Öneri:** Tek bir `fm_yillik_toplam(calisan, yil)` fonksiyonu: onaylı plan + onaylı havuz + planı olmayan tatil FM100 (ya da doğrudan `gun_kaydi.fazla_mesai_dk` toplamı ile gelecekteki onaylı planlar). `fm_plan_denetle` ve `fazla_mesai_inceleme_karar` bunu kullansın; havuzda aşım ret olsun. Tatil çalışmasının 270 saate sayılıp sayılmayacağı İK / hukukla kararlaştırılıp belgeye yazılmalı.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** Tatil çalışması da 270 saate sayılır (çalışanı koruyan seçenek). Sınır, ileriye dönük plan talebinde ret sebebidir; havuzdaki fiilen yapılmış çalışma reddedilmez: onaylanır, puantaja girer, işaretlenir ve İK'ya bildirilir.
+- **Durum:** ✅ Düzeltildi (feature/T57-yillik-toplam). Migration: `20261221010000_yillik_fazla_mesai.sql`, test: `yillik_fazla_mesai_testi.sql`. Tek toplam `fm_yillik_toplam` (onaylı plan + onaylı havuz + tatil çalışması); `fm_plan_denetle` bununla reddeder. Aşan havuz onayı `fazla_mesai_inceleme.yillik_sinir_asildi` ile işaretlenir; yazılı onaylı tatil çalışması aşarsa da `fm_yillik_sinir_asildi` uyarısı yazılır.
 
 ### T-58 · Havuz onayında günlük 11 saat sınırı denetlenmiyor
 - **Adım:** 9 · **Önem:** Orta
@@ -2470,7 +2471,7 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Ne olmalıydı:** Ekrandaki yıllık özet, sınır denetimiyle aynı toplamı göstermeli: gerçekleşen = bütün `gun_kaydi.fazla_mesai_dk`; kalan = sınır − (onaylı plan + onaylı havuz [+ tatil, T-57 kararına göre]).
 - **Sade dille:** İK'nın "bu işçinin bu yıl ne kadar fazla mesai hakkı kaldı" diye baktığı tablo yalnızca önceden planlanan mesaileri sayıyor. Habersiz kalınan ama onaylanan saatler ve pazar mesaileri tabloda yok. Tabloda "kalan 16.080 dk" yazan biri aslında sınıra çok daha yakın olabilir.
 - **Öneri:** Görünümü `gun_kaydi` (yıl, çalışan) üzerinden kurmak; plan ve havuzu ayrı sütun olarak eklemek; `kalan_dk`'yı T-57'deki tek toplam fonksiyonundan almak.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile). `v_fazla_mesai_yillik`, `fm_yillik_toplam` ile aynı günleri (`v_fm_yillik_gun`) toplar: plan, havuz, gerçekleşen, toplam ve kalan. Yıllık sınır sekmesi görünümden okur; gösterilen toplam ve kalan sınır denetimiyle aynıdır. Test: `yillik_fazla_mesai_testi.sql`.
 
 ### T-63 · Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor; kilit bunu söylemiyor
 - **Adım:** 9 · **Önem:** Düşük
