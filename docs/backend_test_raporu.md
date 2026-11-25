@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
-| Orta | 33 | 27 | 6 (T-33, T-38, T-40, T-58, T-59, T-62) | 19 | 8 |
+| Orta | 33 | 26 | 7 (T-33, T-38, T-40, T-58, T-59, T-61, T-62) | 18 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **74** | **32** | **46** | **31** |
+| **Toplam** | **106** | **73** | **33** | **45** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -297,7 +297,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | ✅ Düzeltildi (feature/T58-gunluk-sinir) |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
-| T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | Düzelt |
+| T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T61-plan-onayi-hesap) |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | Düzelt |
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
@@ -2464,7 +2464,12 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Amir "dün iki saat fazla mesai yaptırdım" deyip talebi sonradan giriyor, İK onaylıyor, ama puantajda fazla mesai görünmüyor. Bir gün başka bir sebeple o gün yeniden hesaplanırsa fazla mesai birden ortaya çıkıyor. Puantajın sonucu, alakasız bir düzeltmenin yapılıp yapılmadığına bağlı hale geliyor; ay kilitlenmişse fark hiç gelmeyebilir.
 - **Öneri:** `fazla_mesai_karar`'da onaydan sonra o günün kaydı varsa `gun_hesabini_yenile` + `gun_sonrasi_kontroller` (havuz kaydı plan kadar azalır). Kilitli ayda fark satırı. Ayrıca geçmiş güne plan talebinin kabul edilip edilmeyeceği belgeye yazılmalı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T61-plan-onayi-hesap). Migration: `20261227010000_plan_onayi_hesap.sql`, test: `plan_onayi_hesap_testi.sql` (13 test).
+  - Plan onayı, gün işlenmişse günü hemen yeniden hesaplar (`gun_hesabini_yenile`) ve gün sonrası kontrollerini çalıştırır. Sonuç artık ilgisiz bir yeniden hesaplamaya bağlı değil.
+  - Havuz: plan sürenin bir kısmını karşılıyorsa kalan süre bekler; tamamını karşıladıysa bekleyen kayıt "Fazla mesai planı onaylandı; süre plan üzerinden puantaja girdi" açıklamasıyla kapanır (geriye dönük vardiya planı onayıyla aynı kalıp, T-79). Ay kilidini durdurmaz.
+  - Kilitli aya düşen güne plan onayı verilmez (gün değiştirilemez); süre havuz kararıyla sonraki aya fark olarak gelir.
+  - Ek bulgu, aynı düzeltmede: havuzdan zaten onaylanmış güne plan onayı veriliyordu; süre yıllık toplama iki kez giriyordu (test: 240 dk). Artık reddedilir.
+  - Geçmiş güne plan talebinin kabul edilip edilmeyeceği ayrı bulgu (T-76). Test, talebi çalışmadan önce girip onayı gece işinden sonra verir; T-76 düzeltilse de geçerli kalır.
 
 ### T-62 · `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor
 - **Adım:** 9 · **Önem:** Orta

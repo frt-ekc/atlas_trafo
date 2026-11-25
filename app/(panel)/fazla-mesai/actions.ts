@@ -47,6 +47,8 @@ export async function fazlaMesaiKarar(_onceki: IslemSonucu, form: FormData): Pro
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/fazla-mesai");
   revalidatePath("/vardiya-plani");
+  // İşlenmiş güne gelen onay günü yeniden hesaplar (T-61)
+  revalidatePath("/puantaj");
   revalidatePath("/");
   return { durum: "tamam", mesaj: onay ? "Fazla mesai talebi onaylandı." : "Fazla mesai talebi reddedildi." };
 }

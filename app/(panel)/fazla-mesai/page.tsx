@@ -391,7 +391,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               dugme="Karar ver"
                               dugmeTuru="default"
                               baslik={`${p.calisan ? `${p.calisan.ad} ${p.calisan.soyad}` : "Çalışan"} · ${tarih(p.is_gunu)} · ${saat(p.planli_dk)}`}
-                              aciklama={`Gerekçe: ${p.gerekce}. Talep eden: ${p.talep_eden?.ad_soyad ?? "—"}.`}
+                              aciklama={`Gerekçe: ${p.gerekce}. Talep eden: ${p.talep_eden?.ad_soyad ?? "—"}.${
+                                p.is_gunu < bugunTarih
+                                  ? " Gün işlendiyse onay puantaja hemen yansır; onaysız fazla mesai listesindeki karşılığı plan kadar azalır."
+                                  : ""
+                              }`}
                               onay="Kararı kaydet"
                               islem={fazlaMesaiKarar}
                               gizli={{ plan_id: p.id }}
