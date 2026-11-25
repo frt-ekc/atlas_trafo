@@ -147,8 +147,8 @@
     radial-gradient(420px 260px at 0% 0%, rgb(106 155 252 / 0.38), transparent 70%),
     radial-gradient(360px 300px at 100% 100%, rgb(106 155 252 / 0.18), transparent 70%),
     linear-gradient(165deg, #343b95 0%, #2c3178 45%, #1f2357 100%);
-  /* Ana düğme: lacivertten indigoya; beyaz yazı en açık uçta da okunur (5,4) */
-  --dugme-gecis: linear-gradient(135deg, #252a6c 0%, #2c3178 35%, #3b4296 70%, #4c5bc8 100%);
+  /* Ana düğme: koyu lacivertten parlak indigoya belirgin geçiş; beyaz yazı en açık uçta da okunur (5,1) */
+  --dugme-gecis: linear-gradient(120deg, #1c2058 0%, #2c3178 28%, #3f49a8 62%, #4f63d6 100%);
   --dugme-golge: 0 1px 2px rgb(31 35 87 / 0.25), 0 6px 14px -6px rgb(59 66 150 / 0.55);
 }
 .dark {
