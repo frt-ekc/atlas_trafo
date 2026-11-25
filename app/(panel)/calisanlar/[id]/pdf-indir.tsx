@@ -99,7 +99,7 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
             <Text style={s.kucuk}>{dokum.ayMetni}</Text>
           </View>
           {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image'ında alt yok */}
-          <Image style={s.logo} src={`${window.location.origin}/logo/atlas_isaret_lacivert.png`} />
+          <Image style={s.logo} src={`${window.location.origin}/logo/atlas_isaret_lacivert.png?v=2`} />
         </View>
 
         <View style={s.bilgi}>

@@ -14,10 +14,10 @@ function AtlasIsareti({ className }: { className?: string }) {
       aria-label="Atlas Trafo"
       className={className}
       style={{
-        maskImage: "url(/logo/atlas_isaret_beyaz.png)",
+        maskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
         maskSize: "contain",
         maskRepeat: "no-repeat",
-        WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png)",
+        WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
         WebkitMaskSize: "contain",
         WebkitMaskRepeat: "no-repeat",
       }}

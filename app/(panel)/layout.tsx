@@ -69,10 +69,10 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
           aria-label="Atlas Trafo"
           className="block h-8 w-[127px] bg-sidebar-primary"
           style={{
-            maskImage: "url(/logo/atlas_isaret_beyaz.png)",
+            maskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
             maskSize: "contain",
             maskRepeat: "no-repeat",
-            WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png)",
+            WebkitMaskImage: "url(/logo/atlas_isaret_beyaz.png?v=2)",
             WebkitMaskSize: "contain",
             WebkitMaskRepeat: "no-repeat",
           }}
