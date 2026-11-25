@@ -149,6 +149,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261219010000_cikis_okutma.sql` | İşten çıkış, çıkış gününden sonraki ham okutma varsa reddedilir (T-65) |
 | `20261220010000_havuz_yazili_onay.sql` | Yazılı onay yokken havuzdan onaylanan fazla mesai işaretlenir, İK'ya uyarı yazılır (T-56) |
 | `20261221010000_yillik_fazla_mesai.sql` | Yıllık 270 saate havuz ve tatil çalışması da sayılır; planda ret, havuzda işaret ve uyarı (T-57) |
+| `20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100; 2026–2027 arifeleri (T-28) |
 
 ---
 
@@ -247,6 +248,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | İşten çıkışta okutma denetimi (T-65): işlenmemiş / plansız gün, gece vardiyası, geçici kart (19 test) | ✅ |
 | Yazılı onaysız fazla mesai (T-56): süre puantaja girer, işaret ve uyarı oluşur, kilitli ay farkı (15 test) | ✅ |
 | Yıllık fazla mesai sınırı (T-57): plan reddi, tatil, çift sayım, havuz işareti ve uyarısı, yıllık görünüm (T-62) (22 test) | ✅ |
+| Arife (T-28): erken çıkış, FM100, yazılı onaysız, gece vardiyası, puantaj kodu, esnek mesai (28 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

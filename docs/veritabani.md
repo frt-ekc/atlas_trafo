@@ -110,6 +110,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/havuz_yazili_onay_testi.sql` | Yazılı onaysız havuz onayı: dakika, işaret, uyarı, imza tarihi, sonradan gelen belge, ret, kilitli ay için 15 test |
 | `supabase/migrations/20261221010000_yillik_fazla_mesai.sql` | `v_fm_yillik_gun`, `fm_yillik_toplam`; `v_fazla_mesai_yillik` aynı hesabı gösterir (T-62); plan bununla reddedilir, aşan havuz onayı `fazla_mesai_inceleme.yillik_sinir_asildi` ile işaretlenir (T-57) |
 | `supabase/tests/yillik_fazla_mesai_testi.sql` | Yıllık sınır: plan reddi, tatil, çift sayım, havuz işareti, uyarı, kilitli ay, yıllık görünüm (T-62) için 22 test |
+| `supabase/migrations/20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100 (`arife_siniri`, `vardiya_ham_araligi`); 2026–2027 arifeleri (T-28) |
+| `supabase/tests/arife_testi.sql` | Arife: erken çıkış, FM100, yazılı onaysız, gece vardiyası, gelmeyen, kod, esnek, yıllık toplam, takvim için 28 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -351,7 +353,7 @@ Diyagramda okunurluk için yalnızca önemli sütunlar var. `ayar`, `ayar_gecmis
 | Gece vardiyasına fazla mesai yok (m.69) | gece yarısını aşan vardiyaya plan girilemez |
 | Puantaja yalnızca onaylı kadarı girer | `gun_kaydi.fazla_mesai_dk` ≤ onaylı `planli_dk` + İK'nın havuzdan onayı (+ FM100 gününde vardiya süresi) (trigger), `puantaj_satiri.fazla_mesai_dk`, `v_puantaj_canli` |
 | Onaysız fazla mesai havuzu | `fazla_mesai_inceleme`: plansız ya da planı aşan süre (`vardiya_sonrasi`) ve yazılı onayı olmayanın Pazar / resmi tatil çalışması (`tatil_calismasi`) `inceleme_bekliyor` olarak bekler. Kararı yalnızca İK verir (`fazla_mesai_inceleme_karar`); ret gerekçesi zorunlu, karar değişmez, kayıt silinmez. Bekleyen kayıt varsa ay kilitlenmez (`p_zorla` ile geçilir) |
-| FM50 / FM100 | FM100 = Pazar + tam gün resmi tatil (`cumartesi_hafta_sonu = 1` ise Cumartesi de); bu günlerde yazılı onay varsa tüm çalışma FM100. Diğer günlerde vardiyayı aşan onaylı süre FM50. Gün türüne `is_gunu` (vardiyanın başladığı gün) bakılır; arife (yarım gün) normal iş günüdür |
+| FM50 / FM100 | FM100 = Pazar + tam gün resmi tatil (`cumartesi_hafta_sonu = 1` ise Cumartesi de); bu günlerde yazılı onay varsa tüm çalışma FM100. Diğer günlerde vardiyayı aşan onaylı süre FM50. Gün türüne `is_gunu` (vardiyanın başladığı gün) bakılır; arifede (`resmi_tatil.yarim_gun`) 13:00'e kadar normal, sonrası FM100 (yazılı onay yoksa havuz). Arife gecesi başlayan vardiyanın tamamı FM100 |
 
 Sınırlar **onay anında** veritabanında kontrol edilir; ekran atlansa bile delinemez.
 Fazla mesai burada basitçe "planlı vardiya bitişinden sonra çalışılan süre"dir (haftalık 45 saat hesabı kapsam dışı).
@@ -465,6 +467,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- Arifede çalışma 13:00'te biter: planlı bitiş 13:00'tür, sonrası FM100'dür; 13:00'ü `fm_plansiz_esik_dk` (15) kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz (T-28).
 - Tatil çalışması (Pazar, resmî tatil) da yıllık 270 saate sayılır (çalışanı koruyan seçenek). Sınır ileriye dönük planda ret sebebidir; fiilen yapılmış çalışma reddedilmez, puantaja girer, işaretlenir ve İK'ya bildirilir (T-57).
 - Yazılı fazla mesai onayı işveren yükümlülüğüdür. Yazılı onay yokken plan yapılamaz, ama fiilen yapılan çalışma İK onayıyla puantaja girer; eksiklik işaretlenir ve İK'ya bildirilir (T-56).
 - Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için); gerekçe ve izin türü ayrıntısı gizlidir. Amir düzeltmeleri `v_duzeltme_amir`'den okur: durum ve izin düzeltmelerinde gerekçe "İK tarafından düzeltildi", "raporlu" yerine "izinli". `gun_kaydi.durum` ve `v_puantaj_canli.raporlu_gun` API'den açıktır, ekranda "İzinli" görünür (T-12).

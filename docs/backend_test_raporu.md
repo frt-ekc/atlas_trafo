@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 4 | 15 (T-12, T-13, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 4 | 0 |
+| Yüksek | 19 | 3 | 16 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 3 | 0 |
 | Orta | 33 | 30 | 3 (T-38, T-59, T-62) | 22 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **81** | **25** | **53** | **31** |
+| **Toplam** | **106** | **80** | **26** | **52** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -264,7 +264,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-25 | Düşük | 5 | Bir çalışanda çıkan hata o günün bütün çalışanlarını işlenmemiş bırakıyor | K8 | — | Sınırlılık |
 | T-26 | Görüş | 5 | Kilitli aydaki işlenmemiş planlı gün için gece işi "hatalı" bitiyor | K3 | — | Sınırlılık |
 | T-27 | Düşük | 6 | Tolerans saniyeleri atarak karşılaştırılıyor | K10 | Yusuf | Düzelt |
-| T-28 | Yüksek | 6 | Yarım gün arife tam iş günü sayılıyor: öğleden sonra çıkana erken çıkış, çalışana FM100 yok | K10 | Yusuf | Düzelt (25 Kas; karar verildi) |
+| T-28 | Yüksek | 6 | Yarım gün arife tam iş günü sayılıyor: öğleden sonra çıkana erken çıkış, çalışana FM100 yok | K10 | Yusuf | ✅ Düzeltildi (feature/T28-arife) |
 | T-29 | Düşük | 6 | Mükerrer çıkışta ilk okutma tutuluyor, son okutma atılıyor | K10 | Yusuf | Düzelt (zaman kalırsa) |
 | T-30 | Görüş | 6 | Giriş çıkıştan sonra gelirse amire "çıkış yok" soruluyor | K10 | — | Sınırlılık |
 | T-31 | Kritik | Endpoint | `dosya_yukle` ekrandan (HTTP) hiç çalışmıyor: "UPDATE requires a WHERE clause" | K8 | Yusuf | Düzeltildi (PR #35) |
@@ -1510,7 +1510,9 @@ Not: 14:00–22:00 için beklenen gece dakikasını 90 yazmıştım; doğrusu 10
   ```
 - **Sade dille:** Arife günü öğleden sonra tatildir. Sistem bunu bilmiyor: öğlen evine giden herkese "4 saat erken çıktı" yazıyor, öğleden sonra çalışana da tatil mesaisi vermiyor. Bu çalışan aleyhine bir hata ve yılda birkaç gün bütün fabrikayı etkiliyor.
 - **Öneri:** Kod yazmadan önce İK ile karar: (a) arifede vardiya bitişi 13:00'e çekilsin (13:00 sonrası erken çıkış sayılmasın), 13:00 sonrası onaylı çalışma FM100 olsun; ya da (b) arife günleri için vardiya planı ayrıca "yarım gün" vardiyasıyla girilsin ve bu belgeye yazılsın. (a) tek bir yerde (`gun_hesabi` / `vardiya_araligi`) çözülür.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** Arife günlerinde çalışma 13:00'te biter. 13:00'ten sonraki erken çıkış sayılmaz; 13:00'ten sonraki çalışma FM100 olur (onay ve yazılı onay kuralları T-56 / T-57'deki gibi).
+- **Durum:** ✅ Düzeltildi (feature/T28-arife). Migration: `20261222010000_arife.sql`, test: `arife_testi.sql`. Arife `resmi_tatil.yarim_gun`'dan okunur (`arife_siniri`); 2026–2027 arifeleri tamam. `vardiya_araligi` arifede 13:00'te biter, `gun_hesabi` sonrasını FM100 yazar.
+- **Uygulamada çıkan sonuçlar:** Gece vardiyası is_gunu'ya göre: arife gecesi 22-06'nın tamamı FM100; bir önceki geceninki normaldir. 13:00'te ya da sonra başlayan vardiyaya gelmeyen "tatil" olur (soru açılmaz); öğleden önce başlayan vardiyaya gelmeyene soru açılır. 13:00'ü 15 dk'ya kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz.
 
 ### T-29 · Mükerrer çıkışta ilk okutma tutuluyor, son okutma atılıyor
 - **Adım:** 6 · **Önem:** Düşük
