@@ -112,6 +112,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/yillik_fazla_mesai_testi.sql` | Yıllık sınır: plan reddi, tatil, çift sayım, havuz işareti, uyarı, kilitli ay, yıllık görünüm (T-62) için 22 test |
 | `supabase/migrations/20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100 (`arife_siniri`, `vardiya_ham_araligi`); 2026–2027 arifeleri (T-28) |
 | `supabase/tests/arife_testi.sql` | Arife: erken çıkış, FM100, yazılı onaysız, gece vardiyası, gelmeyen, kod, esnek, yıllık toplam, takvim için 28 test |
+| `supabase/migrations/20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (`rol_onerisi`, `rol_onerisi_karar`); hesap değişikliklerinin izi `kullanici_gecmisi` (T-72, T-33; +2 tablo) |
+| `supabase/tests/rol_onayi_testi.sql` | Rol onayı: yeni hesap, yükseltme, pasif hesabı açma, görevler ayrılığı, iptal, geçmiş, yetkiler için 38 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -184,6 +186,9 @@ erDiagram
     kullanici ||--o{ departman : "amiri / vekili"
     kullanici ||--o{ kullanici : "üst amir"
     calisan ||--o| kullanici : "kullanıcı hesabı"
+    kullanici ||--o{ rol_onerisi : "öneri / karar"
+    kullanici ||--o{ kullanici_gecmisi : "değişiklik izi"
+    rol_onerisi |o--o{ kullanici_gecmisi : "dayanak"
     calisan ||--o{ kart : "sahibi"
     gecici_kart ||--o{ gecici_kart_zimmet : "zimmetleri"
     calisan ||--o{ gecici_kart_zimmet : "aldığı geçici kartlar"
@@ -467,6 +472,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- İK ve admin rolü iki adımlıdır: admin önerir, başka bir İK kullanıcısı onaylar. Bu rollerden düşürme ve pasife alma tek adımdır (yetki azalır). Bu roldeki pasif hesabı açmak da onay ister (T-72).
 - Arifede çalışma 13:00'te biter: planlı bitiş 13:00'tür, sonrası FM100'dür; 13:00'ü `fm_plansiz_esik_dk` (15) kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz (T-28).
 - Tatil çalışması (Pazar, resmî tatil) da yıllık 270 saate sayılır (çalışanı koruyan seçenek). Sınır ileriye dönük planda ret sebebidir; fiilen yapılmış çalışma reddedilmez, puantaja girer, işaretlenir ve İK'ya bildirilir (T-57).
 - Yazılı fazla mesai onayı işveren yükümlülüğüdür. Yazılı onay yokken plan yapılamaz, ama fiilen yapılan çalışma İK onayıyla puantaja girer; eksiklik işaretlenir ve İK'ya bildirilir (T-56).

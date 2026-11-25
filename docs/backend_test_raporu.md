@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 3 | 16 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 3 | 0 |
-| Orta | 33 | 30 | 3 (T-38, T-59, T-62) | 22 | 8 |
+| Yüksek | 19 | 2 | 17 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-89, T-90, T-104, T-106, T-108) | 2 | 0 |
+| Orta | 33 | 29 | 4 (T-33, T-38, T-59, T-62) | 21 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **80** | **26** | **52** | **31** |
+| **Toplam** | **106** | **78** | **28** | **50** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -269,7 +269,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-30 | Görüş | 6 | Giriş çıkıştan sonra gelirse amire "çıkış yok" soruluyor | K10 | — | Sınırlılık |
 | T-31 | Kritik | Endpoint | `dosya_yukle` ekrandan (HTTP) hiç çalışmıyor: "UPDATE requires a WHERE clause" | K8 | Yusuf | Düzeltildi (PR #35) |
 | T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | Düzelt |
-| T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | Düzelt (T-72 ile, 25 Kas) |
+| T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | Ekran ✅ PR #40; veritabanı: Düzelt |
 | T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | Düzelt (zaman kalırsa) |
 | T-36 | Düşük | Endpoint | `kart_tanimla` kart numarasının biçimini denetlemiyor | K11 | — | Sınırlılık |
@@ -308,7 +308,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | Düzelt (zaman kalırsa) |
 | T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | Düzelt |
 | T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | ✅ Düzeltildi (PR #56) |
-| T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | Düzelt (25 Kas) |
+| T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | Sınırlılık |
 | T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | ✅ Düzeltildi (feature/T74-ayar-sinirlari) |
 | T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | Düzelt (zaman kalırsa) |
@@ -1651,7 +1651,7 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** `e3_ek d) değişen tablo: kullanici (1) · kalite.amiri rolü şimdi: ik`. `kullanici` sütunları: `id ad_soyad eposta rol ust_amir_id izinli_mi auth_kullanici_id aktif olusturma_zamani calisan_id`.
 - **Sade dille:** Sistem yöneticisi birine bir günlüğüne İK rolü verip geri alabilir; sistemde bunun izi kalmaz. O gün yapılan kararlar o kişinin adıyla görünür, ama "bu kişi neden İK yetkisine sahipti" sorusunun cevabı yoktur. T-10'daki (ayarlar) kaygının kullanıcı tarafı.
 - **Öneri:** `kullanici_gecmisi` tablosu ve bir tetikleyici (ayar_gecmisi gibi). Kalıcı test: rol değişince geçmişe bir satır.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T72-rol-onayi, T-72 ile). `kullanici_gecmisi` ve `kullanici_iz` tetikleyicisi: hesap, rol, aktiflik, üst amir, çalışan bağı ve e-posta değişiklikleri; yapan, zaman, eski / yeni değer. Test: `rol_onayi_testi.sql`.
 
 ### T-34 · Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor
 - **Adım:** Endpoint · **Önem:** Düşük
@@ -2999,7 +2999,9 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
   - T-33'teki `kullanici_gecmisi` mutlaka eklensin (kim, kime, hangi rol, hangi çalışan).
   - Hesap açılınca bağlanan çalışanın departman amirine ya da İK'ya bildirim gitsin.
   - En azından `docs/veritabani.md`'de "admin güvenilir kişidir; bu yol bilinçli açık bırakıldı" diye yazılsın.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** İK ya da admin rolü verilmesi ve yükseltme iki adımlıdır: admin önerir, rolü 'ik' olan başka bir kullanıcı onaylar; onaylanana kadar hesap eski rolüyle (yeni hesapsa pasif) kalır.
+- **Durum:** ✅ Düzeltildi (feature/T72-rol-onayi). Migration: `20261223010000_rol_onayi.sql`, test: `rol_onayi_testi.sql`. `rol_onerisi` (kim, kime, hangi rol, hangi çalışan, kim karar verdi), `kullanici_gecmisi` (T-33), `rol_onerisi_karar`. Öneren, hesabın sahibi ve onların çalışan kaydına bağlı kimse karar veremez. Bu roldeki pasif hesabı yeniden açmak da onaya gider. İK'nın Kullanıcılar ekranında "Onay bekleyen rol değişiklikleri" bölümü.
+- **Kalan:** Sistemde başka aktif İK yoksa öneri onaylanamaz. Bağlanan çalışanın amirine bildirim (önerideki üçüncü madde) kapsam dışı.
 
 ### T-73 · Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor; üst amir kaldırılamıyor
 - **Adım:** 11 · **Önem:** Düşük

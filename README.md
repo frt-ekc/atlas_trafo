@@ -36,7 +36,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 
 | Katman | Teknoloji | Not |
 |---|---|---|
-| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 35 tablo |
+| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 37 tablo |
 | İş kuralları | PostgreSQL fonksiyonları ve trigger'lar | Gece işi, düzeltme, görevler ayrılığı, ay kilidi veritabanının içinde çalışır; ekran atlansa bile kural delinemez |
 | Giriş ve yetki | **Supabase Auth + RLS** | Roller: `amir`, `ik`, `guvenlik`, `yonetici`, `isg`, `admin`. Her kullanıcı yalnızca rolünün izin verdiği satırları görür |
 | Frontend | **Next.js + TypeScript** | Tailwind CSS + shadcn/ui |
@@ -85,7 +85,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 
 ## 4. Veritabanı
 
-`pdks` şemasında **35 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
+`pdks` şemasında **37 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
 
 | Grup | Tablolar |
 |---|---|
@@ -150,6 +150,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261220010000_havuz_yazili_onay.sql` | Yazılı onay yokken havuzdan onaylanan fazla mesai işaretlenir, İK'ya uyarı yazılır (T-56) |
 | `20261221010000_yillik_fazla_mesai.sql` | Yıllık 270 saate havuz ve tatil çalışması da sayılır; planda ret, havuzda işaret ve uyarı (T-57) |
 | `20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100; 2026–2027 arifeleri (T-28) |
+| `20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (admin önerir, İK onaylar); hesap değişikliklerinin izi (T-72, T-33) |
 
 ---
 
@@ -249,6 +250,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Yazılı onaysız fazla mesai (T-56): süre puantaja girer, işaret ve uyarı oluşur, kilitli ay farkı (15 test) | ✅ |
 | Yıllık fazla mesai sınırı (T-57): plan reddi, tatil, çift sayım, havuz işareti ve uyarısı, yıllık görünüm (T-62) (22 test) | ✅ |
 | Arife (T-28): erken çıkış, FM100, yazılı onaysız, gece vardiyası, puantaj kodu, esnek mesai (28 test) | ✅ |
+| Rol onayı (T-72, T-33): öneri, karar, görevler ayrılığı, kullanıcı geçmişi (38 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

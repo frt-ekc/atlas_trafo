@@ -9,7 +9,7 @@ Claude Code bu dosyayı her oturumda okur. Buradaki kurallar her istekte geçerl
   kanıt (kapı, yemekhane, servis kaydı) varsa kendisi düzeltir, yoksa amire sorar.
 - Çalışan aleyhine karar (devamsızlık, itiraz reddi, kart paylaşımı) her zaman İK'dadır (KVKK m.11).
 - Biyometri kullanma; akıllı telefon varsayma (KVKK ve proje kararı).
-- Veritabanı: Supabase (PostgreSQL). Tüm tablolar `pdks` şemasında (35 tablo). Ayrıntı: `docs/veritabani.md`.
+- Veritabanı: Supabase (PostgreSQL). Tüm tablolar `pdks` şemasında (37 tablo). Ayrıntı: `docs/veritabani.md`.
 - İş kuralları veritabanındadır: PostgreSQL fonksiyonları ve trigger'lar (gece işi, düzeltme, görevler ayrılığı, ay kilidi).
 - Giriş ve yetki: Supabase Auth + RLS. Roller: `amir`, `ik`, `guvenlik`, `yonetici`, `isg` (İSG uzmanı), `admin` (sistem yöneticisi; çalışan kayıtlarını görmez, karar veremez) (`kullanici.rol`).
 - Görevler ayrılığı: her kullanıcı `kullanici.calisan_id` ile çalışan kaydına bağlıdır; kimse kendi kaydında işlem yapamaz.
