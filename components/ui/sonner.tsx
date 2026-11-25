@@ -21,6 +21,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
+          // Sonner kendi sistem yazı tipini atıyor; bildirimler uygulamanın yazı tipini (Plus Jakarta Sans) kullansın
+          fontFamily: "inherit",
         } as React.CSSProperties
       }
       // Bildirimler: türün renginde sol çizgi ve simge; köşeler ve gölge uygulamanın diliyle
