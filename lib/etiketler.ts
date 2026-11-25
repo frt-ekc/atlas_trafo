@@ -47,6 +47,7 @@ export const UYARI_TURU: Record<string, string> = {
   dosya_gelmedi: "Eksik dosya",
   geriye_donuk_vardiya: "Geriye dönük vardiya değişikliği",
   fm_onay_yok: "Yazılı onaysız fazla mesai",
+  yazili_onay_eksik: "Yazılı onay eksikliği",
   fm_plansiz_calisma: "Plansız fazla mesai",
   fm_gunluk_sinir_asildi: "Günlük çalışma sınırı aşıldı",
   fm_yillik_sinir_yaklasti: "Yıllık fazla mesai sınırına yaklaştı",
@@ -84,6 +85,7 @@ export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
     turler: [
       "fm_plansiz_calisma",
       "fm_onay_yok",
+      "yazili_onay_eksik",
       "fm_onay_geri_alindi",
       "fm_gunluk_sinir_asildi",
       "fm_yillik_sinir_yaklasti",

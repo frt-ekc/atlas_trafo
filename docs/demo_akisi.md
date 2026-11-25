@@ -77,8 +77,8 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 ### 6. Fazla mesai, esnek mesai, puantaj (İK)
 **Fazla mesai ekranı, onaysız havuzda 3 kayıt İK kararı bekliyor:**
 - Ece Ateş: 150 dk.
-- Merve Yücel: 100 dk, yazılı onayı yok.
-- Erkan Duman: 485 dk, 29 Kasım Pazar, yazılı onayı yok.
+- Merve Yücel: 100 dk, yazılı onayı yok ("Yazılı onay yok" etiketi).
+- Erkan Duman: 485 dk, 29 Kasım Pazar, yazılı onayı yok ("Yazılı onay yok" etiketi).
 
 **Puantaj (Kasım):**
 - Mehmet Kaya 22 Kasım Pazar: FM100 480 dk.

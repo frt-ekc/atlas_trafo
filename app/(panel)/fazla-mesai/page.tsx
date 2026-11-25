@@ -51,6 +51,7 @@ type Plan = {
 // Onaysız fazla mesai havuzu (pdks.fazla_mesai_inceleme): gece işi, plansız çalışılan süreyi buraya koyar
 type HavuzKaydi = {
   id: number;
+  calisan_id: number;
   is_gunu: string;
   tur: "vardiya_sonrasi" | "tatil_calismasi";
   dakika: number;
@@ -58,6 +59,7 @@ type HavuzKaydi = {
   karar_zamani: string | null;
   karar_aciklama: string | null;
   fark_satiri: boolean;
+  yazili_onaysiz: boolean;
   calisan: Kisi;
   karar_veren: { ad_soyad: string } | null;
 };
@@ -158,7 +160,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       supabase
         .from("fazla_mesai_inceleme")
         .select(
-          "id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, " +
+          "id, calisan_id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, yazili_onaysiz, " +
             "calisan:calisan_id(sicil_no, ad, soyad), karar_veren:kullanici!karar_veren_id(ad_soyad)",
         )
         .gte("is_gunu", `${yil}-01-01`)
@@ -194,6 +196,18 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       .map((o) => [o.calisan_id, o]),
   );
   const geriAlinanlar = onaylar.filter((o) => o.geri_alma_bildirim_tarihi);
+  // Havuz kaydında yazılı onay: onaylanan kayıtta karar anındaki işaret, diğerlerinde o günkü durum
+  // (veritabanındaki fm_onay_gecerli_mi ile aynı kural). Amir onayları okuyamaz; yalnızca işareti görür.
+  const yaziliOnayYok = (h: HavuzKaydi) =>
+    h.durum === "onaylandi"
+      ? h.yazili_onaysiz
+      : onaylariGorur &&
+        !onaylar.some(
+          (o) =>
+            o.calisan_id === h.calisan_id &&
+            o.imza_tarihi <= h.is_gunu &&
+            (!o.gecerlilik_bitisi || h.is_gunu < o.gecerlilik_bitisi),
+        );
   const onaySizlar = calisanlar.filter((c) => !gecerliOnay.has(c.id));
 
   const bekleyenSayisi = planlar.filter((p) => p.durum === "talep").length;
@@ -398,6 +412,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       <TableCell><KisiAdi kisi={h.calisan} /></TableCell>
                       <TableCell className="whitespace-normal">
                         {HAVUZ_TURU[h.tur]}
+                        {yaziliOnayYok(h) && <Badge variant="outline" className="ml-2">Yazılı onay yok</Badge>}
                         {h.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar açıklaması: {h.karar_aciklama}</div>}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{sureMetni(h.dakika)}</TableCell>
@@ -419,6 +434,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               islem={havuzKarari}
                               gizli={{ inceleme_id: h.id }}
                             >
+                              {yaziliOnayYok(h) && (
+                                <p role="note" className="rounded-md border bg-muted px-3 py-2 text-sm">
+                                  Çalışanın bu gün için geçerli yazılı onayı bulunmuyor. Onaylanan süre puantaja eklenir, kayıt yazılı onaysız olarak işaretlenir ve yazılı onay alınması için İK&apos;ya uyarı iletilir.
+                                </p>
+                              )}
                               <KararAlanlari retUyarisi="Ret kararı çalışan aleyhine kaydedilir ve süre puantaja dahil edilmez." />
                             </IslemPenceresi>
                           )}
