@@ -151,6 +151,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261221010000_yillik_fazla_mesai.sql` | Yıllık 270 saate havuz ve tatil çalışması da sayılır; planda ret, havuzda işaret ve uyarı (T-57) |
 | `20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100; 2026–2027 arifeleri (T-28) |
 | `20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (admin önerir, İK onaylar); hesap değişikliklerinin izi (T-72, T-33) |
+| `20261224010000_plansiz_gun.sql` | Planı olmayan günde çalışma: İK'ya ve amire uyarı, süre havuzda (T-79) |
 
 ---
 
@@ -251,6 +252,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Yıllık fazla mesai sınırı (T-57): plan reddi, tatil, çift sayım, havuz işareti ve uyarısı, yıllık görünüm (T-62) (22 test) | ✅ |
 | Arife (T-28): erken çıkış, FM100, yazılı onaysız, gece vardiyası, puantaj kodu, esnek mesai (28 test) | ✅ |
 | Rol onayı (T-72, T-33): öneri, karar, görevler ayrılığı, kullanıcı geçmişi (38 test) | ✅ |
+| Plansız gün (T-79): uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, ay kilidi (40 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 2 | 17 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-89, T-90, T-104, T-106, T-108) | 2 | 0 |
+| Yüksek | 19 | 1 | 18 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 1 | 0 |
 | Orta | 33 | 29 | 4 (T-33, T-38, T-59, T-62) | 21 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **78** | **28** | **50** | **31** |
+| **Toplam** | **106** | **77** | **29** | **49** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -315,7 +315,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | Düzelt |
 | T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
-| T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | Düzelt (25 Kas) |
+| T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
 | T-80 | Düşük | 11 (Adım 10 betiğinde yeniden doğrulandı) | Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor | K6 | Yusuf + Fırat (CLAUDE.md) | Düzelt (karar verildi) |
 | T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Düzelt (zaman kalırsa) |
 | T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | Düzelt |
@@ -3053,7 +3053,9 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** `a11_giris_cikis_sonuc.txt` G#57 `X4 … 16.10 soru_bekliyor | ham 17.10: 2` (17.10 gün yok) · `a10_kart_isg_sonuc.txt` #150 `S1 17.10 Cumartesi plansız 08:00–13:00 | gün: yok | havuz: yok | uyarı: isg_belgesi_yok … | işaret: 17.10 08:00:00 işaretsiz; 17.10 13:00:00 işaretsiz` · #149 gece işi 17.10 `basarili`.
 - **Sade dille:** Amir bir işçiyi Cumartesi'ye çağırır ama sisteme vardiya yazmayı unutursa, işçi 5 saat çalışır, kartını okutur ve bu çalışma hiçbir yerde görünmez. Ne puantaja girer, ne fazla mesai listesine düşer, ne de İK'ya uyarı gider. İşçi emeğinin karşılığını alamaz; fark ancak kendisi itiraz ederse anlaşılır. Amir sonradan geriye dönük plan girerse (İK onayıyla) gün işlenir, ama kimse hatırlatmadığı için bu nadiren olur.
 - **Öneri:** Gece işine bir adım: o gün planı olmayan, işe giriş–çıkış tarihleri içindeki bir çalışanın geçerli PDKS okutması varsa `plansiz_gun_calismasi` uyarısı (İK ve amire) ve isteğe bağlı olarak `fazla_mesai_inceleme`'ye `tatil_calismasi` kaydı. Karar İK ile: havuz mu, yalnızca uyarı mı. Kalıcı test: planı olmayan güne okutma → uyarı (ve/veya havuz kaydı).
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** Planı hiç olmayan günde, işte olduğu tarihler içindeki çalışanın geçerli PDKS okutması varsa gece işi İK'ya ve amire `plansiz_gun_calismasi` uyarısı yazar, süreyi havuza `tatil_calismasi` olarak düşürür; karar İK'dadır (T-56 ve T-57 işaretleri geçerli). Onaylanan süre hafta tatili (Pazar, `cumartesi_hafta_sonu` açıkken Cumartesi) ya da resmi tatilde FM100, diğer günlerde FM50'dir. Planlı Pazar / tatil kuralı değişmez.
+- **Durum:** ✅ Düzeltildi (feature/T79-plansiz-gun). Migration: `20261224010000_plansiz_gun.sql`, test: `plansiz_gun_testi.sql`. Gün kaydı vardiyasız açılır; onaya kadar "vardiya yok" (HT / RT), onaylanınca çalışılmış gün (FM50 ya da FM100; arifede 13:00 sonrası FM100). Geriye dönük plan onaylanırsa gün plana göre hesaplanır, havuzda süre kalmadıysa kayıt kapanır. Amir bu uyarıyı yalnızca kendi çalışanları için görür.
+- **Uygulamada çıkan sonuçlar:** Giriş ya da çıkış okutması eksikse, süre 15 dakikayı (`fm_plansiz_esik_dk`) aşmıyorsa ya da ay kilitliyse yalnızca uyarı yazılır. Plan satırı varsa (onay bekleyen, reddedilmiş) gün plansız sayılmaz.
 
 ### T-80 · Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor; CLAUDE.md "admin çalışan kayıtlarını görmez" diyor
 - **Adım:** 11 (Adım 10 betiğinde yeniden doğrulandı) · **Önem:** Düşük

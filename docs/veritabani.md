@@ -114,6 +114,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/arife_testi.sql` | Arife: erken çıkış, FM100, yazılı onaysız, gece vardiyası, gelmeyen, kod, esnek, yıllık toplam, takvim için 28 test |
 | `supabase/migrations/20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (`rol_onerisi`, `rol_onerisi_karar`); hesap değişikliklerinin izi `kullanici_gecmisi` (T-72, T-33; +2 tablo) |
 | `supabase/tests/rol_onayi_testi.sql` | Rol onayı: yeni hesap, yükseltme, pasif hesabı açma, görevler ayrılığı, iptal, geçmiş, yetkiler için 38 test |
+| `supabase/migrations/20261224010000_plansiz_gun.sql` | Planı olmayan günün okutması: `plansiz_gun_calismasi` uyarısı (İK, amir) ve havuz kaydı (`gece_isi_plansiz`) (T-79) |
+| `supabase/tests/plansiz_gun_testi.sql` | Plansız gün: uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, kilit, görünürlük için 40 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -357,7 +359,7 @@ Diyagramda okunurluk için yalnızca önemli sütunlar var. `ayar`, `ayar_gecmis
 | Yılda ≤ 270 saat (takvim yılı) | `fm_yillik_toplam` (onaylı plan + onaylı havuz + tatil çalışması) ≤ `ayar.fm_yillik_sinir_dk`, plan talebinde ve onayında; havuz onayında aşım işaretlenir (`yillik_sinir_asildi`); %80'de `uyari` (`fm_yillik_sinir_yaklasti`) |
 | Gece vardiyasına fazla mesai yok (m.69) | gece yarısını aşan vardiyaya plan girilemez |
 | Puantaja yalnızca onaylı kadarı girer | `gun_kaydi.fazla_mesai_dk` ≤ onaylı `planli_dk` + İK'nın havuzdan onayı (+ FM100 gününde vardiya süresi) (trigger), `puantaj_satiri.fazla_mesai_dk`, `v_puantaj_canli` |
-| Onaysız fazla mesai havuzu | `fazla_mesai_inceleme`: plansız ya da planı aşan süre (`vardiya_sonrasi`) ve yazılı onayı olmayanın Pazar / resmi tatil çalışması (`tatil_calismasi`) `inceleme_bekliyor` olarak bekler. Kararı yalnızca İK verir (`fazla_mesai_inceleme_karar`); ret gerekçesi zorunlu, karar değişmez, kayıt silinmez. Bekleyen kayıt varsa ay kilitlenmez (`p_zorla` ile geçilir) |
+| Onaysız fazla mesai havuzu | `fazla_mesai_inceleme`: plansız ya da planı aşan süre (`vardiya_sonrasi`) ve yazılı onayı olmayanın Pazar / resmi tatil çalışması ile planı olmayan günün bütün çalışması (`tatil_calismasi`) `inceleme_bekliyor` olarak bekler. Kararı yalnızca İK verir (`fazla_mesai_inceleme_karar`); ret gerekçesi zorunlu, karar değişmez, kayıt silinmez. Bekleyen kayıt varsa ay kilitlenmez (`p_zorla` ile geçilir) |
 | FM50 / FM100 | FM100 = Pazar + tam gün resmi tatil (`cumartesi_hafta_sonu = 1` ise Cumartesi de); bu günlerde yazılı onay varsa tüm çalışma FM100. Diğer günlerde vardiyayı aşan onaylı süre FM50. Gün türüne `is_gunu` (vardiyanın başladığı gün) bakılır; arifede (`resmi_tatil.yarim_gun`) 13:00'e kadar normal, sonrası FM100 (yazılı onay yoksa havuz). Arife gecesi başlayan vardiyanın tamamı FM100 |
 
 Sınırlar **onay anında** veritabanında kontrol edilir; ekran atlansa bile delinemez.
@@ -408,7 +410,7 @@ Puantaj kodları (`pdks.gun_kodlari(yıl, ay)` her gün için, `puantaj_kalemi` 
 | RPR | Rapor | 1 | 0 |
 | DVMSZ | İK'nın devamsız kararı | 1 | 0 |
 | RT | Çalışılmayan tam gün resmi tatil | 1 | 0 |
-| HT | Vardiya planı olmayan gün (hafta tatili) | 1 | 0 |
+| HT | Vardiya planı olmayan gün (hafta tatili); o gün çalışılıp havuzdan onaylanırsa FM50; hafta tatili ve resmi tatilde FM100 (T-79) | 1 | 0 |
 
 Kararı bekleyen gün (eksik, soru bekliyor, devamsızlık şüphesi) kod almaz. `gun_kodlari` izin türünü
 içerdiği için yalnızca İK ve yönetici çağırabilir. Ay kilitlenince her normal satırın kalemleri yazılır;
@@ -428,6 +430,7 @@ Dosyalar ekrandan yüklenir (`dosya_yukle`; aynı dosya ikinci kez reddedilir). 
    Üst amir de `soru_eskalasyon_gun` gün içinde cevaplamazsa soru İK'ya geçer (`ik_karari_bekliyor`,
    `ik_eskale_zamani`; T-39). Bir gecede soru en çok bir kademe ilerler. İK her açık soruya karar verebilir.
 7. **Hesap:** giriş ve çıkışı belli, açık sorusu olmayan günlerde geç kalma, erken çıkış (toleranslarla), mola düşülmüş çalışma dakikası, onaylı kadar fazla mesai (FM50 / FM100) ve gece çalışması; `hesap_tamam = true`. Ardından onaysız süre havuza yazılır, gece sınırı aşıldıysa uyarı verilir. Tek günün hesabı `gun_hesapla(gün)`'dür; amir cevabı, İK kararı ve İK düzeltmesi de onu hemen çağırır (kilitli ayda değil). Saatlik izin sonrası yeniden hesap (`gun_hesabini_yenile`) aynı `gun_hesabi`'nı aynı parametrelerle kullanır; mola dahil sonuç aynıdır (testi `ay_kilidi_testi.sql`'de).
+   Planı hiç olmayan günde geçerli okutma varsa gün vardiyasız açılır, süre havuza düşer, `plansiz_gun_calismasi` uyarısı yazılır (T-79).
 8. **Uyarılar:** `fm_plansiz_calisma`, `fm_onay_yok`, `fm_gunluk_sinir_asildi`, `dosya_gelmedi`; geçici kart (`gecici_kart_kontrol`) ve kart paylaşımı (`kart_paylasim_kontrol`).
 
 Sistem devamsızlık kararı vermez; en fazla soru ve uyarı üretir.
