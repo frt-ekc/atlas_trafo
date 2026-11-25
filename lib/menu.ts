@@ -25,7 +25,7 @@ const GRUP_SIRASI: MenuGrubu[] = ["Genel", "Günlük işler", "Planlama", "Kayı
 export type MenuOgesi = { baslik: string; yol: string; simge: MenuSimgesi; grup: MenuGrubu };
 
 const ANA_SAYFA: MenuOgesi = { baslik: "Ana sayfa", yol: "/", simge: "ana", grup: "Genel" };
-const DEPARTMANLAR: MenuOgesi = { baslik: "Departmanlar", yol: "/departmanlar", simge: "departman", grup: "Genel" };
+const DEPARTMANLAR: MenuOgesi = { baslik: "Departmanlar", yol: "/departmanlar", simge: "departman", grup: "Kayıtlar" };
 const UYARILAR: MenuOgesi = { baslik: "Uyarılar", yol: "/uyarilar", simge: "uyari", grup: "Günlük işler" };
 const SORULAR: MenuOgesi = { baslik: "Sorular", yol: "/sorular", simge: "soru", grup: "Günlük işler" };
 const SORULARIM: MenuOgesi = { ...SORULAR, baslik: "Sorularım" };
