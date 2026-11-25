@@ -114,7 +114,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                 <li
                   key={k.id}
                   className={cn(
-                    "flex flex-col gap-3 rounded-xl border bg-card p-4",
+                    "flex flex-col gap-2 rounded-lg border bg-card p-3",
                     gec && "border-l-4 border-l-kotu",
                     (k.durum === "kayip" || k.durum === "iptal") && "bg-card/50 text-muted-foreground",
                   )}

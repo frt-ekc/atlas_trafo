@@ -9,7 +9,7 @@ const yuzde = (pay: number, payda: number) => (payda > 0 ? Math.round((pay / pay
 
 export function GrafikKarti({ baslik, aciklama, children }: { baslik: string; aciklama?: ReactNode; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-xl border bg-card p-5">
+    <section className="flex flex-col gap-4 rounded-lg border bg-card p-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold">{baslik}</h2>
         {aciklama && <p className="text-sm text-muted-foreground">{aciklama}</p>}

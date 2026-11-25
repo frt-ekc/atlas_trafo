@@ -16,7 +16,7 @@ export function FiltreCubugu({
   suzgecVar: boolean; // "Süzgeçleri temizle" bağlantısı yalnızca bir süzgeç seçiliyken görünür
 }) {
   return (
-    <SuzgecFormu className="flex flex-wrap items-end gap-3 rounded-xl border bg-card/60 p-3">
+    <SuzgecFormu className="flex flex-wrap items-end gap-3 rounded-lg border bg-card/70 px-3 py-2.5">
       {children}
       <div className="flex items-center gap-3">
         <Button type="submit" size="sm" className="h-9">Uygula</Button>

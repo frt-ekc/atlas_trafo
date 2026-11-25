@@ -12,12 +12,14 @@ export default function Yukleniyor() {
         <Kutu className="h-8 w-64" />
         <Kutu className="h-4 w-96 max-w-full" />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-xl border bg-card p-4">
-            <Kutu className="h-4 w-28" />
-            <Kutu className="h-8 w-16" />
-            <Kutu className="h-3 w-36" />
+          <div key={i} className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3.5 py-2.5">
+            <div className="flex flex-col gap-1.5">
+              <Kutu className="h-3.5 w-28" />
+              <Kutu className="h-3 w-36" />
+            </div>
+            <Kutu className="h-6 w-10" />
           </div>
         ))}
       </div>
