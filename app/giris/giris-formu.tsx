@@ -35,7 +35,7 @@ export function GirisFormu() {
         </Alert>
       )}
 
-      <Button type="submit" size="lg" disabled={bekliyor}>
+      <Button type="submit" size="lg" className="mt-1 h-10" disabled={bekliyor}>
         {bekliyor ? "Giriş yapılıyor…" : "Giriş yap"}
       </Button>
     </form>

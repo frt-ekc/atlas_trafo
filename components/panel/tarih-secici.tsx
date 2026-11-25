@@ -225,7 +225,7 @@ export function TarihSecici({ id, name, defaultValue = "", required, min, max, s
           value={saat}
           onChange={(e) => setSaat(e.target.value)}
           required={required || Boolean(tarih)}
-          className="h-9 w-[6.25rem] shrink-0 rounded-lg border border-input bg-card px-2 text-sm tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
+          className="h-9 w-[6.25rem] shrink-0 rounded-lg border border-input bg-card px-2 text-base tabular-nums md:text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
         />
       )}
 

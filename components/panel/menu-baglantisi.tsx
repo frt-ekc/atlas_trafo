@@ -63,7 +63,7 @@ export function MenuBaglantisi({
       href={yol}
       aria-current={acik ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition-colors outline-none",
+        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm md:py-1.5 whitespace-nowrap transition-colors outline-none",
         "text-sidebar-foreground/80 hover:bg-sidebar-foreground/[0.07] hover:text-sidebar-foreground",
         "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
         acik && "bg-sidebar-accent font-medium text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

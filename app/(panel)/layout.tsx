@@ -138,7 +138,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <header
-          className="relative z-30 flex items-center gap-3 rounded-2xl border px-3 py-2 backdrop-blur-md md:px-5"
+          className="relative z-30 flex items-center gap-3 rounded-2xl border px-3 py-2 md:px-5 md:backdrop-blur-md"
           style={{ background: "var(--ust-bar)" }}
         >
           <MobilMenu>{kenarCubugu}</MobilMenu>

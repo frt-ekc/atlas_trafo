@@ -40,7 +40,7 @@ export function MenuGrubu({
         aria-expanded={acik}
         aria-controls={id}
         className={cn(
-          "flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[0.8125rem] font-semibold transition-colors outline-none",
+          "flex items-center gap-2 rounded-lg px-3 py-2 text-left md:py-1.5 text-[0.8125rem] font-semibold transition-colors outline-none",
           "text-sidebar-foreground/75 hover:bg-sidebar-foreground/[0.07] hover:text-sidebar-foreground",
           "focus-visible:ring-2 focus-visible:ring-sidebar-ring",
           icinde && "text-sidebar-foreground",
