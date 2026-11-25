@@ -138,9 +138,11 @@ olarak veritabanının içinde çalışır.
 2. **Her düzeltme silinemez izle tutulur (sorun 12).** `duzeltme` tablosu: kim (`kaynak`, `yapan_id`),
    ne zaman (`yapilma_zamani`), `eski_deger`, `yeni_deger`, `gerekce` ve dayanağı (kanıt, izin, arıza,
    soru ya da itiraz). Bu tabloda UPDATE, DELETE, TRUNCATE hem yetkiyle hem trigger'la kapalı.
-3. **İzsiz değişiklik imkânsız.** `gun_kaydi` tablosunda giriş, çıkış, vardiya ya da "devamsız"
+3. **Uygulamadan izsiz değişiklik imkânsız.** `gun_kaydi` tablosunda giriş, çıkış, vardiya ya da "devamsız"
    değişecekse aynı işlemde yazılmış, değeri birebir tutan bir `duzeltme` satırı olmalı. Bunu
-   `pdks.duzeltme_uygula(...)` fonksiyonu yapar; doğrudan UPDATE hata verir.
+   `pdks.duzeltme_uygula(...)` fonksiyonu yapar; bu alanlarda doğrudan UPDATE hata verir. Diğer durum
+   geçişlerini ve dakikaları yalnızca hesap fonksiyonları ve `duzeltme_uygula` yazar; burada koruma yetkidir:
+   uygulama rollerinin tabloya yazma yetkisi yoktur, veritabanı sahibi izsiz değiştirebilir (T-01, bilinen sınırlılık).
 4. **Gece işi yalnızca kanıtla düzeltir.** `kaynak = 'gece_isi'` olan düzeltmede kanıt kaydı ya da izin zorunlu.
 5. **Çalışan aleyhine kararı İK verir.** "devamsız" kararı, itirazın reddi ve ayın kilitlenmesi yalnızca
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
@@ -485,6 +487,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- `kullanici.auth_kullanici_id`'nin `auth.users`'a yabancı anahtarı yoktur; bağ e-postayla kurulur. Silinen giriş hesabı kullanıcı kaydını kapatmaz, ama oturum açılamaz; kullanıcı kaydı silinmez, pasife alınır (T-06).
 - İşlenmiş güne girilen izin, o günde okutma ya da saat kaydı yoksa günü izinli / raporlu yapar; varsa günü değiştirmez, İK'ya uyarı yazar. Tatil ve vardiyasız gün izinle değişmez (T-46).
 - İK ve admin rolü iki adımlıdır: admin önerir, başka bir İK kullanıcısı onaylar. Bu rollerden düşürme ve pasife alma tek adımdır (yetki azalır). Bu roldeki pasif hesabı açmak da onay ister (T-72).
 - Arifede çalışma 13:00'te biter: planlı bitiş 13:00'tür, sonrası FM100'dür; 13:00'ü `fm_plansiz_esik_dk` (15) kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz (T-28).
