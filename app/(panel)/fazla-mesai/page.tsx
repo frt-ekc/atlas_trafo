@@ -29,6 +29,7 @@ export const metadata = { title: "Fazla mesai" };
 // Veritabanındaki varsayılanlar (ayar tablosu). Amir ayar tablosunu okuyamaz; o zaman bunlar kullanılır.
 const VARSAYILAN_YILLIK_SINIR_DK = 16_200; // 270 saat
 const VARSAYILAN_YAKLASMA_YUZDE = 80;
+const VARSAYILAN_GUNLUK_SINIR_DK = 660; // 11 saat (İş Kanunu m.63)
 
 type Kisi = { sicil_no: string; ad: string; soyad: string } | null;
 
@@ -61,6 +62,9 @@ type HavuzKaydi = {
   fark_satiri: boolean;
   yazili_onaysiz: boolean;
   yillik_sinir_asildi: boolean;
+  gunluk_sinir_asildi: boolean;
+  // Bekleyen kayıtta onay sonrası günlük süreyi göstermek için (T-58)
+  gun: { calisma_dk: number | null; mola_dk: number | null } | null;
   calisan: Kisi;
   karar_veren: { ad_soyad: string } | null;
 };
@@ -138,7 +142,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
         .range(bas, son),
     ),
     onaylariGorur
-      ? supabase.from("ayar").select("anahtar, deger").in("anahtar", ["fm_yillik_sinir_dk", "fm_yaklasma_uyari_yuzde"])
+      ? supabase.from("ayar").select("anahtar, deger").in("anahtar", ["fm_yillik_sinir_dk", "fm_yaklasma_uyari_yuzde", "gunluk_azami_calisma_dk"])
       : Promise.resolve(null),
     onaylariGorur
       ? tumSatirlar<Onay>((bas, son) =>
@@ -171,7 +175,8 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       supabase
         .from("fazla_mesai_inceleme")
         .select(
-          "id, calisan_id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, yazili_onaysiz, yillik_sinir_asildi, " +
+          "id, calisan_id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, yazili_onaysiz, yillik_sinir_asildi, gunluk_sinir_asildi, " +
+            "gun:gun_kaydi_id(calisma_dk, mola_dk), " +
             "calisan:calisan_id(sicil_no, ad, soyad), karar_veren:kullanici!karar_veren_id(ad_soyad)",
         )
         .gte("is_gunu", `${yil}-01-01`)
@@ -229,6 +234,14 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             o.imza_tarihi <= h.is_gunu &&
             (!o.gecerlilik_bitisi || h.is_gunu < o.gecerlilik_bitisi),
         );
+  // Günlük 11 saat (T-58), mola dahil: onaylanan kayıtta karar anındaki işaret. Bekleyen kayıtta onay
+  // sonrası süre = bugünkü çalışma + mola + havuz dakikası (veritabanı karar anında çalışma + mola ile ölçer).
+  const gunlukSinir = ayar.get("gunluk_azami_calisma_dk") ?? VARSAYILAN_GUNLUK_SINIR_DK;
+  const onayliGunSuresi = (h: HavuzKaydi) => (h.gun?.calisma_dk ?? 0) + (h.gun?.mola_dk ?? 0) + h.dakika;
+  const gunlukSinirAsar = (h: HavuzKaydi) =>
+    h.durum === "onaylandi"
+      ? h.gunluk_sinir_asildi
+      : h.durum === "inceleme_bekliyor" && h.gun !== null && onayliGunSuresi(h) > gunlukSinir;
   const onaySizlar = calisanlar.filter((c) => !gecerliOnay.has(c.id));
 
   const bekleyenSayisi = planlar.filter((p) => p.durum === "talep").length;
@@ -435,6 +448,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                         {HAVUZ_TURU[h.tur]}
                         {yaziliOnayYok(h) && <Badge variant="outline" className="ml-2">Yazılı onay yok</Badge>}
                         {h.yillik_sinir_asildi && <Badge variant="outline" className="ml-2">Yıllık sınır aşıldı</Badge>}
+                        {gunlukSinirAsar(h) && (
+                          <Badge variant="outline" className="ml-2">
+                            {h.durum === "onaylandi" ? "Günlük sınır aşıldı" : `Günlük ${saat(gunlukSinir)} aşılıyor`}
+                          </Badge>
+                        )}
                         {h.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar açıklaması: {h.karar_aciklama}</div>}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{sureMetni(h.dakika)}</TableCell>
@@ -459,6 +477,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               {yaziliOnayYok(h) && (
                                 <p role="note" className="rounded-md border bg-muted px-3 py-2 text-sm">
                                   Çalışanın bu gün için geçerli yazılı onayı bulunmuyor. Onaylanan süre puantaja eklenir, kayıt yazılı onaysız olarak işaretlenir ve yazılı onay alınması için İK&apos;ya uyarı iletilir.
+                                </p>
+                              )}
+                              {gunlukSinirAsar(h) && (
+                                <p role="note" className="rounded-md border bg-muted px-3 py-2 text-sm">
+                                  Onaylanırsa bu günün çalışması mola dahil {sureMetni(onayliGunSuresi(h))} olur; günlük sınır {sureMetni(gunlukSinir)} (İş Kanunu m.63). Süre puantaja eklenir, kayıt günlük sınır aşıldı olarak işaretlenir ve İK&apos;ya uyarı iletilir.
                                 </p>
                               )}
                               <KararAlanlari retUyarisi="Ret kararı çalışan aleyhine kaydedilir ve süre puantaja dahil edilmez." />

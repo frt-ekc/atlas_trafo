@@ -118,6 +118,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/plansiz_gun_testi.sql` | Plansız gün: uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, kilit, görünürlük için 40 test |
 | `supabase/migrations/20261225010000_gecmis_izin.sql` | İşlenmiş güne girilen izin günü düzeltir ve soruyu kapatır, iptal geri alır; İK düzeltmesi soruyu kapatır; izinli güne devamsız denemez (T-46, T-40) |
 | `supabase/tests/gecmis_izin_testi.sql` | Geçmiş güne izin, okutmalı gün, devamsız denetimi, izin iptali, İK düzeltmesi ve soru, kilitli ay için 29 test |
+| `supabase/migrations/20261226010000_gunluk_sinir.sql` | Havuz onayında günlük 11 saat: onaylanan günün brüt süresi (çalışma + mola) sınırı aşarsa `fazla_mesai_inceleme.gunluk_sinir_asildi` işaretlenir, İK'ya uyarı yazılır; süre puantaja girer (T-58) |
+| `supabase/tests/gunluk_sinir_testi.sql` | Havuz onayında günlük 11 saat (T-58): puantaja giriş, işaret, uyarı, 660 / 661 dk sınırı, plan yoluyla aynı ölçü, ret, Pazar, görünürlük için 13 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -357,7 +359,7 @@ Diyagramda okunurluk için yalnızca önemli sütunlar var. `ayar`, `ayar_gecmis
 | Her yıl yazılı onay; yoksa fazla mesai planlanamaz. Fiilen yapılmışsa havuzdan onaylanabilir, `yazili_onaysiz` işaretlenir | `fazla_mesai_onayi` (yalnızca İK girer, silinemez), `fm_onay_gecerli_mi()` |
 | Onay geri alınır, bildirimden 30 gün sonra geçersiz olur | `geri_alma_bildirim_tarihi` → `gecerlilik_bitisi`; sonraki planlar kendiliğinden `iptal`, `uyari` (`fm_onay_geri_alindi`) |
 | Önceden plan: amir talep eder, İK onaylar/reddeder | `fazla_mesai_plani` (`talep → onaylandi / reddedildi / iptal`), silinemez |
-| Günlük toplam ≤ 11 saat | vardiya süresi + `planli_dk` ≤ `ayar.gunluk_azami_calisma_dk` |
+| Günlük toplam ≤ 11 saat | vardiya süresi + `planli_dk` ≤ `ayar.gunluk_azami_calisma_dk` (plan talebinde ret); havuz onayında onaylanan günün çalışma + mola dakikası aşarsa işaretlenir (`gunluk_sinir_asildi`, T-58). İkisi de molayı sayar |
 | Yılda ≤ 270 saat (takvim yılı) | `fm_yillik_toplam` (onaylı plan + onaylı havuz + tatil çalışması) ≤ `ayar.fm_yillik_sinir_dk`, plan talebinde ve onayında; havuz onayında aşım işaretlenir (`yillik_sinir_asildi`); %80'de `uyari` (`fm_yillik_sinir_yaklasti`) |
 | Gece vardiyasına fazla mesai yok (m.69) | gece yarısını aşan vardiyaya plan girilemez |
 | Puantaja yalnızca onaylı kadarı girer | `gun_kaydi.fazla_mesai_dk` ≤ onaylı `planli_dk` + İK'nın havuzdan onayı (+ FM100 gününde vardiya süresi) (trigger), `puantaj_satiri.fazla_mesai_dk`, `v_puantaj_canli` |

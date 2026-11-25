@@ -76,7 +76,7 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 
 ### 6. Fazla mesai, esnek mesai, puantaj (İK)
 **Fazla mesai ekranı, onaysız havuzda 3 kayıt İK kararı bekliyor:**
-- Ece Ateş: 150 dk.
+- Ece Ateş: 150 dk. Onaylanırsa gün mola dahil 11 sa 30 dk olur ("Günlük 11 sa aşılıyor" etiketi, T-58). Onay engellenmez: süre puantaja girer, kayıt "Günlük sınır aşıldı" olarak işaretlenir, İK'ya uyarı düşer.
 - Merve Yücel: 100 dk, yazılı onayı yok ("Yazılı onay yok" etiketi).
 - Erkan Duman: 485 dk, 29 Kasım Pazar, yazılı onayı yok ("Yazılı onay yok" etiketi).
 

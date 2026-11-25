@@ -79,7 +79,9 @@ with beklenen(surum, ad, nesne) as (values
     ('20261223010000', 'rol_onayi',                      to_regclass('pdks.rol_onerisi') is not null),
     ('20261224010000', 'plansiz_gun',                    exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_plansiz')),
     ('20261225010000', 'gecmis_izin',                    exists (select 1 from information_schema.columns where table_schema = 'pdks'
-                                                                 and table_name = 'amir_sorusu' and column_name = 'kapatan_izin_id'))
+                                                                 and table_name = 'amir_sorusu' and column_name = 'kapatan_izin_id')),
+    ('20261226010000', 'gunluk_sinir',                   exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'fazla_mesai_inceleme' and column_name = 'gunluk_sinir_asildi'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
-| Orta | 33 | 28 | 5 (T-33, T-38, T-40, T-59, T-62) | 20 | 8 |
+| Orta | 33 | 27 | 6 (T-33, T-38, T-40, T-58, T-59, T-62) | 19 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **75** | **31** | **47** | **31** |
+| **Toplam** | **106** | **74** | **32** | **46** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -294,7 +294,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-55 | Düşük | 8 | Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor | K12 | — | Sınırlılık |
 | T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T56-havuz-yazili-onay) |
 | T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam) |
-| T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | Düzelt |
+| T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | ✅ Düzeltildi (feature/T58-gunluk-sinir) |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | Düzelt |
@@ -2411,7 +2411,11 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Önceden planlanan fazla mesai 11 saati geçemiyor. Ama biri plansız 13 saat kalırsa İK hepsini onaylayabiliyor ve sistem itiraz etmiyor. Kanunun yasakladığı bir gün puantaja "onaylı" diye giriyor.
 - **Öneri:** `fazla_mesai_inceleme_karar`'da onay sonrası `calisma_dk > gunluk_azami_calisma_dk` ise ret ya da kısmi onay (yalnızca sınıra kadar). En azından `gunluk_sinir_asildi` uyarısı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (B yolu, T-56 / T-57 ile aynı karar; feature/T58-gunluk-sinir). Migration: `20261226010000_gunluk_sinir.sql`, test: `gunluk_sinir_testi.sql` (13 test).
+  - Havuzdaki fiilen yapılmış çalışma reddedilmez, puantaja girer. Onaylanan günün brüt süresi (çalışma + mola) `gunluk_azami_calisma_dk`'yı aşarsa kayıt `gunluk_sinir_asildi` ile işaretlenir ve İK'ya `fm_gunluk_sinir_asildi` uyarısı ("havuz:" anahtarı) yazılır.
+  - Ölçü plan yoluyla aynı (mola dahil): GUNDUZ vardiyasında 660 dk sınırda, 661 dk aşar; plan yolunda da 120 dk kabul, 121 dk ret. Molanın sayılıp sayılmayacağı T-64'te İK ile konuşulacak.
+  - Ekran: Onaysız fazla mesai sekmesinde bekleyen kayıtta "Günlük 11 sa aşılıyor", onaylananda "Günlük sınır aşıldı" etiketi; karar penceresinde onay sonrası süre yazılır.
+  - Rapordaki "uyarı çıkmadı" bugün geçerli değil: gece işi artık çalışılan güne `fm_gunluk_sinir_asildi` uyarısı ("gunluk:" anahtarı) yazıyor. Eksik olan karar anının iziydi.
 
 ### T-59 · Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor; sonuç gece saatine göre değişiyor
 - **Adım:** 9 · **Önem:** Orta
