@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { bugun } from "@/lib/hafta";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { kararAl, metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
@@ -14,6 +15,9 @@ export async function fazlaMesaiTalepEt(_onceki: IslemSonucu, form: FormData): P
   const gerekce = metinAl(form, "gerekce");
 
   if (!isGunu) return { durum: "hata", mesaj: "Fazla mesai günü seçilmelidir." };
+  // T-76: plan çalışmadan önce yapılır (veritabanı da reddeder; tarih İstanbul'a göre)
+  if (isGunu < bugun())
+    return { durum: "hata", mesaj: "Geçmiş bir güne fazla mesai planı girilemez. Çalışılan süre onaysız fazla mesai listesinden İK kararına bağlanır." };
   if (!Number.isFinite(saat) || saat <= 0 || saat > 11) return { durum: "hata", mesaj: "Süre 0,5 ile 11 saat arasında olmalıdır." };
   if (!gerekce || gerekce.length < 5) return { durum: "hata", mesaj: "Gerekçe girilmelidir." };
 
