@@ -62,7 +62,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
       style={{ background: "var(--kenar-zemin)" }}
     >
       <div className="flex flex-col gap-1 px-6 pt-6 pb-5">
-        {/* Atlas işareti, paletin şeftali rengine boyanır (beyaz PNG maske olarak kullanılır) */}
+        {/* Orijinal Atlas logosu: lacivert zeminde beyaz (beyaz PNG maske olarak kullanılır) */}
         <span
           role="img"
           aria-label="Atlas Trafo"
@@ -79,7 +79,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
         <span className="text-sm text-sidebar-foreground/70">PDKS Kayıt Düzeltme</span>
       </div>
 
-      <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(234_220_200/0.25)_transparent] [scrollbar-width:thin]">
+      <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(255_255_255/0.25)_transparent] [scrollbar-width:thin]">
         {gruplanmisMenu(kullanici.rol).map(({ grup, ogeler }) => (
           <div key={grup} className="flex flex-col gap-0.5">
             <div className="px-3 pb-1.5 text-[11px] font-semibold tracking-[0.12em] text-sidebar-foreground/70 uppercase">

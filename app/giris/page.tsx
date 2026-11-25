@@ -29,7 +29,7 @@ export default function GirisSayfasi() {
   const ayarlarHazir = supabaseAyarlari() !== null;
 
   return (
-    <main className="relative isolate flex min-h-svh flex-1 items-center justify-center bg-[#0a1c20] px-4 py-6">
+    <main className="relative isolate flex min-h-svh flex-1 items-center justify-center bg-[#1f2357] px-4 py-6">
       {/* Arka plan: bulanık fabrika fotoğrafı, pencereye sabit (form kaysa da yerinde kalır).
           Her yandan 8 px taşar ki bulanıklık kenarlarda soluk çerçeve bırakmasın; ayrıca büyütülmez.
           Pencere fotoğraftan yayvansa alttaki asfalttan kırpılır, binanın tepesi ve tabelalar tam kalır. */}
@@ -44,19 +44,20 @@ export default function GirisSayfasi() {
           className="object-cover object-[34%_top] blur-[3px] lg:object-top"
         />
       </div>
-      {/* Hafif petrol tonu ve köşelere doğru koyulaşma: göz ortadaki karta gider */}
+      {/* Hafif lacivert ton ve köşelere doğru koyulaşma: göz ortadaki karta gider */}
       <div
         className="fixed inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgb(10 28 32 / 0.18) 0%, rgb(10 28 32 / 0.62) 100%), linear-gradient(rgb(15 61 62 / 0.2), rgb(15 61 62 / 0.2))",
+            "radial-gradient(ellipse at center, rgb(31 35 87 / 0.18) 0%, rgb(31 35 87 / 0.64) 100%), linear-gradient(rgb(44 49 120 / 0.22), rgb(44 49 120 / 0.22))",
         }}
         aria-hidden
       />
 
       <section className="flex w-full max-w-[19rem] flex-col gap-5 rounded-2xl border border-white/15 bg-card/90 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl dark:bg-card/75">
         <div className="flex flex-col items-center gap-3.5 text-center">
-          <AtlasIsareti className="block h-7 w-[111px] bg-vurgu" />
+          {/* Orijinal logo: açık temada logonun laciverti, koyu temada beyazı */}
+          <AtlasIsareti className="block h-7 w-[111px] bg-[#2c3178] dark:bg-white" />
           <div className="flex flex-col gap-1">
             <h1 className="text-lg font-semibold">PDKS Kayıt Düzeltme</h1>
             <p className="text-[0.8125rem] text-muted-foreground">Kurumsal e-posta adresi ve şifre ile giriş yapılır.</p>
