@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 25 Kasım itibarıyla 39'u düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 44'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 25 Kasım itibarıyla 40'ı düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 43'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 12 | 7 | 15 |
+| Orta | 34 | 13 | 7 | 14 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **39** | **24** | **44** |
+| **Toplam** | **107** | **40** | **24** | **43** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -329,7 +329,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | Düzelt |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | Düzelt |
-| T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | Düzelt |
+| T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
 | T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | Düzelt (zaman kalırsa) |
 | T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Düzelt (zaman kalırsa) |
 | T-97 | Düşük | 12 | Sistem yolunda kilitli döneme sonradan puantaj satırı eklenebiliyor | K3 | — | ✅ Sınırlılık (karar verildi) |
@@ -3361,7 +3361,12 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #28 `S12IZ1 10.09: Yİ:1/0 gün=izinli | S12IZ1 11.09: HT:1/0 gün=gün kaydı yok` · #22 `IZ1 kalemleri | HT 12.0/0, NÇ 17.0/8160, Yİ 1.0/0`.
 - **Sade dille:** Bir çalışan Perşembe–Cuma yıllık izin alır, amir de "nasılsa izinde" diye Cuma'ya vardiya yazmazsa, bordroya giden dosyada Cuma "hafta tatili" olarak görünür. Çalışanın izin bakiyesinden bir gün eksik düşülür, ya da bordro yıllık izin ücreti yerine hafta tatili yazar. İzin takibi ile puantaj birbirini tutmaz.
 - **Öneri:** `gun_kodlari_hesapla`: gün kaydı yoksa önce geçerli izne bak (`Yİ`/`MZR`/`ÜCSZ`/`RPR`), sonra HT/RT. Ya da gece işi izinli güne plansız `izinli` gün kaydı açsın. Hafta sonu izni sayılmamalı; iş günü tanımı İK ile netleşmeli. Kalıcı test: planı olmayan izin günü Yİ kodlanır.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T94-plansiz-izin-gunu). Migration: `20261231010000_plansiz_izin_gunu.sql`, test: `plansiz_izin_gunu_testi.sql` (35 test).
+  - Karar: gün kaydı açılmaz, yalnızca puantaj hesabı izne bakar. Kural tek yerde: `pdks.plansiz_izin_gunleri(p_bas, p_bit)`. Geçerli iznin kapsadığı, gün kaydı olmayan gün izin günüdür; Pazar, tam gün resmi tatil ve (`cumartesi_hafta_sonu` = 1 ise) Cumartesi HT / RT kalır, arife izin günüdür, işe giriş öncesi ve çıkış sonrası sayılmaz.
+  - `gun_kodlari_hesapla` bu günlere iznin kodunu verir (Yİ / MZR / ÜCSZ / Dİ / RPR); `v_puantaj_canli` rapor gününü `raporlu_gun`'e, diğerlerini `izinli_gun`'e ekler. Ayda yalnızca böyle günü olan çalışanın da satırı çıkar. Kilitte satır ve kalemler aynı sayıyı yazar.
+  - Kilitli ay (karar: reddet): kilitli ayın planı olmayan izin gününe sonradan izin girilmesi ya da o günü kapsayan iznin iptali reddedilir (trigger `izin_kilitli_plansiz_gun`). Fark satırı yalnızca gün kaydı olan günden üretildiği için bordro sessizce yanlış kalırdı. Gün kaydı olan günler (T-48 fark yolu) ve tatil günleri eskisi gibi.
+  - IZ1 senaryosu: Perşembe planlı, Cuma planı yok, Perşembe–Pazartesi yıllık izin → 15, 16, 17 (Cumartesi iş günü), 19 Ekim Yİ, 18 Ekim Pazar HT; canlı izinli gün 1 → 4.
+  - Hız (2000 kişi, 505 bin gün kaydı, 8000 izin; İK oturumu, RLS açık; Ekim puantajı): eski görünüm ~330 ms, yeni ~400 ms (izin kısmı ~40 ms). İlk sürüm (FULL JOIN) ay filtresini gün kaydına indirmiyordu (~800 ms, RLS'de daha kötü). Düzeltmeler: UNION ALL + dış toplama; fonksiyon `set search_path` olmadan yazıldı ki PostgreSQL onu sorguya açsın (inline) ve ay filtresi izin günlerine insin; gün `date` sütunu olarak üretilir (RLS altında `d::date` index aramasında kullanılmıyordu); `izin` okuma politikası `(select pdks.tum_veriyi_gorur())` kalıbına çevrildi (satır başına çağrı ~1,3 sn ekliyordu). Bu üç yapıyı testler korur.
 
 ### T-95 · Yalnızca gün kodunu değiştiren fark kayboluyor; kilitli aya düşen işten çıkışın 3 günü kodsuz kalıyor
 - **Adım:** 12 · **Önem:** Düşük

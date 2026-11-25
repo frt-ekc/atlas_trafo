@@ -128,6 +128,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/plan_gecmisi_testi.sql` | Plan geçmişi (T-49): ret sonrası geri yükleme ve gün işleme, işlenmiş gün, iki kez değişiklik, plansız gün, onay, silinmezlik, görünürlük için 18 test |
 | `supabase/migrations/20261230010000_saatlik_izin_iptal.sql` | Yanlış saatlik izin `saatlik_izin_iptal` ile iptal edilir (kim / ne zaman / neden); iptal edilen izin hesaba girmez, gün yeniden hesaplanır (T-50) |
 | `supabase/tests/saatlik_izin_iptal_testi.sql` | Saatlik izin iptali (T-50): yeniden hesap, iz, yetki, görevler ayrılığı, kilitli ay, gece işi, silinmezlik, amir görünümü için 25 test |
+| `supabase/migrations/20261231010000_plansiz_izin_gunu.sql` | Planı olmayan izin günü puantajda izin kodunu alır, HT değil (`plansiz_izin_gunleri`, `gun_kodlari_hesapla`, `v_puantaj_canli`); kilitli ayın böyle gününe izin girişi / iptali reddedilir; `izin` okuma politikası sorgu başına bir kez (T-94) |
+| `supabase/tests/plansiz_izin_gunu_testi.sql` | Planı olmayan izin günü (T-94): kodlar, Cumartesi ayarı, rapor / arife / bayram, iptal, işe giriş, kilit, RLS altında aynı sonuç, hız yapıları, kilitli ayda ret için 35 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -425,7 +427,7 @@ Puantaj kodları (`pdks.gun_kodlari(yıl, ay)` her gün için, `puantaj_kalemi` 
 | RPR | Rapor | 1 | 0 |
 | DVMSZ | İK'nın devamsız kararı | 1 | 0 |
 | RT | Çalışılmayan tam gün resmi tatil | 1 | 0 |
-| HT | Vardiya planı olmayan gün (hafta tatili); o gün çalışılıp havuzdan onaylanırsa FM50; hafta tatili ve resmi tatilde FM100 (T-79) | 1 | 0 |
+| HT | Vardiya planı olmayan gün (hafta tatili); o gün çalışılıp havuzdan onaylanırsa FM50; hafta tatili ve resmi tatilde FM100 (T-79). Planı olmayan gün geçerli izin içindeyse HT değil iznin kodunu alır; Pazar, tam gün resmi tatil ve ayara göre Cumartesi HT / RT kalır (T-94) | 1 | 0 |
 
 Kararı bekleyen gün (eksik, soru bekliyor, devamsızlık şüphesi) kod almaz. `gun_kodlari` izin türünü
 içerdiği için yalnızca İK ve yönetici çağırabilir. Ay kilitlenince her normal satırın kalemleri yazılır;
@@ -502,6 +504,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - "Bugün" her yerde `pdks.bugun()` (İstanbul tarihi) ile alınır, `current_date` kullanılmaz. Ekrandan (PostgREST) gelen istekler ve pg_cron UTC oturumla çalışır; `current_date` İstanbul 00:00–03:00 arasında dünü verir. Okutma zamanından gün türetirken de `(zaman at time zone 'Europe/Istanbul')::date` kalıbı kullanılır.
 - RLS politikalarında oturum fonksiyonları `(select pdks.oturum_rolu())` gibi `select` içinde yazılır. Böylece PostgreSQL onları satır başına değil, sorgu başına bir kez çalıştırır (T-104). Satıra bağlı bir kontrol gerekiyorsa (ör. "bu satırın çalışanı amirin mi?") önce liste bir kez alınır: `calisan_id = any ((select pdks.oturum_calisanlari())::bigint[])`. Yeni yazılan politikalar bu kalıba uyar; eski politikaların bir kısmı henüz çevrilmedi. Kural yardımcı fonksiyonların içi için de geçerlidir: bir tabloyu tarayan yardımcı (ör. `oturum_departmanlari`, `oturum_calisanlari`) oturum fonksiyonunu `where` içinde çıplak çağırırsa her satırda yeniden hesaplar (T-108).
 - `vardiya_plani` ve `izin` değiştirilebilir; bunların etkisi `gun_kaydi`'na yine `duzeltme` üzerinden yansır.
+- Planı olmayan izin günü için gün kaydı açılmaz; izin yalnızca puantaj hesabına (`gun_kodlari_hesapla`, `v_puantaj_canli`) girer. Kural tek yerde, `pdks.plansiz_izin_gunleri`. Fark satırı gün kaydından üretildiği için kilitli ayın böyle gününe sonradan izin girilmesi ya da iptali reddedilir (T-94).
 - Geriye dönük plan, eski planın üzerine yazılır; eski hâl `vardiya_plani_gecmisi`'ne yazılır (T-49). Gün çoğunlukla zaten eski planla işlenmiş olduğu için yeni plan ancak İK onayıyla, vardiya düzeltmesi olarak güne yansır. Ret son geçerli planı geri yükler; gün onay beklediği için işlenmemişse hemen işlenir. Önceden plan yoksa plan "reddedildi" kalır.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
