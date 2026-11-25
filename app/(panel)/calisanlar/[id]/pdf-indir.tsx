@@ -107,6 +107,17 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
     { b: "Not", w: "29%" },
   ];
   const { calisan, ozet } = dokum;
+  // Düzeltmeler tablosunun bir satırı (başlıkla birlikte ilk satır ve kalanlar için aynı)
+  const duzeltmeSatiri = (d: Dokum["duzeltmeler"][number], key: number) => (
+    <View key={key} style={s.satir} wrap={false}>
+      <Text style={{ width: "11%" }}>{d.gun}</Text>
+      <Text style={{ width: "9%" }}>{d.alan}</Text>
+      <Text style={{ width: "14%" }}>{d.eski}</Text>
+      <Text style={{ width: "14%" }}>{d.yeni}</Text>
+      <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
+      <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
+    </View>
+  );
 
   return (
     <Document title={`PDKS dökümü ${calisan.sicil} ${dokum.ay}`} author="Atlas Trafo PDKS" language="tr">
@@ -156,26 +167,24 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
           })}
         </View>
 
-        <Text style={s.altBaslik}>Düzeltmeler</Text>
+        {/* Başlık, başlık satırı ve ilk satır birlikte: sayfa sonunda başlık tek başına kalmasın */}
         {dokum.duzeltmeler.length === 0 ? (
-          <Text style={s.kucuk}>Kayıt bulunmuyor.</Text>
+          <View wrap={false}>
+            <Text style={s.altBaslik}>Düzeltmeler</Text>
+            <Text style={s.kucuk}>Kayıt bulunmuyor.</Text>
+          </View>
         ) : (
           <View style={s.tablo}>
-            <View style={s.basSatir}>
-              {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["İşlemi yapan", "20%"]].map(([b, w]) => (
-                <Text key={b} style={{ width: w }}>{b}</Text>
-              ))}
-            </View>
-            {dokum.duzeltmeler.map((d, i) => (
-              <View key={i} style={s.satir} wrap={false}>
-                <Text style={{ width: "11%" }}>{d.gun}</Text>
-                <Text style={{ width: "9%" }}>{d.alan}</Text>
-                <Text style={{ width: "14%" }}>{d.eski}</Text>
-                <Text style={{ width: "14%" }}>{d.yeni}</Text>
-                <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
-                <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
+            <View wrap={false}>
+              <Text style={s.altBaslik}>Düzeltmeler</Text>
+              <View style={s.basSatir}>
+                {[["Gün", "11%"], ["Alan", "9%"], ["Eski", "14%"], ["Yeni", "14%"], ["Gerekçe", "32%"], ["İşlemi yapan", "20%"]].map(([b, w]) => (
+                  <Text key={b} style={{ width: w }}>{b}</Text>
+                ))}
               </View>
-            ))}
+              {duzeltmeSatiri(dokum.duzeltmeler[0], 0)}
+            </View>
+            {dokum.duzeltmeler.slice(1).map((d, i) => duzeltmeSatiri(d, i + 1))}
           </View>
         )}
 
