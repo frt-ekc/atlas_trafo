@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { aramaSuzgeci } from "@/components/liste/arama";
@@ -147,7 +148,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             islem={izinGir}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="sicil" name="sicil" list="izin-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="izin-calisanlar" id="sicil" required />
             </Alan>
             <Alan etiket="Tür" htmlFor="tur">
               <Secim id="tur" name="tur" required defaultValue="" className="h-9">
@@ -176,7 +177,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             islem={saatlikIzinGir}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="s-sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="s-sicil" name="sicil" list="izin-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="izin-calisanlar" id="s-sicil" required />
             </Alan>
             <div className="grid grid-cols-3 gap-3">
               <Alan etiket="Gün" htmlFor="s-tarih">

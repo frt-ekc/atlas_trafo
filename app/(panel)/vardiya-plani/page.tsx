@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { IslemMenusu } from "@/components/liste/islem-menusu";
@@ -220,7 +221,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
             islem={vardiyaPlaniGir}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="sicil" name="sicil" list="vp-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="vp-calisanlar" id="sicil" required />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="tarih">

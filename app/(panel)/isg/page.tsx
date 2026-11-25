@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { Secim } from "@/components/panel/secim";
@@ -122,7 +123,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   islem={isgBelgeGir}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-                    <Input id="sicil" name="sicil" list="isg-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="isg-calisanlar" id="sicil" required />
                   </Alan>
                   <Alan etiket="Tür" htmlFor="tur">
                     <Secim id="tur" name="tur" required defaultValue="" className="h-9">

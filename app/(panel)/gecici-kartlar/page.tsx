@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { aramaSuzgeci } from "@/components/liste/arama";
@@ -223,7 +224,7 @@ function KartVerPenceresi({ kartId, kartNo }: { kartId: number; kartNo: string }
       gizli={{ kart_id: kartId, kart_no: kartNo }}
     >
       <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Kullanıcı kendisine kart zimmetleyemez.">
-        <Input id="sicil" name="sicil" list="calisan-listesi" required autoComplete="off" inputMode="numeric" autoFocus />
+        <CalisanSecici listeId="calisan-listesi" id="sicil" required autoFocus />
       </Alan>
       <Alan etiket="Açıklama (isteğe bağlı)" htmlFor="aciklama">
         <Textarea id="aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. Kart unutuldu" />

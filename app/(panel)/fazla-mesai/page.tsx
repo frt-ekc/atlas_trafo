@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
+import { CalisanSecici } from "@/components/panel/calisan-secici";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
 import { Secim } from "@/components/panel/secim";
@@ -284,7 +285,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             islem={fazlaMesaiTalepEt}
           >
             <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
-              <Input id="sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+              <CalisanSecici listeId="fm-calisanlar" id="sicil" required />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="is_gunu">
@@ -543,7 +544,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                   islem={yaziliOnayGir}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="o-sicil">
-                    <Input id="o-sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="fm-calisanlar" id="o-sicil" required />
                   </Alan>
                   <div className="grid grid-cols-3 gap-3">
                     <Alan etiket="Yıl" htmlFor="o-yil">
@@ -567,7 +568,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                   islem={yaziliOnayGeriAl}
                 >
                   <Alan etiket="Çalışanın sicil numarası" htmlFor="g-sicil">
-                    <Input id="g-sicil" name="sicil" list="fm-calisanlar" required autoComplete="off" inputMode="numeric" />
+                    <CalisanSecici listeId="fm-calisanlar" id="g-sicil" required />
                   </Alan>
                   <div className="grid grid-cols-2 gap-3">
                     <Alan etiket="Yıl" htmlFor="g-yil">
