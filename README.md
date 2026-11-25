@@ -155,6 +155,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261225010000_gecmis_izin.sql` | İşlenmiş güne girilen izin günü düzeltir, soruyu kapatır; İK düzeltmesi soruyu kapatır (T-46, T-40) |
 | `20261226010000_gunluk_sinir.sql` | Havuz onayında günlük 11 saat aşılırsa kayıt işaretlenir, İK'ya uyarı yazılır; süre puantaja girer (T-58) |
 | `20261227010000_plan_onayi_hesap.sql` | Gece işinden sonra onaylanan fazla mesai planı günü hemen yeniden hesaplar, havuzdaki karşılığını kapatır (T-61) |
+| `20261228010000_gecmis_plan_talebi.sql` | Geçmiş güne fazla mesai planı talebi reddedilir; süre havuzdan İK kararıyla gelir (T-76) |
 
 ---
 
@@ -259,6 +260,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Geçmiş güne izin (T-46, T-40): düzeltme, soru kapanışı, okutmalı gün, iptal, devamsız denetimi, kilitli ay (29 test) | ✅ |
 | Havuz onayında günlük 11 saat (T-58): işaret, uyarı, 660 / 661 dk sınırı plan yoluyla aynı ölçüde (13 test) | ✅ |
 | Sonradan plan onayı (T-61): hemen hesap, havuzun kapanması, iki kez sayılmama, kilitli ay (13 test) | ✅ |
+| Geçmiş güne plan talebi (T-76): ret, bugün / yarın serbest, zamanında talebin sonradan onayı (7 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
