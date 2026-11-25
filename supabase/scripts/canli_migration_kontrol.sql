@@ -86,7 +86,8 @@ with beklenen(surum, ad, nesne) as (values
                                                                  and prosrc like '%gun_hesabini_yenile%')),
     ('20261228010000', 'gecmis_plan_talebi',             exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'fazla_mesai_talep_et'
                                                                  and prosrc like '%Geçmiş bir güne fazla mesai planı girilemez%')),
-    ('20261229010000', 'plan_gecmisi',                   to_regclass('pdks.vardiya_plani_gecmisi') is not null)
+    ('20261229010000', 'plan_gecmisi',                   to_regclass('pdks.vardiya_plani_gecmisi') is not null),
+    ('20261230010000', 'saatlik_izin_iptal',             to_regprocedure('pdks.saatlik_izin_iptal(bigint, text)') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
