@@ -289,7 +289,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             dugme="Talep oluştur"
             dugmeTuru="default"
             baslik="Fazla mesai talebi"
-            aciklama="Talep İK onayına gönderilir. Çalışanın ilgili yıla ait yazılı onayı bulunmalı ve günlük 11 saat sınırı aşılmamalıdır."
+            aciklama="Talep İK onayına gönderilir. Plan bugün ya da sonrası için yapılır; geçmiş günün çalışması onaysız fazla mesai listesinden İK kararına bağlanır. Çalışanın ilgili yıla ait yazılı onayı bulunmalı ve günlük 11 saat sınırı aşılmamalıdır."
             onay="Talebi gönder"
             islem={fazlaMesaiTalepEt}
           >
@@ -298,7 +298,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             </Alan>
             <div className="grid grid-cols-2 gap-3">
               <Alan etiket="Gün" htmlFor="is_gunu">
-                <Input id="is_gunu" name="is_gunu" type="date" required defaultValue={bugunTarih} />
+                <Input id="is_gunu" name="is_gunu" type="date" required min={bugunTarih} defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Süre (saat)" htmlFor="saat">
                 <Input id="saat" name="saat" type="number" required min={0.5} max={11} step={0.5} defaultValue={2} />
@@ -391,7 +391,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               dugme="Karar ver"
                               dugmeTuru="default"
                               baslik={`${p.calisan ? `${p.calisan.ad} ${p.calisan.soyad}` : "Çalışan"} · ${tarih(p.is_gunu)} · ${saat(p.planli_dk)}`}
-                              aciklama={`Gerekçe: ${p.gerekce}. Talep eden: ${p.talep_eden?.ad_soyad ?? "—"}.`}
+                              aciklama={`Gerekçe: ${p.gerekce}. Talep eden: ${p.talep_eden?.ad_soyad ?? "—"}.${
+                                p.is_gunu < bugunTarih
+                                  ? " Gün işlendiyse onay puantaja hemen yansır; onaysız fazla mesai listesindeki karşılığı plan kadar azalır."
+                                  : ""
+                              }`}
                               onay="Kararı kaydet"
                               islem={fazlaMesaiKarar}
                               gizli={{ plan_id: p.id }}

@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
 | Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
-| Orta | 33 | 27 | 6 (T-33, T-38, T-40, T-58, T-59, T-62) | 19 | 8 |
+| Orta | 33 | 25 | 8 (T-33, T-38, T-40, T-58, T-59, T-61, T-62, T-76) | 17 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **74** | **32** | **46** | **31** |
+| **Toplam** | **106** | **72** | **34** | **44** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -297,7 +297,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | ✅ Düzeltildi (feature/T58-gunluk-sinir) |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
-| T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | Düzelt |
+| T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T61-plan-onayi-hesap) |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | Düzelt |
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
@@ -312,7 +312,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | Sınırlılık |
 | T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | ✅ Düzeltildi (feature/T74-ayar-sinirlari) |
 | T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | Düzelt (zaman kalırsa) |
-| T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | Düzelt |
+| T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T76-gecmis-plan-talebi) |
 | T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
@@ -2464,7 +2464,12 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Amir "dün iki saat fazla mesai yaptırdım" deyip talebi sonradan giriyor, İK onaylıyor, ama puantajda fazla mesai görünmüyor. Bir gün başka bir sebeple o gün yeniden hesaplanırsa fazla mesai birden ortaya çıkıyor. Puantajın sonucu, alakasız bir düzeltmenin yapılıp yapılmadığına bağlı hale geliyor; ay kilitlenmişse fark hiç gelmeyebilir.
 - **Öneri:** `fazla_mesai_karar`'da onaydan sonra o günün kaydı varsa `gun_hesabini_yenile` + `gun_sonrasi_kontroller` (havuz kaydı plan kadar azalır). Kilitli ayda fark satırı. Ayrıca geçmiş güne plan talebinin kabul edilip edilmeyeceği belgeye yazılmalı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T61-plan-onayi-hesap). Migration: `20261227010000_plan_onayi_hesap.sql`, test: `plan_onayi_hesap_testi.sql` (13 test).
+  - Plan onayı, gün işlenmişse günü hemen yeniden hesaplar (`gun_hesabini_yenile`) ve gün sonrası kontrollerini çalıştırır. Sonuç artık ilgisiz bir yeniden hesaplamaya bağlı değil.
+  - Havuz: plan sürenin bir kısmını karşılıyorsa kalan süre bekler; tamamını karşıladıysa bekleyen kayıt "Fazla mesai planı onaylandı; süre plan üzerinden puantaja girdi" açıklamasıyla kapanır (geriye dönük vardiya planı onayıyla aynı kalıp, T-79). Ay kilidini durdurmaz.
+  - Kilitli aya düşen güne plan onayı verilmez (gün değiştirilemez); süre havuz kararıyla sonraki aya fark olarak gelir.
+  - Ek bulgu, aynı düzeltmede: havuzdan zaten onaylanmış güne plan onayı veriliyordu; süre yıllık toplama iki kez giriyordu (test: 240 dk). Artık reddedilir.
+  - Geçmiş güne plan talebinin kabul edilip edilmeyeceği ayrı bulgu (T-76). Test, talebi çalışmadan önce girip onayı gece işinden sonra verir; T-76 düzeltilse de geçerli kalır.
 
 ### T-62 · `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor
 - **Adım:** 9 · **Önem:** Orta
@@ -2517,7 +2522,11 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Kanıt:** `a9_fm_sonuc.txt`: `72|K1|montaj.amiri|talep 2026-10-14 120 dk|OK 456` · `73|K1|ik.muduru|plan kararı 2026-10-14 onay|OK` · `K1|2026-10-14|2 sonradan plan onayı|… | plan: 120 dk/onaylandi | havuz: vardiya_sonrasi 120 dk/inceleme_bekliyor`.
 - **Sade dille:** Sistem "önceden planlanmış fazla mesai" ile "habersiz kalınan fazla mesai"yi ayrı tutuyor; ikincisi İK'nın ayrı incelemesinden geçiyor. Ama amir, çalışma bittikten sonra geriye dönük bir "plan" girerek habersiz kalınan saati planlıymış gibi gösterebiliyor. Raporlarda "plansız çalışma" azalmış görünür, gerçekte değişen bir şey yoktur.
 - **Öneri:** `fazla_mesai_talep_et`: `p_is_gunu < bugün (İstanbul)` ise ret (T-45'teki saat dilimine dikkat), ya da talebe `geriye_donuk` işareti ve İK ekranında ayrı liste. Kalıcı test: dünkü güne talep reddedilir.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T76-gecmis-plan-talebi). Migration: `20261228010000_gecmis_plan_talebi.sql`, test: `gecmis_plan_talebi_testi.sql` (7 test).
+  - `fazla_mesai_talep_et`: talep, girildiği gün (İstanbul, `pdks.bugun()`) bugün ya da sonrası için olmalı; geçmiş gün "Geçmiş bir güne fazla mesai planı girilemez … onaysız fazla mesai listesinden İK kararına bağlanır" ile reddedilir. Amir ve İK için aynı.
+  - "Geriye dönük işaretli plan" seçeneği yerine tam ret seçildi: unutulan planın süresi kaybolmaz, havuzdan İK incelemesiyle onaylanır; ikinci bir yol İK incelemesini atlatırdı (T-61'den sonra plan onayı havuzu kapatıyor).
+  - Denetim talep anında: zamanında girilmiş talep gün geçtikten sonra da onaylanır (T-61). Ekranda tarih alanı bugünden öncesini seçtirmez.
+  - Ekran rolünün `fazla_mesai_plani`'na yalnızca SELECT yetkisi var; yeni plan yalnızca bu fonksiyonla girilir.
 
 ### T-77 · 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor
 - **Adım:** 9 · **Önem:** Orta (mevzuat kontrol edilecek)
