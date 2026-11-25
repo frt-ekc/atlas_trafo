@@ -14,6 +14,7 @@ import { tekDeger } from "@/lib/arama";
 import { ROL_ADI, rolGerekli, type Rol } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
+import { BekleyenRoller, type RolOnerisi } from "./bekleyen-roller";
 import { kullaniciEkle, kullaniciGuncelle } from "./actions";
 
 export const metadata = { title: "Kullanıcılar" };
@@ -30,15 +31,36 @@ type Kullanici = {
 };
 
 // Sistem yöneticisi: kimin hangi rolle gireceğini yönetir. Çalışan kayıtları üzerinde karar veremez;
-// kendi hesabını değiştiremez (görevler ayrılığı).
+// kendi hesabını değiştiremez (görevler ayrılığı). İK yalnızca onay bekleyen rol değişikliklerini görür (T-72).
 export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/kullanicilar">) {
-  const kullanici = await rolGerekli(["admin"]);
+  const kullanici = await rolGerekli(["admin", "ik"]);
   const parametre = await searchParams;
   const rolSuzgeci = tekDeger(parametre.rol);
   const durumSuzgeci = tekDeger(parametre.durum);
   const araMetni = tekDeger(parametre.ara).slice(0, 100);
   const uyar = aramaSuzgeci(araMetni);
   const supabase = await sunucuIstemcisi();
+
+  const oneriler = await tumSatirlar<RolOnerisi>((bas, son) =>
+    supabase
+      .from("rol_onerisi")
+      .select(
+        "id, kullanici_id, oneren_id, eski_rol, yeni_rol, yeni_hesap, aktif_yap, oneri_zamani, " +
+          "kullanici:kullanici!kullanici_id(ad_soyad, eposta), calisan:calisan_id(sicil_no, ad, soyad), " +
+          "oneren:kullanici!oneren_id(ad_soyad)",
+      )
+      .eq("durum", "bekliyor")
+      .order("id")
+      .range(bas, son),
+  );
+  if (kullanici.rol === "ik") {
+    return (
+      <div className="flex flex-col gap-5">
+        <h1 className="text-2xl font-semibold">Kullanıcılar</h1>
+        <BekleyenRoller oneriler={oneriler} kararVerebilir benId={kullanici.id} />
+      </div>
+    );
+  }
 
   const [kullanicilar, calisanlar] = await Promise.all([
     tumSatirlar<Kullanici>((bas, son) =>
@@ -86,7 +108,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
           dugme="Kullanıcı ekle"
           dugmeTuru="default"
           baslik="Yeni kullanıcı"
-          aciklama="Her çalışan ve e-posta adresi için yalnızca bir kullanıcı tanımlanabilir. Kullanıcı kendisine hesap tanımlayamaz."
+          aciklama="Her çalışan ve e-posta adresi için yalnızca bir kullanıcı tanımlanabilir. Kullanıcı kendisine hesap tanımlayamaz. İnsan Kaynakları ve sistem yöneticisi hesapları İK onayına kadar pasif kalır."
           onay="Ekle"
           islem={kullaniciEkle}
         >
@@ -117,6 +139,8 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
         </IslemPenceresi>
         <CalisanListesi id="k-calisanlar" calisanlar={calisanlar} />
       </div>
+
+      {oneriler.length > 0 && <BekleyenRoller oneriler={oneriler} kararVerebilir={false} benId={kullanici.id} />}
 
       <FiltreCubugu temizleAdres="/kullanicilar" suzgecVar={suzgecVar}>
         <FiltreAlani etiket="Rol" htmlFor="rol-suzgec">
@@ -178,7 +202,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                           dugme="Düzenle"
                           dugmeTuru="ghost"
                           baslik={k.ad_soyad}
-                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. Pasif kullanıcılar sisteme giriş yapamaz."
+                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. İnsan Kaynakları ve sistem yöneticisi rolleri İK onayı gerektirir. Pasif kullanıcılar sisteme giriş yapamaz."
                           onay="Kaydet"
                           islem={kullaniciGuncelle}
                           gizli={{ kullanici_id: k.id }}

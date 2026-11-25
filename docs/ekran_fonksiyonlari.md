@@ -70,8 +70,8 @@ await supabase.schema('pdks').from('v_isg_durum').select('*').in('durum', ['yok'
 
 | Fonksiyon | Parametreler | Ne yapar |
 |---|---|---|
-| `kullanici_ekle` | `p_eposta`, `p_rol`, `p_calisan_id`, `p_ust_amir_id?` | Sisteme giren kişiyi tanımlar; kullanıcı no döner. Ad soyad çalışan kaydından gelir (T-105). Giriş hesabı Supabase Auth'ta aynı e-postayla açılır; hesap varsa hemen bağlanır. Aynı e-posta ya da hesabı olan çalışan reddedilir. Admin kendine hesap açamaz |
-| `kullanici_guncelle` | `p_kullanici_id`, `p_rol?`, `p_ust_amir_id?`, `p_aktif?` | Rolü, üst amiri ya da aktifliği değiştirir (gönderilmeyen değişmez); Auth hesabı sonradan açıldıysa bağlar. Admin kendi hesabını değiştiremez |
+| `kullanici_ekle` | `p_eposta`, `p_rol`, `p_calisan_id`, `p_ust_amir_id?` | Sisteme giren kişiyi tanımlar; kullanıcı no döner. Ad soyad çalışan kaydından gelir (T-105). Giriş hesabı Supabase Auth'ta aynı e-postayla açılır; hesap varsa hemen bağlanır. Aynı e-posta ya da hesabı olan çalışan reddedilir. Admin kendine hesap açamaz. `ik` / `admin` hesabı pasif açılır ve İK onayına gider (T-72) |
+| `kullanici_guncelle` | `p_kullanici_id`, `p_rol?`, `p_ust_amir_id?`, `p_aktif?` | Rolü, üst amiri ya da aktifliği değiştirir (gönderilmeyen değişmez); Auth hesabı sonradan açıldıysa bağlar. Admin kendi hesabını değiştiremez. **İK / admin rolü verme ya da bu roldeki pasif hesabı açma** öneri olur (`rol_onerisi`): onaya kadar rol ve aktiflik değişmez (T-72) |
 | `ayar_guncelle` | `p_anahtar`, `p_deger` (metin) | Ayar değerini değiştirir (tolerans, mola, eşikler …); tam sayı, `en_az`–`en_cok` aralığı ve mola sıralaması denetlenir; puantajı etkileyen ayarda İK'ya uyarı (T-74); eski / yeni değer ve değiştiren `ayar_gecmisi`'ne yazılır |
 
 Admin çalışan kayıtları üzerinde karar veremez: düzeltme, izin, itiraz, fazla mesai, ay kilidi ve soru cevabı fonksiyonları admin için `Bu işlem için yetkiniz yok.` hatası verir.
@@ -81,6 +81,7 @@ Admin çalışan kayıtları üzerinde karar veremez: düzeltme, izin, itiraz, f
 | Fonksiyon | Parametreler | Ne yapar |
 |---|---|---|
 | `uyari_goruldu` | `p_uyari_id` | Uyarıyı "görüldü" yapar |
+| `rol_onerisi_karar` | `p_oneri_id`, `p_onay`, `p_aciklama?` | Admin'in önerdiği İK / admin rolünü onaylar ya da reddeder (ret gerekçesi zorunlu). Öneren ve hesabın sahibi karar veremez. Bekleyenler `rol_onerisi` tablosundan (`durum = 'bekliyor'`) okunur (T-72) |
 | `soru_ik_karari` | `p_soru_id`, `p_devamsiz`, `p_gerekce`, `p_giris?`, `p_cikis?` | İK'da duran soruyu kapatır: (1) amirin "gelmedi / bilmiyorum" dediği soru (`ik_karari_bekliyor`) ve **yeni:** (2) İK'ya eskale edilmiş soru (`eskale`; ör. üst amiri olmayan amirin süresi geçen sorusu) ya da (3) doğrudan İK'ya atanmış açık soru (`acik`; ör. üst amiri olmayan amirin kendi günü). `p_devamsiz = true` → gün devamsız (çalışan aleyhine işaretlenir); `false` → saat zorunlu. Saat yazıldıysa gün hemen hesaplanır. İK kendi günündeki soruya karar veremez (görevler ayrılığı; soru diğer İK'ya düşer). Sonuç `ik_karari`'na, gerekçe yalnızca `duzeltme`'ye yazılır; amir gerekçeyi görmez (T-106) |
 | `itiraz_incelemeye_al` | `p_itiraz_id` | İtirazı "incelemede" yapar |
 | `itiraz_karar` | `p_itiraz_id`, `p_kabul`, `p_aciklama` | İtirazı kabul ya da reddeder |
