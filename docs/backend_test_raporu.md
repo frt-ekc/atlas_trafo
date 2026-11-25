@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 1 | 18 (T-12, T-13, T-28, T-39, T-45, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 1 | 0 |
-| Orta | 33 | 29 | 4 (T-33, T-38, T-59, T-62) | 21 | 8 |
+| Yüksek | 19 | 0 | 19 (T-12, T-13, T-28, T-39, T-45, T-46, T-47, T-56, T-57, T-65, T-71, T-72, T-74, T-79, T-89, T-90, T-104, T-106, T-108) | 0 | 0 |
+| Orta | 33 | 28 | 5 (T-33, T-38, T-40, T-59, T-62) | 20 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **77** | **29** | **49** | **31** |
+| **Toplam** | **106** | **75** | **31** | **47** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -276,13 +276,13 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | ✅ Düzeltildi (PR #40) |
 | T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | ✅ Düzeltildi (PR #37) |
 | T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | ✅ Düzeltildi (PR #55) |
-| T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | Düzelt |
+| T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | Düzelt |
 | T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-43 | Düşük | 7 | Amir izne çıkınca önceden açılmış soruları vekile geçmiyor | K2 | — | Sınırlılık |
 | T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
-| T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | Düzelt (25 Kas) |
+| T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | Düzelt |
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | Düzelt |
@@ -366,6 +366,7 @@ Düzeltilmeyecek (ya da karar çıkana kadar böyle kalacak) konular. Proje rapo
   - Günlük 11 saat sınırına mola dahil sayılır (yasadan katı).
   - 15 dakikanın altındaki plansız kalış fazla mesai incelemesine düşmez; Fazla Çalışma Yönetmeliği'ndeki yuvarlama kuralı ile mevzuat kontrol edilecek.
   - Pazar günü için girilen vardiya planı İK onayı istemez.
+- **Gece işinden izinli geçmiş günü olan izin (T-46).** Böyle bir izin iptal edilemez. Gün ilk kez izinli olarak işlendiği için dönülecek önceki hali yoktur; o günler önce kayıt düzeltmeyle düzeltilir, sonra izin iptal edilir. İşlenmiş güne sonradan girilen iznin iptali günü kendiliğinden eski haline döndürür.
 - **Yanlış girilen işten çıkış (T-66).** Sistemde geri alma yoktur; yalnızca veritabanı yöneticisi, kayıt altına alınan bir düzeltmeyle geri alabilir. Bu düzeltmenin adımları henüz yazılı bir prosedür değildir.
 - **Üst amir zinciri (T-73).** Üst amir döngüsü ve amir olmayan üst amir denetlenmez; kullanıcıları sistem yöneticisi doğru tanımlar.
 - **Geçici kart saati (T-83).** Geçici kart zimmeti kaydın girildiği andan başlar; geriye dönük zimmet girilemez. Kart önce sisteme kaydedilip sonra verilir.
@@ -1881,7 +1882,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   - `kayit_duzelt` o günün açık sorularını kapatsın (`durum = 'kapandi'`, açıklama "İK kayıt düzeltmesi", ayrı karar sütunlarıyla; T-32). Sonra `gun_hesapla`.
   - `soru_cevapla` gün `devamsiz` / `izinli` / `raporlu` ise ya da sorudan sonra İK düzeltmesi varsa reddetsin.
   - Yeni migration ve test.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** İK'nın kayıt düzeltmesi o günün açık sorusunu kapatır.
+- **Durum:** ✅ Düzeltildi (feature/T46-gecmis-izin, T-46 ile). `kayit_duzelt` soruyu "İK kayıt düzeltmesi" nedeniyle kapatır; yalnızca bir saat düzeltildi ve gün hâlâ eksikse öbür saatin sorusu açık kalır. `soru_cevapla` devamsız / izinli / raporlu güne cevap kabul etmez ve sorudan sonra İK'nın düzelttiği saati ezmez. Test: `gecmis_izin_testi.sql`.
 
 ### T-41 · Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor
 - **Adım:** 7 · **Önem:** Orta
@@ -2108,7 +2110,9 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   - **T-40 ile bağlantı:** İK soruyu kapatmadan `kayit_duzelt` ile günü "raporlu" yaparsa soru açık kalır (T-40: İK düzeltmesi açık soruyu kapatmıyor). Sonra amir cevap verirse bu cevap İK'nın düzeltmesini bozabilir. Yani İK'nın önündeki üç yolun hiçbiri doğru sonuç vermiyor: devamsız (yanlış), saat girmek (yanlış), elle düzeltmek (soru açık kalır, bozulabilir).
 - **Sade dille:** Hastalanan biri raporunu genelde 2-3 gün sonra getirir. O zamana kadar gece işi o günleri çoktan işlemiş, amire "bu kişi hiç gelmedi, ne oldu?" diye sormuştur. İK raporu girdiğinde sistem günü "raporlu" yapmıyor, amire giden soruyu da kapatmıyor. Amir "gelmedi" derse İK'nın önüne devamsızlık kararı gelir. İK gün gün elle `kayit_duzelt` yapmayı unutursa raporlu bir çalışan devamsız görünür. Bu, çalışan aleyhine yanlış bir sonuçtur.
 - **Öneri:** `izin_gir` sonunda iznin işlenmiş günleri için (`durum not in ('tamam')` ya da çalışma yoksa) `duzeltme_uygula(…, 'durum', 'izinli'/'raporlu', …, p_izin_id => v_id)` ve açık soruları kapatma. Kilitli aydaki günler fark satırı olur. İzin iptali de bu düzeltmeyi geri almalı (bugünkü "önce kayit_duzelt" kuralının yerine). `soru_ik_karari`: o gün geçerli izin varsa devamsız kararını reddetmeli ve "izinli/raporlu" ile kapatma seçeneği sunmalı. T-40'ın düzeltmesiyle (İK düzeltmesi açık soruyu kapatır) birlikte ele alınmalı.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** İzin girilince işlenmiş günler `duzeltme_uygula` ile izinli / raporlu olur, açık soruları "İzin girildi" nedeniyle kapanır; kilitli ayda fark satırı. İptal bu düzeltmeleri geri alır. Geçerli izin varken devamsız kararı reddedilir. O gün okutma varsa gün izinli yapılmaz, İK'ya uyarı yazılır.
+- **Durum:** ✅ Düzeltildi (feature/T46-gecmis-izin). Migration: `20261225010000_gecmis_izin.sql`, test: `gecmis_izin_testi.sql`. Sorunun kapanış izi `amir_sorusu.kapanis_nedeni`, `kapatan_id`, `kapanis_zamani`, `kapatan_izin_id`, `onceki_durum`; uyarı `izin_gununde_okutma`. Devamsız denetimi `kayit_duzelt`'te de var.
+- **Kalan:** Gece işinin izinli işlediği günü olan izin hâlâ iptal edilemez (o günün "önceki hali" yoktur); önce kayıt düzeltme gerekir. Henüz işlenmemiş izinli günde okutma T-54'tedir.
 
 ### T-47 · Çakışan izinler reddedilmiyor; aynı güne yıllık izin ve rapor girilince gün "izinli" oluyor, rapor kayboluyor
 - **Adım:** 8 · **Önem:** Yüksek
@@ -3547,9 +3551,9 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | Bulgu | Demoda nerede çıkabilir | Ne olur | Nasıl kaçınılır |
 |---|---|---|---|
 | T-39 | 1. adım, Sorular | Kasım'ın 4 sorusu: S2 ve S4 üst amirden İK'ya geçmiş, S19 Levent'te (7 Aralık'ta o da İK'da), S22 İK'da | ✅ Düzeltildi (PR #55; canlıya 20261210010000 uygulandıktan sonra): İK dört soruya da karar verebilir. Anlatım: "amir → üst amir → İK" |
-| T-40 | 4–5. adım | Ali'nin ya da Mustafa'nın sorusu açıkken İK günü `kayit_duzelt` ile düzeltirse, sonraki amir cevabı İK'nın düzeltmesini ezer | Sıra belgedeki gibi: önce amir, sonra İK kararı. İK, açık sorulu günü Çalışanlar ekranından düzeltmesin |
+| T-40 | 4–5. adım | ✅ Düzeltildi: İK günü düzeltince soru kapanır; amir cevabı İK'nın düzeltmesini ezmez | Sıra serbest |
 | T-41 | 4. adım | Amir "Saat farklı" deyip yalnızca bir saat girerse gün askıda kalır, soru kapanır | Ali için "Geldi, saat doğru" (saat girmeden); Mustafa için "Bilmiyorum". Doğaçlama yapılmasın |
-| T-46 | 4–6. adım | 7 Aralık işlendikten sonra o güne izin girilirse gün değişmez | Demoda izin girilecekse işlenmemiş bir güne (ör. 8 Aralık sonrası) girilsin |
+| T-46 | 4–6. adım | ✅ Düzeltildi: işlenmiş güne girilen izin günü izinli / raporlu yapar, soruyu kapatır; okutma varsa uyarı yazılır | 7 Aralık'ta okutması olmayan birine izin girilebilir |
 | T-56 | 6. adım | ✅ Düzeltildi: İK Merve'nin ya da Erkan'ın havuz kaydını onaylarsa süre puantaja girer, kayıt "Yazılı onay yok" diye işaretlenir ve uyarı oluşur | Etiket ve uyarı gösterilebilir |
 | T-102 (yeni) | 6. adım, Puantaj / Excel | Erkan'ın havuzu reddedilirse ERP'de "FM100 1 gün / 0 dk" görünür | Demoda havuz reddedilmesin; ya da kodun anlamı önceden anlatılsın |
 | T-79 | — | 7 Aralık'ta plansız çalışan yok | Yeni veri eklenmesin |

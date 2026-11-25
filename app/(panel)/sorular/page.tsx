@@ -35,6 +35,7 @@ type Soru = {
   cevap_cikis: string | null;
   cevap_aciklama: string | null;
   ik_karari: string | null;
+  kapanis_nedeni: string | null; // cevapla değil başka bir işlemle kapandıysa (T-46, T-40)
   // İK kararının gerekçesi düzeltmededir; amir için okunmaz (T-106)
   duzeltmeler?: { gerekce: string; kaynak: string }[];
   cevap_zamani: string | null;
@@ -90,7 +91,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       .from("amir_sorusu")
       .select(
         "id, soru_turu, aciklama, onerilen_zaman, durum, olusturma_zamani, son_cevap_tarihi, " +
-          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_karari, ik_eskale_zamani, " +
+          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_karari, kapanis_nedeni, ik_eskale_zamani, " +
           "atanan:kullanici!atanan_id(ad_soyad, rol), eskale:kullanici!eskale_edilen_id(ad_soyad, rol), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
           "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))" +
           (kullanici.rol === "amir" ? "" : ", duzeltmeler:duzeltme!soru_id(gerekce, kaynak)"),
@@ -193,6 +194,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                           <span className="text-muted-foreground"> · {s.cevaplayan?.ad_soyad ?? "—"}, {tarihSaat(s.cevap_zamani)}</span>
                         </div>
                       )}
+                      {s.kapanis_nedeni && <div className="mt-1 text-sm">Kapanış nedeni: {s.kapanis_nedeni}</div>}
                       {s.ik_karari && (
                         <div className="mt-1 text-sm">
                           İK kararı: {IK_KARARI[s.ik_karari] ?? s.ik_karari}

@@ -46,6 +46,7 @@ export const UYARI_TURU: Record<string, string> = {
   gece_isi_calismadi: "Gece işlemi çalışmadı",
   dosya_gelmedi: "Eksik dosya",
   geriye_donuk_vardiya: "Geriye dönük vardiya değişikliği",
+  izin_gununde_okutma: "İzin girilen günde okutma",
   fm_onay_yok: "Yazılı onaysız fazla mesai",
   yazili_onay_eksik: "Yazılı onay eksikliği",
   fm_plansiz_calisma: "Plansız fazla mesai",
@@ -69,7 +70,7 @@ export const UYARI_TURU: Record<string, string> = {
 
 // Uyarı özetinde türler konuya göre gruplanır. Listede olmayan tür "Diğer" altında görünür.
 export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
-  { ad: "Soru ve vardiya", turler: ["soru_eskale", "geriye_donuk_vardiya"] },
+  { ad: "Soru ve vardiya", turler: ["soru_eskale", "geriye_donuk_vardiya", "izin_gununde_okutma"] },
   {
     ad: "Kart",
     turler: [

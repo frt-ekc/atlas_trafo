@@ -116,6 +116,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/rol_onayi_testi.sql` | Rol onayı: yeni hesap, yükseltme, pasif hesabı açma, görevler ayrılığı, iptal, geçmiş, yetkiler için 38 test |
 | `supabase/migrations/20261224010000_plansiz_gun.sql` | Planı olmayan günün okutması: `plansiz_gun_calismasi` uyarısı (İK, amir) ve havuz kaydı (`gece_isi_plansiz`) (T-79) |
 | `supabase/tests/plansiz_gun_testi.sql` | Plansız gün: uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, kilit, görünürlük için 40 test |
+| `supabase/migrations/20261225010000_gecmis_izin.sql` | İşlenmiş güne girilen izin günü düzeltir ve soruyu kapatır, iptal geri alır; İK düzeltmesi soruyu kapatır; izinli güne devamsız denemez (T-46, T-40) |
+| `supabase/tests/gecmis_izin_testi.sql` | Geçmiş güne izin, okutmalı gün, devamsız denetimi, izin iptali, İK düzeltmesi ve soru, kilitli ay için 29 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -475,6 +477,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- İşlenmiş güne girilen izin, o günde okutma ya da saat kaydı yoksa günü izinli / raporlu yapar; varsa günü değiştirmez, İK'ya uyarı yazar. Tatil ve vardiyasız gün izinle değişmez (T-46).
 - İK ve admin rolü iki adımlıdır: admin önerir, başka bir İK kullanıcısı onaylar. Bu rollerden düşürme ve pasife alma tek adımdır (yetki azalır). Bu roldeki pasif hesabı açmak da onay ister (T-72).
 - Arifede çalışma 13:00'te biter: planlı bitiş 13:00'tür, sonrası FM100'dür; 13:00'ü `fm_plansiz_esik_dk` (15) kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz (T-28).
 - Tatil çalışması (Pazar, resmî tatil) da yıllık 270 saate sayılır (çalışanı koruyan seçenek). Sınır ileriye dönük planda ret sebebidir; fiilen yapılmış çalışma reddedilmez, puantaja girer, işaretlenir ve İK'ya bildirilir (T-57).
