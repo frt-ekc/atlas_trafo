@@ -60,6 +60,7 @@ type HavuzKaydi = {
   karar_aciklama: string | null;
   fark_satiri: boolean;
   yazili_onaysiz: boolean;
+  yillik_sinir_asildi: boolean;
   calisan: Kisi;
   karar_veren: { ad_soyad: string } | null;
 };
@@ -81,6 +82,16 @@ type Onay = {
   belge_no: string;
   geri_alma_bildirim_tarihi: string | null;
   gecerlilik_bitisi: string | null;
+};
+
+type YillikDurum = {
+  calisan_id: number;
+  sicil_no: string;
+  ad: string;
+  soyad: string;
+  toplam_dk: number;
+  kalan_dk: number;
+  sinir_dk: number;
 };
 
 type Calisan = { id: number; sicil_no: string; ad: string; soyad: string; departman: { ad: string } | null };
@@ -111,7 +122,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
 
   const supabase = await sunucuIstemcisi();
 
-  const [planlar, ayarSonucu, onaylar, calisanlar, listeCalisanlari, havuz] = await Promise.all([
+  const [planlar, ayarSonucu, onaylar, calisanlar, listeCalisanlari, havuz, yillikDurum] = await Promise.all([
     tumSatirlar<Plan>((bas, son) =>
       supabase
         .from("fazla_mesai_plani")
@@ -160,7 +171,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       supabase
         .from("fazla_mesai_inceleme")
         .select(
-          "id, calisan_id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, yazili_onaysiz, " +
+          "id, calisan_id, is_gunu, tur, dakika, durum, karar_zamani, karar_aciklama, fark_satiri, yazili_onaysiz, yillik_sinir_asildi, " +
             "calisan:calisan_id(sicil_no, ad, soyad), karar_veren:kullanici!karar_veren_id(ad_soyad)",
         )
         .gte("is_gunu", `${yil}-01-01`)
@@ -169,25 +180,35 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
         .order("id")
         .range(bas, son),
     ),
+    tumSatirlar<YillikDurum>((bas, son) =>
+      supabase
+        .from("v_fazla_mesai_yillik")
+        .select("calisan_id, sicil_no, ad, soyad, toplam_dk, kalan_dk, sinir_dk")
+        .eq("yil", yil)
+        .order("calisan_id")
+        .range(bas, son),
+    ),
   ]);
   const ik = kullanici.rol === "ik";
   const havuzBekleyen = havuz.filter((h) => h.durum === "inceleme_bekliyor");
 
   const ayar = new Map((ayarSonucu?.data ?? []).map((a) => [a.anahtar as string, Number(a.deger)]));
-  const yillikSinir = ayar.get("fm_yillik_sinir_dk") ?? VARSAYILAN_YILLIK_SINIR_DK;
+  const yillikSinir = ayar.get("fm_yillik_sinir_dk") ?? yillikDurum[0]?.sinir_dk ?? VARSAYILAN_YILLIK_SINIR_DK;
   const yaklasmaYuzde = ayar.get("fm_yaklasma_uyari_yuzde") ?? VARSAYILAN_YAKLASMA_YUZDE;
 
-  // Yıllık durum: onaylı planların toplamı (veritabanı da 270 saat sınırını bu toplamla denetler).
-  // v_fazla_mesai_yillik görünümü burada kullanılmaz: yalnızca onaylı planları verir, bu ekran
-  // bekleyen talepleri de gösterir. Toplam, zaten okunmuş planlardan hesaplanır.
-  const yillik = new Map<number, { kisi: Kisi; onayliDk: number; bekleyenDk: number }>();
+  // Yıllık durum: toplam ve kalan v_fazla_mesai_yillik'ten gelir (270 saat denetimiyle aynı hesap:
+  // onaylı plan + onaylı havuz + tatil çalışması). Bekleyen talepler planlardan eklenir.
+  const yillik = new Map<number, { kisi: Kisi; toplamDk: number; kalanDk: number; bekleyenDk: number }>();
+  for (const y of yillikDurum) {
+    yillik.set(y.calisan_id, { kisi: { sicil_no: y.sicil_no, ad: y.ad, soyad: y.soyad }, toplamDk: y.toplam_dk, kalanDk: y.kalan_dk, bekleyenDk: 0 });
+  }
   for (const p of planlar) {
-    const satir = yillik.get(p.calisan_id) ?? { kisi: p.calisan, onayliDk: 0, bekleyenDk: 0 };
-    if (p.durum === "onaylandi") satir.onayliDk += p.planli_dk;
-    if (p.durum === "talep") satir.bekleyenDk += p.planli_dk;
+    if (p.durum !== "talep") continue;
+    const satir = yillik.get(p.calisan_id) ?? { kisi: p.calisan, toplamDk: 0, kalanDk: yillikSinir, bekleyenDk: 0 };
+    satir.bekleyenDk += p.planli_dk;
     yillik.set(p.calisan_id, satir);
   }
-  const yillikSatirlar = [...yillik.values()].sort((a, b) => b.onayliDk - a.onayliDk);
+  const yillikSatirlar = [...yillik.values()].sort((a, b) => b.toplamDk - a.toplamDk);
 
   // Yazılı onay: geri alındıysa bildirimden 30 gün sonra geçersiz olur
   const gecerliOnay = new Map(
@@ -413,6 +434,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                       <TableCell className="whitespace-normal">
                         {HAVUZ_TURU[h.tur]}
                         {yaziliOnayYok(h) && <Badge variant="outline" className="ml-2">Yazılı onay yok</Badge>}
+                        {h.yillik_sinir_asildi && <Badge variant="outline" className="ml-2">Yıllık sınır aşıldı</Badge>}
                         {h.karar_aciklama && <div className="mt-1 text-xs text-muted-foreground">Karar açıklaması: {h.karar_aciklama}</div>}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">{sureMetni(h.dakika)}</TableCell>
@@ -429,7 +451,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               dugme="Karar ver"
                               dugmeTuru="default"
                               baslik={`${h.calisan ? `${h.calisan.ad} ${h.calisan.soyad}` : "Çalışan"} · ${tarih(h.is_gunu)} · ${sureMetni(h.dakika)}`}
-                              aciklama={`${HAVUZ_TURU[h.tur]}. Onaylanan süre puantaja fazla mesai olarak eklenir; kilitli aya ait süre izleyen aya fark satırı olarak aktarılır. Yıllık sınır aşıldığında uyarı oluşturulur.`}
+                              aciklama={`${HAVUZ_TURU[h.tur]}. Onaylanan süre puantaja fazla mesai olarak eklenir; kilitli aya ait süre izleyen aya fark satırı olarak aktarılır. Yıllık sınır aşıldığında kayıt işaretlenir ve uyarı oluşturulur.`}
                               onay="Kararı kaydet"
                               islem={havuzKarari}
                               gizli={{ inceleme_id: h.id }}
@@ -458,7 +480,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
           <div className="flex flex-col gap-1">
             <h2 id="yillik-baslik" className="text-lg font-semibold">Yıllık sınır</h2>
             <p className="text-sm text-muted-foreground">
-              Onaylı fazla mesai toplamı. Yıllık sınır {saat(yillikSinir)}. Sınırın %{yaklasmaYuzde} oranına ulaşıldığında İK&apos;ya uyarı iletilir.
+              Onaylı planlar, havuzdan onaylanan süreler ve tatil çalışmalarının toplamı. Yıllık sınır {saat(yillikSinir)}. Sınırın %{yaklasmaYuzde} oranına ulaşıldığında İK&apos;ya uyarı iletilir.
             </p>
           </div>
           {gosterilenYillik.length === 0 ? (
@@ -469,7 +491,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                 <TableHeader>
                   <TableRow>
                     <TableHead>Çalışan</TableHead>
-                    <TableHead className="text-right">Onaylı</TableHead>
+                    <TableHead className="text-right">Toplam</TableHead>
                     <TableHead className="text-right">Bekleyen talep</TableHead>
                     <TableHead className="text-right">Kalan</TableHead>
                     <TableHead className="w-full min-w-48">Kullanım oranı</TableHead>
@@ -477,13 +499,13 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                 </TableHeader>
                 <TableBody>
                   {gosterilenYillik.map((s, i) => {
-                    const yuzde = Math.round((s.onayliDk / yillikSinir) * 100);
+                    const yuzde = Math.round((s.toplamDk / yillikSinir) * 100);
                     return (
                       <TableRow key={s.kisi?.sicil_no ?? i}>
                         <TableCell><KisiAdi kisi={s.kisi} /></TableCell>
-                        <TableCell className="text-right tabular-nums">{saat(s.onayliDk)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{saat(s.toplamDk)}</TableCell>
                         <TableCell className="text-right tabular-nums">{s.bekleyenDk ? saat(s.bekleyenDk) : "—"}</TableCell>
-                        <TableCell className="text-right tabular-nums">{saat(Math.max(0, yillikSinir - s.onayliDk))}</TableCell>
+                        <TableCell className="text-right tabular-nums">{saat(Math.max(0, s.kalanDk))}</TableCell>
                         <TableCell>
                           <Doluluk yuzde={yuzde} yaklasma={yaklasmaYuzde} />
                         </TableCell>
