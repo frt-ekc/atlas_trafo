@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 7 | 12 (T-12, T-13, T-39, T-45, T-47, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 7 | 0 |
+| Yüksek | 19 | 6 | 13 (T-12, T-13, T-39, T-45, T-47, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 6 | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **85** | **21** | **57** | **31** |
+| **Toplam** | **106** | **84** | **22** | **56** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -301,7 +301,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | Düzelt |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | Düzelt |
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
-| T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | Düzelt (25 Kas) |
+| T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
 | T-66 | Orta | 11 | Yanlış girilen işten çıkış geri alınamıyor | K7 | Mehmet | Sınırlılık (+ prosedür) |
 | T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | Düzelt |
 | T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | Düzelt |
@@ -2904,7 +2904,9 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#45 `isten_cikis_gir X3 14.10 … OK {"silinen_plan": 6, …}` · G#47 `X3 … 14.10 tamam | ham okutma 15.10: 2 | uyarı: isg_belgesi_yok` · G#58 `isten_cikis_gir X4 16.10 (17.10 plansız okutma) OK` · G#86 X1 `… 14.10 izinli | uyarı: isg_belgesi_yok` (20.10 okutması yok sayıldı). Karşılaştırma: G#56 X2 (15.10 işlenmiş) "Çıkış tarihinden sonra çalışılmış gün var".
 - **Sade dille:** İK işten çıkış tarihini yanlışlıkla bir gün erken yazarsa ve o son gün henüz gece işinden geçmemişse, sistem itiraz etmiyor. Çalışanın gerçekten çalıştığı son gün puantaja hiç girmiyor, kimse de uyarılmıyor. Çalışan bir günlük ücretini kaybeder; fark ancak çalışan itiraz ederse anlaşılır, o zaman da çıkış geri alınamıyor (T-66).
 - **Öneri:** Kontrol `ham_okutma` üzerinden yapılsın: `okutma_sahibi(kart_no, okutma_zamani) = p_calisan_id` ve `okutma_zamani` İstanbul saatiyle çıkış gününden (gece vardiyası penceresi dahil) sonra. `iptal_kart_okutma` uyarısı da kartın iptal anı yerine çıkış tarihine göre bakabilir. Kalıcı test: işlenmemiş günde okutma varken çıkış reddedilir.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** Uyarı değil ret: çıkıştan sonra okutma varsa, gün işlenmemiş ya da plansız olsa da çıkış girilemez.
+- **Durum:** ✅ Düzeltildi (feature/T65-cikis-okutma). Migration: `20261219010000_cikis_okutma.sql`, test: `cikis_okutma_testi.sql`. `isten_cikis_gir`, `cikistan_sonraki_okutma` ile `ham_okutma`'ya bakar (asıl ve geçici kart, İstanbul saati, çıkış gününün vardiya penceresi dahil). İptal edilmiş kartın iptalden sonraki okutması sayılmaz.
+- **Kalan (kapsam dışı):** Çıkış girildikten **sonra** yüklenen dosyadaki okutma yine sessiz kalır; okutma kartın iptal anından önceyse `iptal_kart_okutma` uyarısı çıkmaz.
 
 ### T-66 · Yanlış girilen işten çıkış geri alınamıyor
 - **Adım:** 11 · **Önem:** Orta

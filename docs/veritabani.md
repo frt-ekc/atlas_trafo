@@ -104,6 +104,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/migrations/20261217010000_oturum_yardimcilari.sql` | `oturum_rolu`, `oturum_calisan_id`, `oturum_departmanlari`, `oturum_calisanlari`, `amirin_calisani_mi` oturumu kendi içlerinde de `(select pdks.f())` ile bir kez sorar (T-108). Sonuçları ve yetkileri aynı |
 | `supabase/migrations/20261218010000_cakisan_izin.sql` | `izin_gir` kesişen geçerli izni, `saatlik_izin_gir` tam gün izinli günü reddeder (T-47) |
 | `supabase/tests/cakisan_izin_testi.sql` | Çakışan izin: kesişme ve sınır günleri, iptal sonrası, başka İK, saatlik izin için 18 test |
+| `supabase/migrations/20261219010000_cikis_okutma.sql` | `isten_cikis_gir` çıkış gününden sonraki ham okutmayı da denetler (`cikistan_sonraki_okutma`) (T-65) |
+| `supabase/tests/cikis_okutma_testi.sql` | İşten çıkışta okutma denetimi: işlenmemiş / plansız gün, gece vardiyası penceresi, geçici kart, iptal kart, saat dilimi için 19 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
