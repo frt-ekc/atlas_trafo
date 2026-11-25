@@ -27,11 +27,11 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Önem | Toplam | Açık | Düzeltildi | Öneri: düzelt | Öneri: sınırlılık / belge |
 |---|---:|---:|---:|---:|---:|
 | Kritik | 1 | 0 | 1 | — | — |
-| Yüksek | 19 | 6 | 13 (T-12, T-13, T-39, T-45, T-47, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 6 | 0 |
+| Yüksek | 19 | 5 | 14 (T-12, T-13, T-39, T-45, T-47, T-56, T-65, T-71, T-74, T-89, T-90, T-104, T-106, T-108) | 5 | 0 |
 | Orta | 33 | 31 | 2 (T-38, T-59) | 23 | 8 |
 | Düşük | 34 | 30 | 4 (T-37, T-05, T-22, T-103) | 20 | 13 |
 | Görüş | 19 | 17 | 2 (T-04, T-101) | 7 | 10 |
-| **Toplam** | **106** | **84** | **22** | **56** | **31** |
+| **Toplam** | **106** | **83** | **23** | **55** | **31** |
 
 "Açık" sütununda T-34 (Düşük) de var: ekran tarafı düzeltildi, veritabanı tarafı açık.
 
@@ -292,7 +292,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-53 | Düşük | 8 | `ariza_kaniti_yok` sorusu hiç üretilmiyor | K12 | — | Sınırlılık |
 | T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | Düzelt (zaman kalırsa) |
 | T-55 | Düşük | 8 | Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor | K12 | — | Sınırlılık |
-| T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | Düzelt (25 Kas) |
+| T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T56-havuz-yazili-onay) |
 | T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | Düzelt (25 Kas) |
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | Düzelt |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
@@ -2362,7 +2362,8 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Kanuna göre işçi yılbaşında "fazla mesaiye kalmayı kabul ediyorum" diye imza vermeden fazla mesai yaptırılamaz. Sistem ön kapıyı kapatmış: imzası olmayana fazla mesai planlanamıyor. Ama arka kapı açık: imzası olmayan kişi yine de geç saate kadar kalırsa, İK tek tıkla bu süreyi fazla mesai olarak puantaja yazabiliyor. Denetimde "imzası olmayan çalışana fazla mesai yaptırılmış" sonucu çıkar.
 - **Öneri:** `fazla_mesai_inceleme_karar`'da `p_onay` ise `fm_onay_gecerli_mi(calisan, gün)` denetimi. Yoksa ret ya da ayrı bir onay türü ("yazılı onay yok; kanuna aykırı çalışma olarak kayda geçer"), ücret etkisi İK ile kararlaştırılır. `gun_hesabi`'nda havuz dakikası da `v_onay`'a bağlanmalı.
-- **Durum:** Açık
+- **Karar (Fırat, 25 Kasım):** Yazılı onay işveren yükümlülüğüdür; fiilen yapılan çalışma puantaja girer, eksiklik işaretlenir ve İK'ya bildirilir.
+- **Durum:** ✅ Düzeltildi (feature/T56-havuz-yazili-onay). Migration: `20261220010000_havuz_yazili_onay.sql`, test: `havuz_yazili_onay_testi.sql`. Yazılı onay yokken onaylanan kayıt `fazla_mesai_inceleme.yazili_onaysiz` ile işaretlenir, İK'ya `yazili_onay_eksik` uyarısı yazılır; havuz ekranında "Yazılı onay yok" etiketi. `gun_hesabi` ve gün kaydı kuralı değişmedi (karara uygundu). Kilitli ayın tatil çalışmasında belge sonradan girilirse fark doğru yazılır.
 
 ### T-57 · Yıllık 270 saat sınırı yalnızca planları sayıyor; havuz onayları ve tatil fazla mesaisi sınırı aşıyor
 - **Adım:** 9 · **Önem:** Yüksek
@@ -3542,7 +3543,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | T-40 | 4–5. adım | Ali'nin ya da Mustafa'nın sorusu açıkken İK günü `kayit_duzelt` ile düzeltirse, sonraki amir cevabı İK'nın düzeltmesini ezer | Sıra belgedeki gibi: önce amir, sonra İK kararı. İK, açık sorulu günü Çalışanlar ekranından düzeltmesin |
 | T-41 | 4. adım | Amir "Saat farklı" deyip yalnızca bir saat girerse gün askıda kalır, soru kapanır | Ali için "Geldi, saat doğru" (saat girmeden); Mustafa için "Bilmiyorum". Doğaçlama yapılmasın |
 | T-46 | 4–6. adım | 7 Aralık işlendikten sonra o güne izin girilirse gün değişmez | Demoda izin girilecekse işlenmemiş bir güne (ör. 8 Aralık sonrası) girilsin |
-| T-56 | 6. adım | İK Merve'nin ya da Erkan'ın havuz kaydını onaylarsa yazılı onay olmadan kabul edilir | Havuz yalnızca gösterilsin; karar verilecekse yalnızca Ece onaylansın |
+| T-56 | 6. adım | ✅ Düzeltildi: İK Merve'nin ya da Erkan'ın havuz kaydını onaylarsa süre puantaja girer, kayıt "Yazılı onay yok" diye işaretlenir ve uyarı oluşur | Etiket ve uyarı gösterilebilir |
 | T-102 (yeni) | 6. adım, Puantaj / Excel | Erkan'ın havuzu reddedilirse ERP'de "FM100 1 gün / 0 dk" görünür | Demoda havuz reddedilmesin; ya da kodun anlamı önceden anlatılsın |
 | T-79 | — | 7 Aralık'ta plansız çalışan yok | Yeni veri eklenmesin |
 | T-81 | 1. adım, Uyarılar | Paylaşım uyarısında İK yalnızca "görüldü" diyebilir; "karar nerede?" sorusunun cevabı yok | "Sistem uyarır, karar İK'nın elle düzeltmesiyle olur" diye anlatılsın; "görüldü" butonu sonuç bekleniyormuş gibi gösterilmesin |

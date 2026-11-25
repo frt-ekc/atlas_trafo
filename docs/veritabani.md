@@ -106,6 +106,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/cakisan_izin_testi.sql` | Çakışan izin: kesişme ve sınır günleri, iptal sonrası, başka İK, saatlik izin için 18 test |
 | `supabase/migrations/20261219010000_cikis_okutma.sql` | `isten_cikis_gir` çıkış gününden sonraki ham okutmayı da denetler (`cikistan_sonraki_okutma`) (T-65) |
 | `supabase/tests/cikis_okutma_testi.sql` | İşten çıkışta okutma denetimi: işlenmemiş / plansız gün, gece vardiyası penceresi, geçici kart, iptal kart, saat dilimi için 19 test |
+| `supabase/migrations/20261220010000_havuz_yazili_onay.sql` | `fazla_mesai_inceleme.yazili_onaysiz`; yazılı onay yokken onaylanan havuz kaydı işaretlenir, `yazili_onay_eksik` uyarısı yazılır (T-56) |
+| `supabase/tests/havuz_yazili_onay_testi.sql` | Yazılı onaysız havuz onayı: dakika, işaret, uyarı, imza tarihi, sonradan gelen belge, ret, kilitli ay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -339,7 +341,7 @@ Diyagramda okunurluk için yalnızca önemli sütunlar var. `ayar`, `ayar_gecmis
 
 | Kural | Nerede |
 |---|---|
-| Her yıl yazılı onay; yoksa fazla mesai planlanamaz | `fazla_mesai_onayi` (yalnızca İK girer, silinemez), `fm_onay_gecerli_mi()` |
+| Her yıl yazılı onay; yoksa fazla mesai planlanamaz. Fiilen yapılmışsa havuzdan onaylanabilir, `yazili_onaysiz` işaretlenir | `fazla_mesai_onayi` (yalnızca İK girer, silinemez), `fm_onay_gecerli_mi()` |
 | Onay geri alınır, bildirimden 30 gün sonra geçersiz olur | `geri_alma_bildirim_tarihi` → `gecerlilik_bitisi`; sonraki planlar kendiliğinden `iptal`, `uyari` (`fm_onay_geri_alindi`) |
 | Önceden plan: amir talep eder, İK onaylar/reddeder | `fazla_mesai_plani` (`talep → onaylandi / reddedildi / iptal`), silinemez |
 | Günlük toplam ≤ 11 saat | vardiya süresi + `planli_dk` ≤ `ayar.gunluk_azami_calisma_dk` |
@@ -355,7 +357,8 @@ Süreler dakika olarak tutulur. Plansız ya da planı aşan çalışmayı gece i
 İK'ya `fm_plansiz_calisma`, `fm_onay_yok` veya `fm_gunluk_sinir_asildi` uyarısı yazar (eşik: `ayar.fm_plansiz_esik_dk`).
 İK ekranı için `v_fazla_mesai_yillik` görünümü çalışan başına onaylı, gerçekleşen ve kalan dakikayı verir.
 
-İK havuzdaki kaydı onaylarsa süre puantaja girer. Onay sınırı aşsa da engellenmez (iş yapılmıştır);
+İK havuzdaki kaydı onaylarsa süre puantaja girer. Çalışanın o gün için geçerli yazılı onayı yoksa
+süre yine girer; kayıt `yazili_onaysiz` işaretlenir ve `yazili_onay_eksik` uyarısı yazılır (T-56). Onay sınırı aşsa da engellenmez (iş yapılmıştır);
 yıllık onaylı toplam 270 saati geçerse `fm_yillik_sinir_asildi` uyarısı yazılır. Kilitli aya ait bir kayıt
 onaylanırsa gün kaydı değişmez; etkisi (`fm50_etki_dk`, `fm100_etki_dk`, `calisma_etki_dk`) sonraki açık ayın
 puantajına fark satırı olarak girer.
@@ -460,6 +463,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- Yazılı fazla mesai onayı işveren yükümlülüğüdür. Yazılı onay yokken plan yapılamaz, ama fiilen yapılan çalışma İK onayıyla puantaja girer; eksiklik işaretlenir ve İK'ya bildirilir (T-56).
 - Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için); gerekçe ve izin türü ayrıntısı gizlidir. Amir düzeltmeleri `v_duzeltme_amir`'den okur: durum ve izin düzeltmelerinde gerekçe "İK tarafından düzeltildi", "raporlu" yerine "izinli". `gun_kaydi.durum` ve `v_puantaj_canli.raporlu_gun` API'den açıktır, ekranda "İzinli" görünür (T-12).
 - Değerler için enum yerine `text + check` kullandık: okunması ve yeni değer eklemesi daha kolay.
 - Bir bilgi tek yerde tutulur. `kullanici.ad_soyad` ekranların hızlı okuması için kalır, ama kaynağı `calisan.ad` / `soyad`'dır ve trigger'la eşit tutulur; elle yazılan ad geçersizdir. "Amir izinli mi?" ayrı bir bayrakla değil `izin` tablosundan cevaplanır (T-105).
