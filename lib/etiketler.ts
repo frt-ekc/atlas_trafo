@@ -49,6 +49,7 @@ export const UYARI_TURU: Record<string, string> = {
   fm_onay_yok: "Yazılı onaysız fazla mesai",
   yazili_onay_eksik: "Yazılı onay eksikliği",
   fm_plansiz_calisma: "Plansız fazla mesai",
+  plansiz_gun_calismasi: "Plansız gün çalışması",
   fm_gunluk_sinir_asildi: "Günlük çalışma sınırı aşıldı",
   fm_yillik_sinir_yaklasti: "Yıllık fazla mesai sınırına yaklaştı",
   fm_onay_geri_alindi: "Fazla mesai onayı geri alındı",
@@ -84,6 +85,7 @@ export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
     ad: "Çalışma süresi",
     turler: [
       "fm_plansiz_calisma",
+      "plansiz_gun_calismasi",
       "fm_onay_yok",
       "yazili_onay_eksik",
       "fm_onay_geri_alindi",

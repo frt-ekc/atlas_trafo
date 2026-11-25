@@ -40,10 +40,10 @@ const TARIH = /^\d{4}-\d{2}-\d{2}$/;
 
 // Sistem en fazla uyarı ya da şüphe üretir; çalışan aleyhine kararı İK verir.
 export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyarilar">) {
-  const kullanici = await rolGerekli(["ik", "yonetici", "isg"]);
+  const kullanici = await rolGerekli(["ik", "yonetici", "isg", "amir"]);
   const ik = kullanici.rol === "ik";
   // Çalışan ayrıntısı sayfasını İSG uzmanı açamaz; ona ad bağlantı olarak verilmez
-  const calisanSayfasi = kullanici.rol === "ik" || kullanici.rol === "yonetici";
+  const calisanSayfasi = kullanici.rol !== "isg";
 
   const parametre = await searchParams;
   const gorulenler = tekDeger(parametre.goster) === "goruldu";

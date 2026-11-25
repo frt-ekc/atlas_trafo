@@ -67,7 +67,7 @@ type HavuzKaydi = {
 
 const HAVUZ_TURU: Record<HavuzKaydi["tur"], string> = {
   vardiya_sonrasi: "Vardiya sonrası",
-  tatil_calismasi: "Pazar / tatil çalışması",
+  tatil_calismasi: "Tatil veya plansız gün çalışması",
 };
 
 const HAVUZ_DURUMU: Record<HavuzKaydi["durum"], { ad: string; tur: "default" | "secondary" | "destructive" }> = {
@@ -402,7 +402,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
           <div className="flex flex-col gap-1">
             <h2 id="havuz-baslik" className="text-lg font-semibold">Onaysız fazla mesai</h2>
             <p className="text-sm text-muted-foreground">
-              Onaylı planı olmadan vardiya sonrasında veya tatilde çalışılan süreler. İK kararı verilene kadar puantaja dahil edilmez.
+              Onaylı planı olmadan vardiya sonrasında, tatilde veya vardiya planı bulunmayan günde çalışılan süreler. İK kararı verilene kadar puantaja dahil edilmez.
               {havuzBekleyen.length > 0 && ` ${havuzBekleyen.length} kayıt karar bekliyor.`}
             </p>
           </div>
