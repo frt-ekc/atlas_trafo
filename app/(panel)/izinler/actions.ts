@@ -39,7 +39,8 @@ export async function izinGir(_onceki: IslemSonucu, form: FormData): Promise<Isl
 }
 
 // Yanlış girilen izin silinmez, iptal edilir (kim / ne zaman / neden tutulur).
-// Gece işinden geçmiş günü olan izin iptal edilemez: o günler kayıt düzeltmeyle düzeltilir.
+// İzin girilirken değişen günler önceki durumuna döner (T-46). Gece işinden izinli geçmiş günü olan izin
+// iptal edilemez: o günler kayıt düzeltmeyle düzeltilir.
 export async function izinIptal(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const izinId = sayiAl(form, "izin_id");
   const neden = metinAl(form, "neden");

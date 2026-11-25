@@ -273,7 +273,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                                   dugme="İptal et"
                                   dugmeTuru="ghost"
                                   baslik="İzni iptal et"
-                                  aciklama={`${i.calisan ? `${i.calisan.ad} ${i.calisan.soyad}` : "Çalışan"} · ${turAdi} · ${tarih(i.baslangic)}${i.bitis !== i.baslangic ? ` – ${tarih(i.bitis)}` : ""}. İzin kaydı silinmez, iptal bilgisiyle saklanır. İşlenmiş günü bulunan izin iptal edilemez; ilgili günler kayıt düzeltme ile güncellenmelidir.`}
+                                  aciklama={`${i.calisan ? `${i.calisan.ad} ${i.calisan.soyad}` : "Çalışan"} · ${turAdi} · ${tarih(i.baslangic)}${i.bitis !== i.baslangic ? ` – ${tarih(i.bitis)}` : ""}. İzin kaydı silinmez, iptal bilgisiyle saklanır. İzin girildiğinde değiştirilen günler önceki durumuna döner. İzinli olarak işlenmiş diğer günler önce kayıt düzeltme ile güncellenmelidir.`}
                                   onay="İptal et"
                                   onayTuru="destructive"
                                   islem={izinIptal}
