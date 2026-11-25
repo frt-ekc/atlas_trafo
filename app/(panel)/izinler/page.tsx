@@ -26,7 +26,7 @@ import { rolGerekli } from "@/lib/oturum";
 import { ayAdi, ayKaydir } from "@/lib/puantaj";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { izinGir, izinIptal, saatlikIzinGir } from "./actions";
+import { izinGir, izinIptal, saatlikIzinGir, saatlikIzinIptal } from "./actions";
 
 export const metadata = { title: "İzinler" };
 
@@ -62,6 +62,9 @@ type SaatlikIzin = {
   bitis: string;
   tur: string;
   aciklama: string | null;
+  giris_zamani: string;
+  iptal_zamani: string | null;
+  iptal_nedeni: string | null;
   calisan: Kisi;
   giren: { ad_soyad: string } | null;
 };
@@ -96,10 +99,14 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         .order("id")
         .range(bas, son),
     ),
+    // Aydaki saatlik izinler (iptal edilenler de görünür, soluk)
     tumSatirlar<SaatlikIzin>((bas, son) =>
       supabase
         .from("saatlik_izin")
-        .select("id, tarih, baslangic, bitis, tur, aciklama, calisan:calisan_id(id, sicil_no, ad, soyad), giren:kullanici!giren_id(ad_soyad)")
+        .select(
+          "id, tarih, baslangic, bitis, tur, aciklama, giris_zamani, iptal_zamani, iptal_nedeni, " +
+            "calisan:calisan_id(id, sicil_no, ad, soyad), giren:kullanici!giren_id(ad_soyad)",
+        )
         .gte("tarih", ayBasi)
         .lt("tarih", sonrakiAyBasi)
         .order("tarih")
@@ -115,6 +122,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
   const izinler = ayinIzinleri.filter((i) => uyar(i.calisan?.ad, i.calisan?.soyad, i.calisan?.sicil_no));
   const saatlikler = ayinSaatlikleri.filter((s) => uyar(s.calisan?.ad, s.calisan?.soyad, s.calisan?.sicil_no));
   const gecerli = izinler.filter((i) => !i.iptal_zamani);
+  const gecerliSaatlik = saatlikler.filter((s) => !s.iptal_zamani);
   const adres = (a: string) => `/izinler?ay=${a}${saatlikSekme ? "&sekme=saatlik" : ""}`;
   const sekmeAdresi = (saatlik: boolean) => {
     const p = new URLSearchParams({ ay });
@@ -211,7 +219,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         etiket="İzin türü"
         sekmeler={[
           { ad: "Gün bazlı", adres: sekmeAdresi(false), sayi: gecerli.length, aktif: !saatlikSekme },
-          { ad: "Saatlik", adres: sekmeAdresi(true), sayi: saatlikler.length, aktif: saatlikSekme },
+          { ad: "Saatlik", adres: sekmeAdresi(true), sayi: gecerliSaatlik.length, aktif: saatlikSekme },
         ]}
       />
 
@@ -303,7 +311,10 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         <section aria-labelledby="saat-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 id="saat-baslik" className="text-lg font-semibold">Saatlik izinler</h2>
-            <p className="text-sm text-muted-foreground">{saatlikler.length} izin. Saatlik izin süresi puantajda ayrıca gösterilir.</p>
+            <p className="text-sm text-muted-foreground">
+              {gecerliSaatlik.length} izin{saatlikler.length > gecerliSaatlik.length && ` · ${saatlikler.length - gecerliSaatlik.length} iptal edilmiş`}.
+              Saatlik izin süresi puantajda ayrıca gösterilir.
+            </p>
           </div>
           {saatlikler.length === 0 ? (
             <BosDurum aciklama={araMetni ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
@@ -318,19 +329,53 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                     <TableHead>Tür</TableHead>
                     <TableHead className="w-full">Açıklama</TableHead>
                     <TableHead>Ekleyen</TableHead>
+                    <TableHead>Durum</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {saatlikler.map((s) => {
                     const turAdi = SAATLIK_TUR[s.tur] ?? s.tur;
                     return (
-                      <TableRow key={s.id}>
+                      <TableRow key={s.id} className={s.iptal_zamani ? "text-muted-foreground" : undefined}>
                         <TableCell className="tarih-hucre">{tarih(s.tarih)}</TableCell>
                         <TableCell className="tabular-nums">{saat(s.baslangic)}–{saat(s.bitis)}</TableCell>
                         <TableCell><KisiBaglantisi kisi={s.calisan} ay={ay} /></TableCell>
-                        <TableCell><Badge variant="secondary">{turAdi}</Badge></TableCell>
-                        <TableCell className="min-w-56 whitespace-normal text-sm">{ayniMi(s.aciklama, turAdi) ? "" : s.aciklama}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{s.giren?.ad_soyad ?? "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant={s.iptal_zamani ? "outline" : "secondary"} className={s.iptal_zamani ? "line-through" : undefined}>
+                            {turAdi}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-56 whitespace-normal text-sm">
+                          {s.iptal_zamani ? `İptal nedeni: ${s.iptal_nedeni ?? "—"}` : ayniMi(s.aciklama, turAdi) ? "" : s.aciklama}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {s.giren?.ad_soyad ?? "—"}
+                          <div className="text-xs"><Zaman deger={s.giris_zamani} /></div>
+                        </TableCell>
+                        <TableCell>
+                          <DurumIslem
+                            durum={s.iptal_zamani ? <DurumRozeti ton="notr">İptal edildi</DurumRozeti> : <DurumRozeti ton="iyi">Geçerli</DurumRozeti>}
+                          >
+                            {!s.iptal_zamani && s.calisan?.id !== kullanici.calisanId && (
+                              <IslemMenusu>
+                                <IslemPenceresi
+                                  dugme="İptal et"
+                                  dugmeTuru="ghost"
+                                  baslik="Saatlik izni iptal et"
+                                  aciklama={`${s.calisan ? `${s.calisan.ad} ${s.calisan.soyad}` : "Çalışan"} · ${turAdi} · ${tarih(s.tarih)} ${saat(s.baslangic)}–${saat(s.bitis)}. İzin kaydı silinmez, iptal bilgisiyle saklanır. Gün, izin olmadan yeniden hesaplanır. Kilitli aydaki izin iptal edilemez.`}
+                                  onay="İptal et"
+                                  onayTuru="destructive"
+                                  islem={saatlikIzinIptal}
+                                  gizli={{ izin_id: s.id }}
+                                >
+                                  <Alan etiket="İptal nedeni" htmlFor={`s-neden-${s.id}`}>
+                                    <Textarea id={`s-neden-${s.id}`} name="neden" rows={2} required minLength={5} maxLength={500} placeholder="ör. Yanlış saat girildi" />
+                                  </Alan>
+                                </IslemPenceresi>
+                              </IslemMenusu>
+                            )}
+                          </DurumIslem>
+                        </TableCell>
                       </TableRow>
                     );
                   })}

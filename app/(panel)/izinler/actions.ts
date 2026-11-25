@@ -81,3 +81,19 @@ export async function saatlikIzinGir(_onceki: IslemSonucu, form: FormData): Prom
   revalidatePath("/puantaj");
   return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} için saatlik izin kaydedildi.` };
 }
+
+// Yanlış girilen saatlik izin silinmez, iptal edilir (kim / ne zaman / neden tutulur) (T-50).
+// Gün işlenmişse izin olmadan hemen yeniden hesaplanır. Kilitli aydaki izin iptal edilemez;
+// İK kendi iznini iptal edemez (veritabanı denetler).
+export async function saatlikIzinIptal(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
+  const izinId = sayiAl(form, "izin_id");
+  const neden = metinAl(form, "neden");
+  if (!izinId) return { durum: "hata", mesaj: "İzin seçilmelidir." };
+  if (!neden || neden.length < 5) return { durum: "hata", mesaj: "İptal nedeni girilmelidir (en az 5 karakter)." };
+
+  const sonuc = await rpcCagir("saatlik_izin_iptal", { p_id: izinId, p_neden: neden });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
+  yenile();
+  revalidatePath("/puantaj");
+  return { durum: "tamam", mesaj: "Saatlik izin iptal edildi; gün yeniden hesaplandı." };
+}

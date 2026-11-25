@@ -126,6 +126,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/gecmis_plan_talebi_testi.sql` | Geçmiş güne talep (T-76): amir / İK reddi, bugün ve yarın serbest, zamanında girilen talebin sonradan onayı için 7 test |
 | `supabase/migrations/20261229010000_plan_gecmisi.sql` | Vardiya planının eski hâlleri `vardiya_plani_gecmisi` (+1 tablo); geriye dönük değişiklik reddedilince son geçerli plan geri gelir (T-49) |
 | `supabase/tests/plan_gecmisi_testi.sql` | Plan geçmişi (T-49): ret sonrası geri yükleme ve gün işleme, işlenmiş gün, iki kez değişiklik, plansız gün, onay, silinmezlik, görünürlük için 18 test |
+| `supabase/migrations/20261230010000_saatlik_izin_iptal.sql` | Yanlış saatlik izin `saatlik_izin_iptal` ile iptal edilir (kim / ne zaman / neden); iptal edilen izin hesaba girmez, gün yeniden hesaplanır (T-50) |
+| `supabase/tests/saatlik_izin_iptal_testi.sql` | Saatlik izin iptali (T-50): yeniden hesap, iz, yetki, görevler ayrılığı, kilitli ay, gece işi, silinmezlik, amir görünümü için 25 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -348,12 +350,13 @@ erDiagram
         bigint karar_veren_id FK
     }
     saatlik_izin {
-        bigint id PK "DEĞİŞTİRİLEMEZ"
+        bigint id PK "SİLİNEMEZ"
         bigint calisan_id FK
         date tarih
         timestamptz baslangic
         timestamptz bitis
         text tur "vizite / mazeret / diger"
+        timestamptz iptal_zamani "iptal edilmediyse boş"
     }
 ```
 
@@ -406,7 +409,7 @@ Günün dakikaları tek fonksiyonda hesaplanır: `pdks.gun_hesabi()`. Gece işi,
 |---|---|
 | Tolerans | Geç kalma `gec_kalma_tolerans_dk` (10), erken çıkış `erken_cikis_tolerans_dk` (5). Tolerans içi sayılmaz; aşılınca tam dakika. `tolerans_yuvarlama_dk` > 0 ise yukarı yuvarlanır (ör. 15: 12 dk → 15 dk). Varsayılan 0 (kapalı) |
 | Gece çalışması (m.69) | `gun_kaydi.gece_calisma_dk`: sayılan çalışmanın 20:00–06:00 arasına düşen dakikası. `gece_calisma_sinir_dk` (450) aşılırsa `gece_calisma_siniri_asildi` uyarısı. Ücret ya da zam hesaplanmaz |
-| Saatlik izin (vizite dahil) | `saatlik_izin` (yalnızca İK girer, `saatlik_izin_gir`; silinmez, değişmez). İzinli süre geç kalma, erken çıkış ya da devamsızlık sayılmaz; çalışma dakikasına da eklenmez, `saatlik_izin_dk` olarak ayrıca tutulur. Hesaplanmış güne girilirse gün yeniden hesaplanır |
+| Saatlik izin (vizite dahil) | `saatlik_izin` (yalnızca İK girer, `saatlik_izin_gir`; silinmez, değişmez; yanlış izin `saatlik_izin_iptal` ile iptal edilir, iptal edilen izin hesaba girmez (T-50)). İzinli süre geç kalma, erken çıkış ya da devamsızlık sayılmaz; çalışma dakikasına da eklenmez, `saatlik_izin_dk` olarak ayrıca tutulur. Hesaplanmış güne girilirse gün yeniden hesaplanır |
 | Resmi tatil | Okutma yoksa gün `tatil` (RT); okutma varsa çalışılmış gün olarak işlenir (FM100) |
 | Mola (m.68) | Brüt çalışma 4 saate kadar (`mola_kisa_sinir_dk`) 15 dk, 7,5 saate kadar (`mola_orta_sinir_dk`) 30 dk, üstü 60 dk (`mola_kisa_dk`, `mola_orta_dk`, `mola_uzun_dk`) düşülür; `gun_kaydi.mola_dk`. Mola önce vardiya içi kısımdan (NÇ), FM100 gününde FM100'den düşülür. Gece çalışmasından molanın gece payı (gece / brüt oranında) düşülür; ör. 22-06 vardiyası: 480 − 60 = 420 dk |
 | Esnek mesai | `vardiya_tanim.esnek` (vardiya `ESNEK`): geç kalma / erken çıkış yok, çalışma = giriş–çıkış arası (eksi mola), günlük fazla mesai ve plansız mesai uyarısı yok. Ay hedefi = planlı esnek gün (izin, rapor, tatil hariç) × `esnek_gunluk_hedef_dk` (480). `v_esnek_mesai` ve puantajdaki `esnek_hedef_dk` / `esnek_fark_dk`; fazlası kendiliğinden fazla mesai sayılmaz |
