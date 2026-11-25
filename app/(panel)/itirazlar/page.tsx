@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { buttonVariants } from "@/components/ui/button";
 import { HizliIslem } from "@/components/panel/hizli-islem";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { KararAlanlari } from "@/components/panel/karar-alanlari";
@@ -63,6 +64,10 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
     if (!tumu) q = q.in("durum", ["acik", "inceleniyor"]);
     return q;
   });
+  // Kabul edilmiş ama hiçbir düzeltmeye bağlanmamış itirazlar (T-52): çalışan haklı çıktığı halde
+  // kaydı düzeltilmemiş olabilir. İK'ya hatırlatılır; düzeltme yapılınca listeden düşer.
+  const duzeltmeBekleyen = ik ? await duzeltmeBekleyenler(supabase) : [];
+
   // Gün aralığı ve ad / sicil araması ekranda süzülür
   const itirazlar = tumItirazlar.filter(
     (i) => aralikta(i.gun?.is_gunu, basGun, bitGun) && uyar(i.calisan?.ad, i.calisan?.soyad, i.calisan?.sicil_no),
@@ -98,6 +103,37 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
           <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
+
+      {duzeltmeBekleyen.length > 0 && (
+        <section aria-labelledby="duzeltme-bekleyen" className="flex flex-col gap-2 rounded-xl border border-dikkat/40 bg-dikkat-zemin/60 p-4">
+          <h2 id="duzeltme-bekleyen" className="flex items-center gap-2 font-semibold">
+            Düzeltme bekleyen kabul edilmiş itirazlar
+            <DurumRozeti ton="dikkat">{duzeltmeBekleyen.length}</DurumRozeti>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Bu itirazlar kabul edildi ama kayıt henüz düzeltilmedi. Düzeltme yapılıp itiraza bağlanınca listeden düşer.
+          </p>
+          <ul className="flex flex-col divide-y divide-dikkat/20">
+            {duzeltmeBekleyen.map((d) => (
+              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                <span className="min-w-0">
+                  <span className="font-medium">{d.calisan ? `${d.calisan.ad} ${d.calisan.soyad}` : "—"}</span>
+                  {d.calisan && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{d.calisan.sicil_no}</span>}
+                  <span className="text-muted-foreground"> · {d.gun ? tarih(d.gun.is_gunu) : "—"} · {d.metin.slice(0, 60)}</span>
+                </span>
+                {d.calisan && d.gun && (
+                  <Link
+                    href={`/calisanlar/${d.calisan.id}?ay=${d.gun.is_gunu.slice(0, 7)}&duzelt=${d.gun_kaydi_id}`}
+                    className={buttonVariants({ size: "sm" })}
+                  >
+                    Düzeltmeyi yap
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{itirazlar.length} itiraz</p>
 
@@ -177,6 +213,27 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
   );
 }
 
+type DuzeltmeBekleyen = Pick<Itiraz, "id" | "metin" | "calisan" | "gun"> & { gun_kaydi_id: number };
+
+async function duzeltmeBekleyenler(supabase: Awaited<ReturnType<typeof sunucuIstemcisi>>): Promise<DuzeltmeBekleyen[]> {
+  const [kabuller, bagliDuzeltmeler] = await Promise.all([
+    tumSatirlar<DuzeltmeBekleyen>((bas, son) =>
+      supabase
+        .from("itiraz")
+        .select("id, metin, gun_kaydi_id, calisan:calisan_id(id, sicil_no, ad, soyad), gun:gun_kaydi_id(is_gunu)")
+        .eq("durum", "kabul")
+        .order("karar_zamani", { ascending: true })
+        .order("id")
+        .range(bas, son),
+    ),
+    tumSatirlar<{ itiraz_id: number }>((bas, son) =>
+      supabase.from("duzeltme").select("itiraz_id").not("itiraz_id", "is", null).order("id").range(bas, son),
+    ),
+  ]);
+  const bagli = new Set(bagliDuzeltmeler.map((d) => d.itiraz_id));
+  return kabuller.filter((k) => !bagli.has(k.id));
+}
+
 function KararPenceresi({ itiraz }: { itiraz: Itiraz }) {
   const kisi = itiraz.calisan ? `${itiraz.calisan.ad} ${itiraz.calisan.soyad}` : "Çalışan";
   return (
@@ -196,7 +253,7 @@ function KararPenceresi({ itiraz }: { itiraz: Itiraz }) {
         retUyarisi="Ret kararı çalışan aleyhine kaydedilir. Gerekçe, çalışana verilen dökümde yer alır."
       />
       <p className="text-xs text-muted-foreground">
-        Kabul kararı kaydı otomatik olarak düzeltmez. Düzeltme, çalışan sayfasında ilgili günün &quot;Düzelt&quot; işlemi ile bu itiraza bağlanmalıdır.
+        Kabul kararı kaydı otomatik olarak düzeltmez. Kabulden sonra çalışan sayfasında bu günün düzeltme penceresi açılır; düzeltme bu itiraza bağlanır.
       </p>
     </IslemPenceresi>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { startTransition, useActionState, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,13 +27,14 @@ type Ozellikler = {
   islem: Islem; // Server Action
   gizli?: Record<string, string | number>; // forma gizli alan olarak eklenir (ör. kayıt no)
   children?: ReactNode; // form alanları
+  acikBaslasin?: boolean; // sayfa açılınca pencere de açık gelsin (ör. ?duzelt= ile gelinen gün)
 };
 
 // Bir yazma işlemini onay penceresinde yapar: düğme → pencere → form → Server Action.
 // Başarılıysa pencere kapanır ve sağ üstte kısa bir bildirim çıkar; sayfa sunucuda yenilenir.
 // Hata olursa pencere açık kalır ve veritabanının mesajı pencerenin içinde gösterilir.
 export function IslemPenceresi(o: Ozellikler) {
-  const [acik, setAcik] = useState(false);
+  const [acik, setAcik] = useState(o.acikBaslasin ?? false);
   // Pencere her açıldığında form sıfırdan başlasın (eski hata mesajı kalmasın)
   const [acilis, setAcilis] = useState(0);
 
@@ -54,12 +56,14 @@ export function IslemPenceresi(o: Ozellikler) {
 }
 
 function IcForm({ baslik, aciklama, onay, onayTuru, islem, gizli, children, kapat }: Ozellikler & { kapat: () => void }) {
+  const router = useRouter();
   const [sonuc, gonder, bekliyor] = useActionState(async (onceki: Parameters<Islem>[0], form: FormData) => {
     const yeni = await islem(onceki, form);
     if (yeni.durum === "tamam") {
       kapat();
       if (yeni.uyari) toast.warning(yeni.mesaj, { duration: 15000 });
       else toast.success(yeni.mesaj);
+      if (yeni.adres) router.push(yeni.adres);
     }
     return yeni;
   }, BOS_SONUC);
