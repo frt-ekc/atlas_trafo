@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 25 Kasım itibarıyla 38'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 45'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 25 Kasım itibarıyla 39'u düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 44'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 11 | 7 | 16 |
+| Orta | 34 | 12 | 7 | 15 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **38** | **24** | **45** |
+| **Toplam** | **107** | **39** | **24** | **44** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -285,7 +285,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | ✅ Düzeltildi (T-46 ile, PR #71) |
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T49-plan-gecmisi) |
-| T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | Düzelt |
+| T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T50-saatlik-izin-iptal) |
 | T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | Düzelt |
 | T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | Ekran ✅ PR #80; ay kilidi uyarısı açık |
 | T-53 | Düşük | 8 | `ariza_kaniti_yok` sorusu hiç üretilmiyor | K12 | — | ✅ Sınırlılık (karar verildi) |
@@ -2213,7 +2213,12 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** İK yanlış kişiye ya da yanlış saate saatlik izin girerse bunu düzeltmenin yolu yok. Kayıt sonsuza kadar kalıyor ve her hesapta o saatler "izinli" sayılıyor. Erken çıkan biri yanlışlıkla izinli görünebilir; tersine, izinli sayılmaması gereken saat de puantaja izin olarak gider.
 - **Öneri:** `izin_iptal`'in aynısı: `saatlik_izin`'e iptal sütunları, `saatlik_izin_iptal(p_id, p_neden)` (yalnızca İK, kendi kaydı değil, kilitli ay değil), hesapta `iptal_zamani is null` filtresi ve `gun_hesabini_yenile`.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T50-saatlik-izin-iptal). Migration: `20261230010000_saatlik_izin_iptal.sql`, test: `saatlik_izin_iptal_testi.sql` (25 test).
+  - `saatlik_izin`'e `iptal_zamani`, `iptal_eden_id`, `iptal_nedeni` eklendi. Kayıt yine silinmez; UPDATE yalnızca bir kez, iptal için (saat / tür değişmez, iptal geri alınmaz).
+  - `saatlik_izin_iptal(p_id, p_neden)`: yalnızca İK; kendi iznini iptal edemez; neden en az 5 karakter; kilitli aydaki izin iptal edilemez. Gün işlenmişse hemen yeniden hesaplanır.
+  - İptal edilen izin hesaba (`saatlik_izin_araligi`), çakışma denetimine (`saatlik_izin_gir`) ve amirin görünümüne (`v_saatlik_izin_amir`) girmez.
+  - SI1 senaryosu: 15:00–17:00 yanlış izin → erken çıkış 0, izin 120; iptal → erken çıkış 120, izin 0; doğru izin aynı saatlere yeniden girilebildi.
+  - Ekran: İzinler → Saatlik listesinde Durum sütunu (Geçerli / İptal edildi) ve "İptal et" penceresi (neden zorunlu). Denendi: Hasan Yılmaz'a yanlış girilen 15:00–17:00 izni çalışmayı 480 → 390 dk düşürdü; ekrandan iptal edilince 480 dk'ya döndü, satır "İptal edildi" ve nedeniyle kaldı.
 
 ### T-51 · Aynı güne birden çok açık itiraz girilebiliyor
 - **Adım:** 8 · **Önem:** Düşük

@@ -157,6 +157,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261227010000_plan_onayi_hesap.sql` | Gece işinden sonra onaylanan fazla mesai planı günü hemen yeniden hesaplar, havuzdaki karşılığını kapatır (T-61) |
 | `20261228010000_gecmis_plan_talebi.sql` | Geçmiş güne fazla mesai planı talebi reddedilir; süre havuzdan İK kararıyla gelir (T-76) |
 | `20261229010000_plan_gecmisi.sql` | Vardiya planı geçmişi (+1 tablo); İK geriye dönük değişikliği reddedince önceki plan geri gelir (T-49) |
+| `20261230010000_saatlik_izin_iptal.sql` | Yanlış saatlik izin iptal edilir (iz kalır), gün yeniden hesaplanır (T-50) |
 
 ---
 
@@ -263,6 +264,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Sonradan plan onayı (T-61): hemen hesap, havuzun kapanması, iki kez sayılmama, kilitli ay (13 test) | ✅ |
 | Geçmiş güne plan talebi (T-76): ret, bugün / yarın serbest, zamanında talebin sonradan onayı (7 test) | ✅ |
 | Plan geçmişi (T-49): ret sonrası önceki plan ve gün işleme, silinmezlik, görünürlük (18 test) | ✅ |
+| Saatlik izin iptali (T-50): yeniden hesap, iz, yetki, kilitli ay, gece işi, silinmezlik (25 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
