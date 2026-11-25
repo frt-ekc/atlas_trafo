@@ -10,6 +10,8 @@
 \pset tuples_only on
 \pset format unaligned
 begin;
+-- Bu test Kasım / Aralık 2026'yı kilitler; ay bitmeden kilit olmadığı için (T-89) bugün 15.01.2027 kabul edilir
+set local pdks.test_bugun = '2027-01-15';
 set local timezone = 'Europe/Istanbul';
 
 create schema test;
@@ -92,7 +94,7 @@ select test.dogrula('onay bekleyen plan gece işinde kullanılmadı: PO03 ve PO0
 set local role authenticated;
 select test.oturum('po_ik1@ornek.test');
 select test.hata('onay bekleyen planın işlenmemiş günü zorla geçilemez; mesaj "İK onayı bekleyen plan" der',
-    '10/2026 döneminde gece işinden geçmemiş 2 planlı gün var (2 çalışan; ilk gün 05.10.2026); 2 günün geriye dönük planı İK onayı bekliyor. Önce o günlerin dosyalarını yükleyip gece işini çalıştırın; İK onayı bekleyen planı önce onaylayın ya da reddedin. Bu kontrol zorla geçilemez.',
+    '10/2026 döneminde işlenmemiş 2 planlı gün bulunuyor (2 çalışan, ilk gün 05.10.2026); 2 günün geriye dönük planı İK onayı bekliyor. Kilitlemeden önce bu günler işlenmelidir; İK onayı bekleyen plan onaylanmalı veya reddedilmelidir.',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true)$$);
 
 -- ---------------------------------------------------------------------
@@ -156,7 +158,7 @@ select pdks.vardiya_plani_onayla((test.plan('PO05')).id, false);
 select test.dogrula('ret: işlenmemiş gün işlenmemiş kaldı (PO05)', (test.gk('PO05')).id is null);
 select test.oturum('po_ik1@ornek.test');
 select test.hata('reddedilmiş planın işlenmemiş günü varken kilit reddedilir; mesaj reddedilmiş planı söyler (zorla da)',
-    '10/2026 döneminde gece işinden geçmemiş 1 planlı gün var (1 çalışan; ilk gün 05.10.2026); 1 günün geriye dönük planı reddedilmiş',
+    '10/2026 döneminde işlenmemiş 1 planlı gün bulunuyor (1 çalışan, ilk gün 05.10.2026); 1 günün geriye dönük planı reddedilmiş',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true)$$);
 select pdks.vardiya_plani_gir(test.c('PO05'), '2026-10-05', test.v('GUNDUZ_8'), 'Doğru plan');
 select test.dogrula('doğru plan girilince yeniden İK onayı bekler (geriye dönük)',

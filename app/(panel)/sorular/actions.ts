@@ -4,6 +4,18 @@ import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { SORU_CEVABI } from "@/lib/etiketler";
 import { metinAl, rpcCagir, sayiAl, zamanAl } from "@/lib/supabase/rpc";
+import { sunucuIstemcisi } from "@/lib/supabase/server";
+import { eksikSaatMesaji } from "./zorunlu-saatler";
+
+// Zorunlu saat denetimi. Soru türü formdan değil veritabanından okunur: formdaki değer
+// tarayıcıda değiştirilebilir. RLS yüzünden kullanıcı yalnızca görebildiği soruyu bulur.
+async function saatHatasi(soruId: number, giris: string | null, cikis: string | null): Promise<string | null> {
+  const supabase = await sunucuIstemcisi();
+  const { data, error } = await supabase.from("amir_sorusu").select("soru_turu").eq("id", soruId).maybeSingle();
+  if (error) return "Soru okunamadı. Lütfen tekrar deneyin.";
+  if (!data) return "Soru bulunamadı veya görüntüleme yetkisi yok.";
+  return eksikSaatMesaji(data.soru_turu, giris, cikis);
+}
 
 // Amir soruyu cevaplar. Veritabanı (soru_cevapla) şunları denetler: soru bu amire atanmış ya da
 // eskale edilmiş mi, hâlâ açık mı, "saat farklı" cevabında saat girilmiş mi. "Gelmedi" ve
@@ -11,14 +23,17 @@ import { metinAl, rpcCagir, sayiAl, zamanAl } from "@/lib/supabase/rpc";
 export async function soruCevapla(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const soruId = sayiAl(form, "soru_id");
   const cevap = metinAl(form, "cevap");
-  if (!soruId) return { durum: "hata", mesaj: "Soru seçilmedi." };
-  if (!cevap || !(cevap in SORU_CEVABI)) return { durum: "hata", mesaj: "Bir cevap seçin." };
+  if (!soruId) return { durum: "hata", mesaj: "Soru seçilmelidir." };
+  if (!cevap || !(cevap in SORU_CEVABI)) return { durum: "hata", mesaj: "Cevap seçilmelidir." };
 
   // Saat yalnızca "saat farklı" cevabında gönderilir; diğerlerinde veritabanı önerilen saati yazar.
   const saatFarkli = cevap === "geldi_saat_farkli";
   const giris = saatFarkli ? zamanAl(form, "giris") : null;
   const cikis = saatFarkli ? zamanAl(form, "cikis") : null;
-  if (saatFarkli && !giris && !cikis) return { durum: "hata", mesaj: "Giriş ya da çıkış saatini girin." };
+  if (saatFarkli) {
+    const hata = await saatHatasi(soruId, giris, cikis);
+    if (hata) return { durum: "hata", mesaj: hata };
+  }
 
   const sonuc = await rpcCagir("soru_cevapla", {
     p_soru_id: soruId,
@@ -33,7 +48,7 @@ export async function soruCevapla(_onceki: IslemSonucu, form: FormData): Promise
   revalidatePath("/");
   return {
     durum: "tamam",
-    mesaj: cevap === "gelmedi" || cevap === "bilmiyorum" ? "Cevap kaydedildi. Karar İK'ya geçti." : "Cevap kaydedildi; gün kaydı düzeltildi ve hesaplandı.",
+    mesaj: cevap === "gelmedi" || cevap === "bilmiyorum" ? "Cevap kaydedildi ve İK kararına gönderildi." : "Cevap kaydedildi, gün kaydı güncellendi.",
   };
 }
 
@@ -43,14 +58,17 @@ export async function soruIkKarari(_onceki: IslemSonucu, form: FormData): Promis
   const soruId = sayiAl(form, "soru_id");
   const karar = metinAl(form, "karar");
   const gerekce = metinAl(form, "gerekce");
-  if (!soruId) return { durum: "hata", mesaj: "Soru seçilmedi." };
-  if (karar !== "devamsiz" && karar !== "geldi") return { durum: "hata", mesaj: "Bir karar seçin." };
-  if (!gerekce || gerekce.length < 5) return { durum: "hata", mesaj: "Gerekçeyi yazın." };
+  if (!soruId) return { durum: "hata", mesaj: "Soru seçilmelidir." };
+  if (karar !== "devamsiz" && karar !== "geldi") return { durum: "hata", mesaj: "Karar seçilmelidir." };
+  if (!gerekce || gerekce.length < 5) return { durum: "hata", mesaj: "Gerekçe girilmelidir." };
 
   const devamsiz = karar === "devamsiz";
   const giris = devamsiz ? null : zamanAl(form, "giris");
   const cikis = devamsiz ? null : zamanAl(form, "cikis");
-  if (!devamsiz && !giris && !cikis) return { durum: "hata", mesaj: "Giriş ya da çıkış saatini girin." };
+  if (!devamsiz) {
+    const hata = await saatHatasi(soruId, giris, cikis);
+    if (hata) return { durum: "hata", mesaj: hata };
+  }
 
   const sonuc = await rpcCagir("soru_ik_karari", {
     p_soru_id: soruId,
@@ -63,5 +81,5 @@ export async function soruIkKarari(_onceki: IslemSonucu, form: FormData): Promis
 
   revalidatePath("/sorular");
   revalidatePath("/");
-  return { durum: "tamam", mesaj: devamsiz ? "Gün devamsız olarak işaretlendi." : "Saat yazıldı, gün hesaplandı; soru kapandı." };
+  return { durum: "tamam", mesaj: devamsiz ? 'Gün "Devamsız" olarak kaydedildi.' : "Karar kaydedildi, gün kaydı güncellendi." };
 }

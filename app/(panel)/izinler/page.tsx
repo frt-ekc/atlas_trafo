@@ -127,8 +127,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">İzinler · {ayAdi(ay)}</h1>
         <p className="text-sm text-muted-foreground">
-          Gün ve saat bazlı izinler. Yanlış girilen izin silinmez, iptal edilir. İzin türü yalnızca İK&apos;ya görünür; amir
-          &quot;İzinli&quot; görür.
+          Gün ve saat bazlı izinler. İzin kayıtları silinmez, iptal edilir. İzin türü yalnızca İK tarafından görüntülenir (KVKK).
         </p>
       </div>
 
@@ -140,14 +139,14 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         </nav>
         <div className="flex flex-wrap gap-2">
           <IslemPenceresi
-            dugme="İzin gir"
+            dugme="İzin ekle"
             dugmeTuru="default"
             baslik="Gün bazlı izin"
-            aciklama="Kendi izninizi giremezsiniz. İzinli günler gece işinde “izinli / raporlu” olarak işlenir."
-            onay="İzni kaydet"
+            aciklama="Kullanıcı kendi iznini ekleyemez. İzin günleri gece işleminde kayıtlara yansıtılır."
+            onay="Kaydet"
             islem={izinGir}
           >
-            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
               <Input id="sicil" name="sicil" list="izin-calisanlar" required autoComplete="off" inputMode="numeric" />
             </Alan>
             <Alan etiket="Tür" htmlFor="tur">
@@ -170,13 +169,13 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
           </IslemPenceresi>
 
           <IslemPenceresi
-            dugme="Saatlik izin gir"
+            dugme="Saatlik izin ekle"
             baslik="Saatlik izin"
-            aciklama="Gün içinde saat aralıklı izin (vizite, mazeret). Çakışan izin, kilitli ay ve iş günüyle uyuşmayan saat reddedilir."
-            onay="İzni kaydet"
+            aciklama="Gün içindeki saatlik izinler (vizite, mazeret). İzin; başka bir izinle çakışmamalı, açık bir aya ait olmalı ve iş günü içinde yer almalıdır."
+            onay="Kaydet"
             islem={saatlikIzinGir}
           >
-            <Alan etiket="Çalışanın sicil numarası" htmlFor="s-sicil" ipucu="Yazmaya başlayınca liste açılır.">
+            <Alan etiket="Çalışanın sicil numarası" htmlFor="s-sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
               <Input id="s-sicil" name="sicil" list="izin-calisanlar" required autoComplete="off" inputMode="numeric" />
             </Alan>
             <div className="grid grid-cols-3 gap-3">
@@ -216,7 +215,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         <input type="hidden" name="ay" value={ay} />
         {saatlikSekme && <input type="hidden" name="sekme" value="saatlik" />}
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
@@ -229,7 +228,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             </p>
           </div>
           {izinler.length === 0 ? (
-            <BosDurum aciklama={araMetni ? "Aramaya uyan izin yok." : "Bu ayda gün bazlı izin girilmemiş."} />
+            <BosDurum aciklama={araMetni ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
@@ -239,7 +238,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                     <TableHead>Çalışan</TableHead>
                     <TableHead>Tür</TableHead>
                     <TableHead className="w-full">Açıklama</TableHead>
-                    <TableHead>Giren</TableHead>
+                    <TableHead>Ekleyen</TableHead>
                     <TableHead>Durum</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -274,14 +273,14 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                                   dugme="İptal et"
                                   dugmeTuru="ghost"
                                   baslik="İzni iptal et"
-                                  aciklama={`${i.calisan ? `${i.calisan.ad} ${i.calisan.soyad}` : "Çalışan"} · ${turAdi} · ${tarih(i.baslangic)}${i.bitis !== i.baslangic ? ` – ${tarih(i.bitis)}` : ""}. İzin silinmez; iptal bilgisiyle saklanır. Gece işinden geçmiş günü varsa iptal edilemez, o günler kayıt düzeltmeyle düzeltilir.`}
+                                  aciklama={`${i.calisan ? `${i.calisan.ad} ${i.calisan.soyad}` : "Çalışan"} · ${turAdi} · ${tarih(i.baslangic)}${i.bitis !== i.baslangic ? ` – ${tarih(i.bitis)}` : ""}. İzin kaydı silinmez, iptal bilgisiyle saklanır. İzin girildiğinde değiştirilen günler önceki durumuna döner. İzinli olarak işlenmiş diğer günler önce kayıt düzeltme ile güncellenmelidir.`}
                                   onay="İptal et"
                                   onayTuru="destructive"
                                   islem={izinIptal}
                                   gizli={{ izin_id: i.id }}
                                 >
                                   <Alan etiket="İptal nedeni" htmlFor="neden">
-                                    <Textarea id="neden" name="neden" rows={2} required minLength={5} maxLength={500} placeholder="ör. Yanlış çalışana girilmiş" />
+                                    <Textarea id="neden" name="neden" rows={2} required minLength={5} maxLength={500} placeholder="ör. Hatalı çalışan seçimi" />
                                   </Alan>
                                 </IslemPenceresi>
                               </IslemMenusu>
@@ -300,10 +299,10 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
         <section aria-labelledby="saat-baslik" className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <h2 id="saat-baslik" className="text-lg font-semibold">Saatlik izinler</h2>
-            <p className="text-sm text-muted-foreground">{saatlikler.length} izin. Saatlik izin dakikası puantajda ayrıca tutulur.</p>
+            <p className="text-sm text-muted-foreground">{saatlikler.length} izin. Saatlik izin süresi puantajda ayrıca gösterilir.</p>
           </div>
           {saatlikler.length === 0 ? (
-            <BosDurum aciklama={araMetni ? "Aramaya uyan saatlik izin yok." : "Bu ayda saatlik izin girilmemiş."} />
+            <BosDurum aciklama={araMetni ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
@@ -314,7 +313,7 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
                     <TableHead>Çalışan</TableHead>
                     <TableHead>Tür</TableHead>
                     <TableHead className="w-full">Açıklama</TableHead>
-                    <TableHead>Giren</TableHead>
+                    <TableHead>Ekleyen</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

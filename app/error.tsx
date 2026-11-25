@@ -14,12 +14,12 @@ export default function Hata({ error, retry }: { error: unknown; retry: () => vo
   return (
     <BilgiEkrani
       simge={<TriangleAlertIcon className="size-6" />}
-      ust="Bir sorun oluştu"
+      ust="Hata"
       baslik="Sayfa açılamadı"
       aciklama={
         <>
           <p>{mesaj}</p>
-          <p className="mt-2">Bağlantı geçici olarak kopmuş olabilir. Tekrar deneyin; sorun sürerse sistem yöneticisine haber verin.</p>
+          <p className="mt-2">Sayfa yüklenemedi. Sorun devam ederse sistem yöneticisi ile iletişime geçilmelidir.</p>
         </>
       }
     >

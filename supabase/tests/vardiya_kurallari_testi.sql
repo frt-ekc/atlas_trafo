@@ -180,10 +180,10 @@ select test.dogrula('esnek, PDKS girişi yok: kapı 09:12 + 5 dk yürüme → gi
     (select giris_zamani = test.ts('2026-10-06 09:17') and giris_kaynagi = 'kanit' and durum = 'tamam'
             and gec_kalma_dk = 0 and calisma_dk = 433   -- 09:17–17:30 = 493 dk − 60 dk mola
      from test.gk('VK07', '2026-10-06')));
-select test.dogrula('esnek düzeltme izi: kaynak gece işi, dayanak kapı kaydı, gerekçede "Esnek mesai"',
+select test.dogrula('esnek düzeltme izi: kaynak gece işi, dayanak kapı kaydı, gerekçede kapı kaydı ve yürüme süresi',
     exists (select 1 from pdks.duzeltme d where d.gun_kaydi_id = (test.gk('VK07', '2026-10-06')).id
             and d.alan = 'giris_zamani' and d.kaynak = 'gece_isi' and d.kanit_kaydi_id is not null
-            and d.gerekce like 'Esnek mesai: Kapı kaydı 09:12%'));
+            and d.gerekce like 'Kapı kaydı 09:12; yürüme süresi eklenerek%'));
 select test.dogrula('esnek: amire "kanıt vardiya başından sonra" sorusu açılmadı',
     not exists (select 1 from pdks.amir_sorusu where gun_kaydi_id = (test.gk('VK07', '2026-10-06')).id));
 select test.dogrula('esnek: kanıt PDKS çıkışından sonraysa yazılmaz, gün amire / İK''ya sorulur',

@@ -8,7 +8,7 @@ import { TOPLU_SINIR } from "./toplu-sinir";
 // Uyarıyı "görüldü" yapar (yalnızca İK). Kim, ne zaman gördü veritabanında tutulur.
 export async function uyariGoruldu(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const uyariId = sayiAl(form, "uyari_id");
-  if (!uyariId) return { durum: "hata", mesaj: "Uyarı seçilmedi." };
+  if (!uyariId) return { durum: "hata", mesaj: "Uyarı seçilmelidir." };
 
   const sonuc = await rpcCagir("uyari_goruldu", { p_uyari_id: uyariId });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
@@ -30,7 +30,7 @@ export async function uyarilarGoruldu(_onceki: IslemSonucu, form: FormData): Pro
         .map(Number),
     ),
   ];
-  if (idler.length === 0) return { durum: "hata", mesaj: "Uyarı seçilmedi." };
+  if (idler.length === 0) return { durum: "hata", mesaj: "Uyarı seçilmelidir." };
   if (idler.length > TOPLU_SINIR) return { durum: "hata", mesaj: `Bir seferde en fazla ${TOPLU_SINIR} uyarı seçilebilir.` };
 
   let basarili = 0;
@@ -48,7 +48,7 @@ export async function uyarilarGoruldu(_onceki: IslemSonucu, form: FormData): Pro
     return {
       durum: "tamam",
       uyari: true,
-      mesaj: `${basarili} uyarı görüldü yapıldı; ${idler.length - basarili} uyarı yapılamadı: ${ilkHata}`,
+      mesaj: `${basarili} uyarı görüldü olarak işaretlendi; ${idler.length - basarili} uyarı işaretlenemedi: ${ilkHata}`,
     };
   }
   return { durum: "tamam", mesaj: `${basarili} uyarı görüldü olarak işaretlendi.` };

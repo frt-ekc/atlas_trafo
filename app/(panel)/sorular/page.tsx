@@ -11,7 +11,7 @@ import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { tekDeger } from "@/lib/arama";
 import { saat, tarih, tarihSaat, yerelZamanGirdisi } from "@/lib/bicim";
-import { SORU_CEVABI, SORU_DURUMU, SORU_TURU } from "@/lib/etiketler";
+import { IK_KARARI, SORU_CEVABI, SORU_DURUMU, SORU_TURU } from "@/lib/etiketler";
 import { bugun } from "@/lib/hafta";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
@@ -34,7 +34,12 @@ type Soru = {
   cevap_giris: string | null;
   cevap_cikis: string | null;
   cevap_aciklama: string | null;
+  ik_karari: string | null;
+  kapanis_nedeni: string | null; // cevapla değil başka bir işlemle kapandıysa (T-46, T-40)
+  // İK kararının gerekçesi düzeltmededir; amir için okunmaz (T-106)
+  duzeltmeler?: { gerekce: string; kaynak: string }[];
   cevap_zamani: string | null;
+  ik_eskale_zamani: string | null; // üst amir de cevaplamayınca İK'ya geçtiği an (T-39)
   atanan: { ad_soyad: string; rol: string } | null;
   eskale: { ad_soyad: string; rol: string } | null;
   cevaplayan: { ad_soyad: string } | null;
@@ -57,8 +62,9 @@ const SUZGECLER = {
 } as const;
 type Suzgec = keyof typeof SUZGECLER;
 
-// İK'nın karar vereceği soru (soru_ik_karari): amirin "gelmedi / bilmiyorum" dediği soru ya da
-// İK'ya eskale edilmiş / doğrudan İK'ya atanmış açık soru (ör. üst amiri olmayan amirin kendi günü).
+// İK'nın karar vereceği soru (soru_ik_karari): amirin "gelmedi / bilmiyorum" dediği soru, üst amir de
+// süresinde cevaplamadığı için İK'ya geçen soru (ik_karari_bekliyor, T-39) ya da İK'ya eskale edilmiş /
+// doğrudan İK'ya atanmış açık soru (ör. üst amiri olmayan amirin kendi günü).
 function ikteBekliyor(s: Soru) {
   if (s.durum === "ik_karari_bekliyor") return true;
   return (s.durum === "acik" || s.durum === "eskale") && (s.eskale ?? s.atanan)?.rol === "ik";
@@ -85,9 +91,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       .from("amir_sorusu")
       .select(
         "id, soru_turu, aciklama, onerilen_zaman, durum, olusturma_zamani, son_cevap_tarihi, " +
-          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, " +
+          "cevap, cevap_giris, cevap_cikis, cevap_aciklama, cevap_zamani, ik_karari, kapanis_nedeni, ik_eskale_zamani, " +
           "atanan:kullanici!atanan_id(ad_soyad, rol), eskale:kullanici!eskale_edilen_id(ad_soyad, rol), cevaplayan:kullanici!cevaplayan_id(ad_soyad), " +
-          "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))",
+          "gun:gun_kaydi_id(is_gunu, planli_baslangic, planli_bitis, giris_zamani, cikis_zamani, calisan:calisan_id(id, sicil_no, ad, soyad))" +
+          (kullanici.rol === "amir" ? "" : ", duzeltmeler:duzeltme!soru_id(gerekce, kaynak)"),
       )
       .order("son_cevap_tarihi")
       .order("id")
@@ -109,8 +116,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">{amir ? "Sorularım" : "Amir soruları"}</h1>
         <p className="text-sm text-muted-foreground">
-          Gece işi kanıt (kapı, yemekhane, servis kaydı) bulamadığı kayıtları sabah amire sorar. Cevapsız soru son günden
-          sonra üst amire ve İK&apos;ya gider. &quot;Gelmedi&quot; cevabında kararı İK verir.
+          Otomatik düzeltilemeyen kayıtlar amire sorulur. Süresinde cevaplanmayan sorular üst amire, ardından İK&apos;ya iletilir. Devamsızlık kararı İK tarafından verilir.
         </p>
       </div>
 
@@ -129,7 +135,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
@@ -139,10 +145,10 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
         <BosDurum
           aciklama={
             suzgecVar
-              ? "Süzgeçlere uyan soru yok. Süzgeçleri temizleyip yeniden deneyin."
+              ? "Seçilen filtrelere uygun kayıt bulunmuyor."
               : suzgec === "bekleyen"
-                ? "Cevap bekleyen soru yok. Sorular gece işi çalıştığında oluşur."
-                : "Henüz soru yok. Sorular gece işi çalıştığında oluşur."
+                ? "Kayıt bulunmuyor."
+                : "Kayıt bulunmuyor."
           }
         />
       ) : (
@@ -153,8 +159,8 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                 <TableHead>Gün</TableHead>
                 <TableHead>Çalışan</TableHead>
                 <TableHead className="w-full">Soru</TableHead>
-                <TableHead className="whitespace-normal">Kanıttaki saat</TableHead>
-                <TableHead>Son gün</TableHead>
+                <TableHead className="whitespace-normal">Kanıt saati</TableHead>
+                <TableHead>Son cevap tarihi</TableHead>
                 {!amir && <TableHead>Atanan</TableHead>}
                 <TableHead>Durum</TableHead>
               </TableRow>
@@ -162,6 +168,7 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
             <TableBody>
               {sorular.map((s) => {
                 const c = s.gun?.calisan;
+                const ikGerekcesi = s.duzeltmeler?.find((d) => d.kaynak === "ik")?.gerekce;
                 const gecikti = (s.durum === "acik" || s.durum === "eskale") && s.son_cevap_tarihi < bugunTarih;
                 return (
                   <TableRow key={s.id}>
@@ -187,16 +194,23 @@ export default async function SorularSayfasi({ searchParams }: PageProps<"/sorul
                           <span className="text-muted-foreground"> · {s.cevaplayan?.ad_soyad ?? "—"}, {tarihSaat(s.cevap_zamani)}</span>
                         </div>
                       )}
+                      {s.kapanis_nedeni && <div className="mt-1 text-sm">Kapanış nedeni: {s.kapanis_nedeni}</div>}
+                      {s.ik_karari && (
+                        <div className="mt-1 text-sm">
+                          İK kararı: {IK_KARARI[s.ik_karari] ?? s.ik_karari}
+                          {ikGerekcesi && <span className="text-muted-foreground"> · Gerekçe: {ikGerekcesi}</span>}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="tabular-nums">{s.onerilen_zaman ? saat(s.onerilen_zaman) : "—"}</TableCell>
                     <TableCell className="tabular-nums">
                       {tarih(s.son_cevap_tarihi)}
-                      {gecikti && <div className="text-xs text-destructive">Süresi geçti</div>}
+                      {gecikti && <div className="text-xs text-destructive">Süresi doldu</div>}
                     </TableCell>
                     {!amir && (
                       <TableCell className="min-w-28 whitespace-normal text-muted-foreground">
                         {s.atanan?.ad_soyad ?? "—"}
-                        {s.eskale && <div className="text-xs">Eskale: {s.eskale.ad_soyad}</div>}
+                        {s.eskale && <div className="text-xs">İletilen: {s.eskale.ad_soyad}</div>}
                       </TableCell>
                     )}
                     <TableCell>
@@ -236,7 +250,7 @@ function CevaplaPenceresi({ soru }: { soru: Soru }) {
         <>
           {SORU_TURU[soru.soru_turu] ?? soru.soru_turu}. {soru.aciklama}
           {g && ` Plan: ${saat(g.planli_baslangic)}–${saat(g.planli_bitis)}.`}
-          {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
+          {soru.onerilen_zaman && ` Kanıt saati: ${saat(soru.onerilen_zaman)}.`}
         </>
       }
       onay="Cevabı kaydet"
@@ -244,6 +258,7 @@ function CevaplaPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <CevapAlanlari
+        soruTuru={soru.soru_turu}
         girisVarsayilan={girisVarsayilan}
         cikisVarsayilan={cikisVarsayilan}
         kayitliGiris={g?.giris_zamani ? saat(g.giris_zamani) : null}
@@ -272,10 +287,12 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
           ) : (
             <>
               {soru.aciklama}{" "}
-              {soru.durum === "eskale"
-                ? "Amir süresinde cevaplamadı; üst amiri olmadığı için soru İK'ya eskale edildi."
-                : "Cevaplayacak amir olmadığı için soru doğrudan İK'ya atandı."}
-              {soru.onerilen_zaman && ` Kanıttaki saat: ${saat(soru.onerilen_zaman)}.`}
+              {soru.ik_eskale_zamani
+                ? `Amir ve üst amir${soru.eskale ? ` (${soru.eskale.ad_soyad})` : ""} süresinde cevaplamadığı için soru İK'ya iletildi.`
+                : soru.durum === "eskale"
+                  ? "Soru süresinde cevaplanmadığı için İK'ya iletildi."
+                  : "Tanımlı amir bulunmadığı için soru İK'ya atandı."}
+              {soru.onerilen_zaman && ` Kanıt saati: ${saat(soru.onerilen_zaman)}.`}
             </>
           )}
           {g && ` Plan: ${saat(g.planli_baslangic)}–${saat(g.planli_bitis)}.`}
@@ -286,6 +303,7 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <IkKararAlanlari
+        soruTuru={soru.soru_turu}
         girisVarsayilan={yerelZamanGirdisi(g?.giris_zamani ? null : ((soru.soru_turu !== "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_baslangic))}
         cikisVarsayilan={yerelZamanGirdisi(g?.cikis_zamani ? null : ((soru.soru_turu === "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_bitis))}
       />

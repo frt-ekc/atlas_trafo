@@ -73,8 +73,8 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
         <h1 className="text-2xl font-semibold">İtirazlar</h1>
         <p className="text-sm text-muted-foreground">
           {kullanici.rol === "amir"
-            ? "Bölümünüzdeki çalışanların kayıtlarına itirazları. Kararı İK verir."
-            : "Çalışanların kayıtlarına itirazları. Kabul ya da red kararı İK'dadır."}
+            ? "Sorumlu olunan departmanlardaki itirazlar. İtiraz kararı İK tarafından verilir."
+            : "Çalışanların kayıtlarına ilişkin itirazlar."}
         </p>
       </div>
 
@@ -94,7 +94,7 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
           </FiltreAlani>
         </div>
         <FiltreAlani etiket="Çalışan ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, soyad veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
@@ -104,10 +104,10 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
         <BosDurum
           aciklama={
             araMetni || basGun || bitGun
-              ? "Süzgeçlere uyan itiraz yok. Süzgeçleri temizleyip yeniden deneyin."
+              ? "Seçilen filtrelere uygun kayıt bulunmuyor."
               : tumu
-                ? "Henüz itiraz girilmedi."
-                : "Açık itiraz yok."
+                ? "Kayıt bulunmuyor."
+                : "Kayıt bulunmuyor."
           }
         />
       ) : (
@@ -169,7 +169,7 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
 
       {kullanici.rol !== "yonetici" && (
         <p className="text-sm text-muted-foreground">
-          Yeni itiraz, çalışanın sayfasında ilgili günün yanındaki <span className="font-medium">İtiraz</span> düğmesiyle girilir.
+          Yeni itiraz, çalışan sayfasında ilgili günün yanındaki <span className="font-medium">İtiraz ekle</span> düğmesi ile eklenir.
         </p>
       )}
     </div>
@@ -192,10 +192,10 @@ function KararPenceresi({ itiraz }: { itiraz: Itiraz }) {
         onayAdi="Kabul et"
         retAdi="Reddet"
         gerekceZorunlu="her_zaman"
-        retUyarisi="Red çalışan aleyhine bir karardır. Gerekçe çalışana verilecek dökümde görünür."
+        retUyarisi="Ret kararı çalışan aleyhine kaydedilir. Gerekçe, çalışana verilen dökümde yer alır."
       />
       <p className="text-xs text-muted-foreground">
-        Kabul, kaydı kendiliğinden düzeltmez. Kabulden sonra çalışan sayfasında o günün &quot;Düzelt&quot; düğmesiyle düzeltmeyi bu itiraza bağlayın.
+        Kabul kararı kaydı otomatik olarak düzeltmez. Düzeltme, çalışan sayfasında ilgili günün &quot;Düzelt&quot; işlemi ile bu itiraza bağlanmalıdır.
       </p>
     </IslemPenceresi>
   );

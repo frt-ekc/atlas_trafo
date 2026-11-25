@@ -36,7 +36,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 
 | Katman | Teknoloji | Not |
 |---|---|---|
-| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 35 tablo |
+| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 37 tablo |
 | İş kuralları | PostgreSQL fonksiyonları ve trigger'lar | Gece işi, düzeltme, görevler ayrılığı, ay kilidi veritabanının içinde çalışır; ekran atlansa bile kural delinemez |
 | Giriş ve yetki | **Supabase Auth + RLS** | Roller: `amir`, `ik`, `guvenlik`, `yonetici`, `isg`, `admin`. Her kullanıcı yalnızca rolünün izin verdiği satırları görür |
 | Frontend | **Next.js + TypeScript** | Tailwind CSS + shadcn/ui |
@@ -85,7 +85,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 
 ## 4. Veritabanı
 
-`pdks` şemasında **35 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
+`pdks` şemasında **37 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
 
 | Grup | Tablolar |
 |---|---|
@@ -132,6 +132,27 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261202010000_durum_duzeltmesi.sql` | Gün devamsız / izinli / raporlu yapılınca eski dakikalar temizlenir, gün "bekleyen" sayılmaz |
 | `20261203010000_plan_onayi.sql` | Geriye dönük plan onayı: bekleyen / reddedilmiş plan kullanılmaz, onay günü düzeltir ya da işletir, kendi planını onaylama yok |
 | `20261204010000_dosya_yukle_where.sql` | `dosya_yukle` ekrandan (HTTP) çalışır: WHERE'siz `UPDATE`'e koşul eklendi (T-31) |
+| `20261205010000_istanbul_tarihi.sql` | "Bugün" İstanbul'a göre (`pdks.bugun()`; ekran ve pg_cron UTC oturumla çalışsa da) (T-45); yazılı onayın geri alınması her zaman kaydedilir (T-59) |
+| `20261206010000_rls_hizi.sql` | Departmanlar ve Vardiya planı amirde zaman aşımına düşmez: 9 tablonun okuma politikaları oturumu sorgu başına bir kez denetler (T-104) |
+| `20261207010000_ay_kilidi_zamani.sql` | Ay bitmeden kilitlenemez, zorla da (T-89); testler için `pdks.test_bugun` tarih ayarı (yalnızca doğrudan bağlantı) |
+| `20261208010000_kullanici_cift_kayit.sql` | `kullanici` tablosunda çift kayıt yok (T-105): `izinli_mi` kalktı, amirin izni `izin` tablosundan okunur; `ad_soyad` çalışan kaydından gelir |
+| `20261209010000_kodsuz_gun.sql` | Puantaja kodsuz girecek gün varken ay zorlamadan kilitlenmez; hata ve özet günleri adıyla söyler (T-90, T-101) |
+| `20261210010000_ikinci_eskale.sql` | Soru amir → üst amir → İK: üst amir de cevaplamazsa İK'ya geçer; İK her açık soruya karar verir (T-39) |
+| `20261211010000_cikmis_hesap.sql` | İşten ayrılan çalışanın hesabı yeniden açılamaz; açık kalsa bile oturum yok (T-71) |
+| `20261212010000_ayar_sinirlari.sql` | Ayarlara aralık (`en_az` / `en_cok`) ve yasal sınır; mola sıralaması; puantajı etkileyen ayar değişince İK'ya uyarı (T-74) |
+| `20261213010000_yukleyen.sql` | Dosyayı yükleyen kaydedilir (`aktarim.yukleyen_id`); yükleyenin kendi okutmasını içeren dosyada diğer İK'ya uyarı (T-13) |
+| `20261214010000_rapor_gizliligi.sql` | Rapor gerekçesi amire gizli: amir düzeltmeleri `v_duzeltme_amir`'den okur (T-12) |
+| `20261215010000_ik_karar_gerekcesi.sql` | İK'nın soru kararındaki gerekçe amire gizli; amir yalnızca sonucu görür (`amir_sorusu.ik_karari`) (T-106) |
+| `20261216010000_ekran_metinleri.sql` | Ayar adı, kategorisi ve açıklaması; uyarı, soru ve gerekçe metinleri; süreler "sa dk" (yalnızca metin, kural değişmez) |
+| `20261217010000_oturum_yardimcilari.sql` | Oturum yardımcıları (amirin departmanları / çalışanları) oturumu sorgu başına bir kez sorar; amir okumaları yeniden hızlı (T-108, T-104'ün devamı) |
+| `20261218010000_cakisan_izin.sql` | Kesişen izin ve tam gün izinli güne saatlik izin reddedilir (T-47) |
+| `20261219010000_cikis_okutma.sql` | İşten çıkış, çıkış gününden sonraki ham okutma varsa reddedilir (T-65) |
+| `20261220010000_havuz_yazili_onay.sql` | Yazılı onay yokken havuzdan onaylanan fazla mesai işaretlenir, İK'ya uyarı yazılır (T-56) |
+| `20261221010000_yillik_fazla_mesai.sql` | Yıllık 270 saate havuz ve tatil çalışması da sayılır; planda ret, havuzda işaret ve uyarı (T-57) |
+| `20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100; 2026–2027 arifeleri (T-28) |
+| `20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (admin önerir, İK onaylar); hesap değişikliklerinin izi (T-72, T-33) |
+| `20261224010000_plansiz_gun.sql` | Planı olmayan günde çalışma: İK'ya ve amire uyarı, süre havuzda (T-79) |
+| `20261225010000_gecmis_izin.sql` | İşlenmiş güne girilen izin günü düzeltir, soruyu kapatır; İK düzeltmesi soruyu kapatır (T-46, T-40) |
 
 ---
 
@@ -157,7 +178,7 @@ npm install
 npm run dev                         # http://localhost:3000
 ```
 
-**Testler:** `supabase/tests` altındaki her dosya `psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f <dosya>` ile çalıştırılır; sonda "... GEÇTİ" yazmalı. Testler veritabanında iz bırakmaz ve örnek veri yüklü olsa da olmasa da çalışır. `ornek_veri_testi.sql` örnek verinin yüklü olmasını bekler.
+**Testler:** `supabase/tests` altındaki her dosya `psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f <dosya>` ile çalıştırılır; sonda "... GEÇTİ" yazmalı. Testler veritabanında iz bırakmaz ve örnek veri yüklü olsa da olmasa da çalışır. `ornek_veri_testi.sql` örnek verinin yüklü olmasını bekler. Testler temiz bir veritabanı bekler: önce `supabase db reset` (gece işi elle çalıştırılmış bir veritabanında bazı testler düşer). Bugüne bağlı kuralları sınayan testler tarihi `set local pdks.test_bugun = 'YYYY-MM-DD';` ile sabitler; bu ayar yalnızca doğrudan veritabanı bağlantısında geçerlidir, ekrandan gelen istek her zaman gerçek tarihi kullanır.
 
 > **Dikkat:** Testler psql ile doğrudan bağlanır. Ekrandan gelen (HTTP) isteklerde Supabase `safeupdate` eklentisini yükler ve WHERE'siz `UPDATE` / `DELETE`'i reddeder; psql'de bu kural yoktur. Bu yüzden bir fonksiyon testlerde geçip ekranda düşebilir. `where_siz_guncelleme_testi.sql` bütün `pdks` fonksiyonlarını bu açıdan tarar.
 
@@ -208,11 +229,32 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Güvenlik ekranı (geçici kart ver / iade al) | ✅ |
 | Bordro Excel çıktısı (SheetJS; FM50 / FM100 / gece / mola sütunları ve kilitli ayda "Puantaj kodları" sayfası), çalışan PDF dökümü (@react-pdf/renderer) | ✅ |
 | ERP aktarımı: kilitli ayın puantaj icmali CSV ve XML (sicil, dönem, kod, gün, dakika; 9 test) | ✅ |
-| İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (35 test) | ✅ |
+| İşe giriş ve işten çıkış (`calisan_ekle`, `isten_cikis_gir`); gece işi çalışanı tarihe göre süzer (33 test) | ✅ |
 | Geriye dönük plan onayı: bekleyen plan kullanılmaz, onay günü düzeltir / işletir, ret ya da onay bekleyen + işlenmemiş gün kilidi durdurur, kendi planını onaylama yok (20 test) | ✅ |
 | Ay kilidi düzeltmeleri ve anında hesap: kilit öncesi hesap, işlenmemiş gün kontrolü, İK'ya eskale soru, onay bekleyen plan, kilit özeti (39 test, örnek veriyle uçtan uca) | ✅ |
 | Durum düzeltmesi: devamsız / izinli / raporlu yapılan günün eski dakikaları temizlenir, gün "bekleyen" sayılmaz (11 test) | ✅ |
 | Ekrandan dosya yükleme (T-31): dört kaynak HTTP'den yazılıyor; fonksiyonlarda WHERE'siz `UPDATE` / `DELETE` taraması (9 test) | ✅ |
+| İstanbul tarihi (T-45, T-59, T-04): plan, fazla mesai iptali, gece işi, İSG durumu ve kart tarihi UTC−12 / UTC+14 oturumda da İstanbul'a göre; yazılı onayın geri alınması her zaman kaydedilir (24 test) | ✅ |
+| RLS hızı (T-104): 9 tabloda oturum sorgu başına bir kez denetlenir; her rolde görünen satırlar eskisiyle aynı, Montaj amirinin Departmanlar ve Vardiya planı okumaları 500 ms altında (28 test) | ✅ |
+| Ay kilidi zamanı (T-89): içinde bulunulan ve ileri ay kilitlenemez (zorla da), ayın son günü sınırı; testler için tarih ayarı (10 test) | ✅ |
+| Kullanıcı çift kayıtları (T-105): izinli amirin sorusu `izin` tablosuna göre vekile gider; kullanıcı adı çalışan kaydından gelir (20 test) | ✅ |
+| Kodsuz gün (T-90, T-101): kodsuz gün varken zorlamadan kilit reddedilir ve günleri (sicil, gün, neden) söyler; zorla kilitte günler özete yazılır (8 test) | ✅ |
+| Soru eskalasyonu (T-39): amir → üst amir → İK; bir gecede en çok bir kademe; İK her açık soruya karar verir, gün hesaplanır (17 test) | ✅ |
+| Çıkmış çalışanın hesabı (T-71): admin yeniden açamaz; elle açılsa bile oturum ve işlem yok; çalışmaya devam edenin hesabı açılıp kapanır (8 test) | ✅ |
+| Ayar sınırları (T-74): her ayarda aralık dışı ret, sınır değer kabul; mola sıralaması; sayı olmayan giriş Türkçe mesajla ret; İK'ya uyarı (68 test) | ✅ |
+| Yükleyen (T-13): yükleyen kaydı, kendi asıl / geçici kartını içeren dosyada uyarı, uyarıyı yükleyen görmez ve kapatamaz (21 test) | ✅ |
+| Rapor gizliliği (T-12): amir düzeltme tablosunu okuyamaz; görünümde durum / izin gerekçesi gizli, "raporlu" yok; başka departman görünmez (19 test) | ✅ |
+| İK karar gerekçesi (T-106): amir ve üst amir gerekçeyi hiçbir tablo / görünümden okuyamaz, sonucu görür; İK ve yönetici görür (13 test) | ✅ |
+| Ekran metinleri: ayar adları, süre ve cevap adları, eski ifadelerin kalmadığı (8 test); envanter: `docs/metin_envanteri.md` | ✅ |
+| Oturum yardımcıları (T-108): amirin "çalışanlarım" listesi 263 → 1 ms; yardımcıların yapısı ve dar hız sınırları `rls_hizi_testi`'nde | ✅ |
+| Çakışan izin (T-47): kesişen izin reddi, sınır günleri, iptal sonrası yeni izin, saatlik izin (18 test) | ✅ |
+| İşten çıkışta okutma denetimi (T-65): işlenmemiş / plansız gün, gece vardiyası, geçici kart (19 test) | ✅ |
+| Yazılı onaysız fazla mesai (T-56): süre puantaja girer, işaret ve uyarı oluşur, kilitli ay farkı (15 test) | ✅ |
+| Yıllık fazla mesai sınırı (T-57): plan reddi, tatil, çift sayım, havuz işareti ve uyarısı, yıllık görünüm (T-62) (22 test) | ✅ |
+| Arife (T-28): erken çıkış, FM100, yazılı onaysız, gece vardiyası, puantaj kodu, esnek mesai (28 test) | ✅ |
+| Rol onayı (T-72, T-33): öneri, karar, görevler ayrılığı, kullanıcı geçmişi (38 test) | ✅ |
+| Plansız gün (T-79): uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, ay kilidi (40 test) | ✅ |
+| Geçmiş güne izin (T-46, T-40): düzeltme, soru kapanışı, okutmalı gün, iptal, devamsız denetimi, kilitli ay (29 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

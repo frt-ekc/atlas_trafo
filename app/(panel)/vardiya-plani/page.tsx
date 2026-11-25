@@ -173,7 +173,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
         <h1 className="text-2xl font-semibold">Vardiya planı</h1>
         <p className="text-sm text-muted-foreground">
           {kullanici.rol === "amir"
-            ? "Sorumlu olduğunuz bölümlerin haftalık planı."
+            ? "Sorumlu olunan departmanların haftalık vardiya planı."
             : "Çalışanların haftalık vardiya planı."}
         </p>
       </div>
@@ -197,7 +197,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
         <SuzgecFormu className="flex w-full items-end gap-2 sm:w-auto">
           <input type="hidden" name="hafta" value={pazartesi} />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <label htmlFor="departman" className="text-sm font-medium">Bölüm</label>
+            <label htmlFor="departman" className="text-sm font-medium">Departman</label>
             <Secim id="departman" name="departman" defaultValue={departmanId ?? ""} className="w-full min-w-0">
               <option value="">Tümü</option>
               {bolumler.map((b) => (
@@ -212,14 +212,14 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
       {planGirebilir && (
         <div className="self-start">
           <IslemPenceresi
-            dugme="Vardiya gir"
+            dugme="Vardiya ekle"
             dugmeTuru="default"
-            baslik="Vardiya planı gir"
-            aciklama="Aynı güne girilen yeni plan eskisinin yerine geçer. Geçmiş güne giriş İK onayına düşer; kilitli aya giriş yapılamaz."
+            baslik="Vardiya planı ekle"
+            aciklama="Aynı gün için girilen yeni plan öncekinin yerine geçer. Geçmiş günlere ait planlar İK onayına gönderilir. Kilitli aylar için plan girilemez."
             onay="Kaydet"
             islem={vardiyaPlaniGir}
           >
-            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+            <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
               <Input id="sicil" name="sicil" list="vp-calisanlar" required autoComplete="off" inputMode="numeric" />
             </Alan>
             <div className="grid grid-cols-2 gap-3">
@@ -239,7 +239,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
               </Alan>
             </div>
             <Alan etiket="Açıklama (geçmiş gün için gerekçe)" htmlFor="aciklama">
-              <Textarea id="aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. Vardiya değişimi, A grubuna geçti" />
+              <Textarea id="aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. Grup değişikliği" />
             </Alan>
           </IslemPenceresi>
           <CalisanListesi id="vp-calisanlar" calisanlar={calisanlar} />
@@ -254,7 +254,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
               <DurumRozeti ton="dikkat">{bekleyenPlanlar.length}</DurumRozeti>
             </h2>
             <p className="text-sm text-muted-foreground">
-              Geçmiş güne girilen plan, onaylanana kadar puantajı değiştirmez. Planı giren kişi onaylayamaz.
+              Geçmiş günlere ait planlar onaylanana kadar puantaja yansımaz. Planı ekleyen kullanıcı onay veremez.
             </p>
           </div>
           {bekleyenPlanlar.map((p) => (
@@ -283,7 +283,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
                     <IslemPenceresi
                       dugme="Reddet"
                       baslik="Planı reddet"
-                      aciklama="Plan reddedilecek; bu işlem geri alınamaz."
+                      aciklama="Plan reddedilecektir. Bu işlem geri alınamaz."
                       onay="Reddet"
                       onayTuru="destructive"
                       islem={vardiyaPlaniOnayla}
@@ -293,7 +293,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
                 </>
               }
             >
-              Giren: {p.giren?.ad_soyad ?? "—"}
+              Ekleyen: {p.giren?.ad_soyad ?? "—"}
               {p.aciklama && ` · ${p.aciklama}`}
             </ListeKarti>
           ))}
@@ -307,7 +307,7 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
 
       {calisanlar.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Bu süzgeçle görebileceğiniz çalışan yok.
+          Seçilen filtrelere uygun kayıt bulunmuyor.
         </div>
       ) : (
         <div className="rounded-lg border">
@@ -419,7 +419,7 @@ function Hucre({
 
   const bekliyor = plan.ik_onay_durumu === "bekliyor";
   const reddedildi = plan.ik_onay_durumu === "reddedildi";
-  const baslik = [v.ad, plan.aciklama, bekliyor && "Geriye dönük değişiklik: İK onayı bekliyor", reddedildi && "İK değişikliği reddetti"]
+  const baslik = [v.ad, plan.aciklama, bekliyor && "Geriye dönük değişiklik: İK onayı bekliyor", reddedildi && "Değişiklik İK tarafından reddedildi"]
     .filter(Boolean)
     .join(" · ");
 

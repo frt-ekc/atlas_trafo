@@ -166,7 +166,7 @@ select test.dogrula('İSG uzmanı belgeleri, bölge yetkilerini, okuyucuları ve
     and (select count(*) >= 3 from pdks.okuyucu) and (select count(*) > 0 from pdks.v_isg_durum));
 select test.dogrula('İSG uzmanı gün kaydı ve izin göremez',
     (select count(*) from pdks.gun_kaydi) = 0 and (select count(*) from pdks.izin) = 0);
-select test.hata('geçersiz belge türü', 'Geçersiz belge türü',
+select test.hata('geçersiz belge türü', 'Geçerli bir belge türü',
     format($$select pdks.isg_belge_gir(%s, 'ehliyet', '2027-01-01')$$, test.c('IS01')));
 select test.hata('İSG uzmanı kendi belgesini giremez', 'Görevler ayrılığı',
     format($$select pdks.isg_belge_gir(%s, 'isg_egitimi', '2027-01-01')$$, test.c('ISS1')));

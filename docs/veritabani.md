@@ -9,7 +9,8 @@ olarak veritabanının içinde çalışır.
 - **Giriş:** Supabase Auth. Her kullanıcının `pdks.kullanici` satırı `auth_kullanici_id` sütunuyla
   Supabase Auth kullanıcısına, `calisan_id` sütunuyla kendi çalışan kaydına bağlanır. Rol `kullanici.rol`
   sütunundadır: `amir`, `ik`, `guvenlik`, `yonetici`, `isg` (İSG uzmanı), `admin` (sistem yöneticisi). Oturumdaki kullanıcıyı `pdks.oturum_kullanici_id()`,
-  rolünü `pdks.oturum_rolu()` verir.
+  rolünü `pdks.oturum_rolu()` verir. Oturum için hem hesap (`kullanici.aktif`) hem bağlı çalışan (`calisan.aktif`)
+  aktif olmalı: işten ayrılan çalışanın hesabı açık kalsa bile oturumu yoktur ve hesap yeniden açılamaz (T-71).
 - **Yetki:** Her tabloda RLS (satır düzeyinde güvenlik) açıktır. Politikalar oturumdaki kullanıcının rolüne
   bakar. Örneğin amir yalnızca kendi departmanının sorularını görür, güvenlik yalnızca geçici kart ekranını kullanır.
 - **Veri bağlantısı:** Next.js uygulaması supabase-js ile bağlanır. Okuma sorgu oluşturucusuyla, kural içeren
@@ -72,9 +73,51 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/giris_ve_yetki_testi.sql` | Rol bazında görünürlük (RLS) ve görünüm fonksiyonu yetkileri için 29 test |
 | `supabase/tests/ekran_fonksiyonlari_testi.sql` | Ekran fonksiyonlarının rol, departman ve görevler ayrılığı kontrolleri için 42 test |
 | `supabase/seed.sql` | Örnek (sahte) veri: Kasım 2026, 19 departman, 76 çalışan, 23 senaryo. Ayrıntı: `docs/ornek_veri.md` |
+| `scripts/sentetik_veri.mjs` | Sentetik veri seti üreticisi: 180 çalışan, Ekim 2026, gerçeğe benzer sicil / kart / hata oranları. Ayrıntı: `docs/sentetik_veri.md` |
 | `supabase/tests/ornek_veri_testi.sql` | Örnek verinin büyüklüğü ve senaryoları için 37 test (seed'den sonra çalışır) |
 | `supabase/tests/sema_temizligi_testi.sql` | Şemada kullanılmayan özelliklere ait kalıntı olmadığını doğrulayan 8 test |
 | `supabase/tests/where_siz_guncelleme_testi.sql` | `pdks` fonksiyonlarında WHERE'siz `UPDATE` / `DELETE` taraması (tarayıcının kendi sınaması dahil) için 9 test |
+| `supabase/migrations/20261205010000_istanbul_tarihi.sql` | `pdks.bugun()`: İstanbul'a göre bugün; şemadaki bütün `current_date`'ler buna çevrildi (T-45). Yazılı onayın geri alınması her zaman kaydedilir: ileri tarihli planlar sistemce iptal, geçmiş / kilitli aydakiler korunur (T-59) |
+| `supabase/tests/istanbul_tarihi_testi.sql` | Aynı işlemler UTC−12 ve UTC+14 oturumla: plan, fazla mesai iptali ve onay geri alma, gece işi, İSG durumu, kart tarihi için 24 test (gece işi sınırının 3 testi yalnızca örnek veri yokken çalışır) |
+| `supabase/migrations/20261206010000_rls_hizi.sql` | `gun_kaydi`, `calisan`, `amir_sorusu`, `itiraz`, `departman`, `vardiya_tanim`, `vardiya_plani`, `kanit_kaydi`, `ham_okutma` okuma politikaları `(select pdks.f())` kalıbında; amirin çalışanları için `pdks.oturum_calisanlari()` (T-104). Kim neyi görür değişmedi |
+| `supabase/tests/rls_hizi_testi.sql` | RLS hızı: politika yapısı, 8 oturumda görünen satırların eski politikalarla eşdeğerliği, Montaj amirinin Departmanlar ve Vardiya planı okumaları 500 ms altında (örnek veriyle) için 28 test |
+| `supabase/migrations/20261207010000_ay_kilidi_zamani.sql` | `ay_kilitle`: ayın son günü İstanbul tarihiyle bugünden önce değilse ret, zorla da (T-89). `pdks.bugun()`: testler için `pdks.test_bugun` ayarı, yalnızca `session_user = 'postgres'` iken |
+| `supabase/tests/ay_kilidi_zamani_testi.sql` | Ay kilidi zamanı: içinde bulunulan, gelecek ve iki ay sonraki ay ret; bitmiş ay kabul; ayın son günü sınırı; tarih ayarının yalnızca doğrudan bağlantıda geçerliliği için 10 test |
+| `supabase/migrations/20261208010000_kullanici_cift_kayit.sql` | `kullanici` tablosundaki iki çift kayıt kaldırıldı (T-105). `izinli_mi` kolonu silindi; amirin izni `izin` tablosundan okunur (`kullanici_izinli_mi`), izinli amirin sorusu vekile gider. `ad_soyad` artık çalışan kaydından yazılır (trigger `kullanici_ad_soyad`, `calisan_adi_degisti`); `kullanici_ekle` ad soyad almaz |
+| `supabase/tests/kullanici_cift_kayit_testi.sql` | İzin tablosuna göre soru yönlendirmesi (izin, rapor, iptal, izin bitişi, vekilsiz departman), çalışandan gelen ad soyad ve yeni `kullanici_ekle` için 20 test |
+| `supabase/migrations/20261209010000_kodsuz_gun.sql` | `ay_kilitle`: puantaja kodsuz girecek gün varsa zorlamadan ret (sicil, gün, neden; en çok 10 gün); zorla kilitte "Zorla geçilenler" ve özette `kodsuz_gun_listesi` (T-90, T-101) |
+| `supabase/tests/kodsuz_gun_testi.sql` | Kodsuz gün: zorlamadan ret ve mesajdaki gün listesi (10 gün sınırı), zorla kilit özeti, kodsuz gün yokken kilit için 8 test |
+| `supabase/migrations/20261210010000_ikinci_eskale.sql` | `amir_sorusu.ik_eskale_zamani`; `gece_isi_eskale` ikinci kademe (üst amir de cevaplamazsa `ik_karari_bekliyor`); `soru_ik_karari` her açık soruyu kabul eder (T-39) |
+| `supabase/tests/soru_eskale_testi.sql` | Soru eskalasyonu: amir → üst amir → İK, süre sınırları, bir gecede bir kademe, üst amiri olmayan amir, İK'nın her açık soruya kararı ve gün hesabı için 17 test |
+| `supabase/migrations/20261211010000_cikmis_hesap.sql` | `kullanici_guncelle` işten ayrılmış çalışanın hesabını açmaz; `oturum_kullanici_id` bağlı çalışanın aktif olmasını şart koşar; açık kalmış hesaplar kapatılır (T-71) |
+| `supabase/tests/cikmis_hesap_testi.sql` | Çıkmış çalışanın hesabı: yeniden açma reddi, elle açık hesapla oturum ve işlem yok, çalışmaya devam edenin hesabı için 8 test |
+| `supabase/migrations/20261212010000_ayar_sinirlari.sql` | `ayar.en_az` / `en_cok` / `puantaji_etkiler`; `ayar_guncelle(text, text)` aralığı, mola sıralamasını ve tam sayıyı denetler; `puantaj_ayari_degisti` uyarısı (T-74) |
+| `supabase/tests/ayar_sinirlari_testi.sql` | Ayar sınırları: her ayarda aralık dışı ret ve sınır değer kabul, yasal sınırlar, mola sıralaması, geçersiz giriş, İK'ya uyarı için 68 test |
+| `supabase/migrations/20261213010000_yukleyen.sql` | `aktarim.yukleyen_id`; `dosya_yukle` yükleyeni oturumdan yazar, kendi okutmasını içeren dosyada `kendi_okutmasi_yuklendi` uyarısı yazar; yükleyen bu uyarıyı görmez (`uyari` okuma politikası, `oturum_calisan_id`) (T-13) |
+| `supabase/tests/yukleyen_testi.sql` | Yükleyen: kayıt, asıl ve geçici kart, kapı dosyası, yeniden gelen okutma, uyarıyı kim görür / kapatır için 21 test |
+| `supabase/migrations/20261214010000_rapor_gizliligi.sql` | `duzeltme.amir_okur` kaldırıldı; `v_duzeltme_amir` görünümü (kendi çalışanları, gizli gerekçe, "raporlu" → "izinli") (T-12) |
+| `supabase/tests/rapor_gizliligi_testi.sql` | Rapor gizliliği: tablo amire kapalı, görünümün gizlediği ve gösterdiği alanlar, departman sınırı, yetkiler için 19 test |
+| `supabase/migrations/20261215010000_ik_karar_gerekcesi.sql` | `amir_sorusu.ik_karari`; `soru_ik_karari` gerekçeyi yalnızca `duzeltme`'ye yazar; `v_duzeltme_amir` İK soru kararında da gerekçeyi gizler; eski kayıtlar temizlenir (T-106) |
+| `supabase/tests/ik_karar_gerekcesi_testi.sql` | İK karar gerekçesi: amirin okuyabildiği her yer taranır, sonuç ve amirin kendi notu görünür, İK / yönetici gerekçeyi görür için 13 test |
+| `supabase/migrations/20261216010000_ekran_metinleri.sql` | `ayar.ad` / `kategori` / `sira`; `sure_metni`, `ayar_degeri_metni`, `soru_cevabi_adi`; 21 fonksiyonda yalnızca metin |
+| `supabase/tests/ekran_metinleri_testi.sql` | Ekran metinleri: ayar ad ve açıklamaları, süre metni, cevap adları, eski ifadeler için 8 test |
+| `supabase/migrations/20261217010000_oturum_yardimcilari.sql` | `oturum_rolu`, `oturum_calisan_id`, `oturum_departmanlari`, `oturum_calisanlari`, `amirin_calisani_mi` oturumu kendi içlerinde de `(select pdks.f())` ile bir kez sorar (T-108). Sonuçları ve yetkileri aynı |
+| `supabase/migrations/20261218010000_cakisan_izin.sql` | `izin_gir` kesişen geçerli izni, `saatlik_izin_gir` tam gün izinli günü reddeder (T-47) |
+| `supabase/tests/cakisan_izin_testi.sql` | Çakışan izin: kesişme ve sınır günleri, iptal sonrası, başka İK, saatlik izin için 18 test |
+| `supabase/migrations/20261219010000_cikis_okutma.sql` | `isten_cikis_gir` çıkış gününden sonraki ham okutmayı da denetler (`cikistan_sonraki_okutma`) (T-65) |
+| `supabase/tests/cikis_okutma_testi.sql` | İşten çıkışta okutma denetimi: işlenmemiş / plansız gün, gece vardiyası penceresi, geçici kart, iptal kart, saat dilimi için 19 test |
+| `supabase/migrations/20261220010000_havuz_yazili_onay.sql` | `fazla_mesai_inceleme.yazili_onaysiz`; yazılı onay yokken onaylanan havuz kaydı işaretlenir, `yazili_onay_eksik` uyarısı yazılır (T-56) |
+| `supabase/tests/havuz_yazili_onay_testi.sql` | Yazılı onaysız havuz onayı: dakika, işaret, uyarı, imza tarihi, sonradan gelen belge, ret, kilitli ay için 15 test |
+| `supabase/migrations/20261221010000_yillik_fazla_mesai.sql` | `v_fm_yillik_gun`, `fm_yillik_toplam`; `v_fazla_mesai_yillik` aynı hesabı gösterir (T-62); plan bununla reddedilir, aşan havuz onayı `fazla_mesai_inceleme.yillik_sinir_asildi` ile işaretlenir (T-57) |
+| `supabase/tests/yillik_fazla_mesai_testi.sql` | Yıllık sınır: plan reddi, tatil, çift sayım, havuz işareti, uyarı, kilitli ay, yıllık görünüm (T-62) için 22 test |
+| `supabase/migrations/20261222010000_arife.sql` | Arifede çalışma 13:00'te biter, sonrası FM100 (`arife_siniri`, `vardiya_ham_araligi`); 2026–2027 arifeleri (T-28) |
+| `supabase/tests/arife_testi.sql` | Arife: erken çıkış, FM100, yazılı onaysız, gece vardiyası, gelmeyen, kod, esnek, yıllık toplam, takvim için 28 test |
+| `supabase/migrations/20261223010000_rol_onayi.sql` | İK / admin rolü iki adımlı (`rol_onerisi`, `rol_onerisi_karar`); hesap değişikliklerinin izi `kullanici_gecmisi` (T-72, T-33; +2 tablo) |
+| `supabase/tests/rol_onayi_testi.sql` | Rol onayı: yeni hesap, yükseltme, pasif hesabı açma, görevler ayrılığı, iptal, geçmiş, yetkiler için 38 test |
+| `supabase/migrations/20261224010000_plansiz_gun.sql` | Planı olmayan günün okutması: `plansiz_gun_calismasi` uyarısı (İK, amir) ve havuz kaydı (`gece_isi_plansiz`) (T-79) |
+| `supabase/tests/plansiz_gun_testi.sql` | Plansız gün: uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, kilit, görünürlük için 40 test |
+| `supabase/migrations/20261225010000_gecmis_izin.sql` | İşlenmiş güne girilen izin günü düzeltir ve soruyu kapatır, iptal geri alır; İK düzeltmesi soruyu kapatır; izinli güne devamsız denemez (T-46, T-40) |
+| `supabase/tests/gecmis_izin_testi.sql` | Geçmiş güne izin, okutmalı gün, devamsız denetimi, izin iptali, İK düzeltmesi ve soru, kilitli ay için 29 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -94,7 +137,10 @@ olarak veritabanının içinde çalışır.
 5. **Çalışan aleyhine kararı İK verir.** "devamsız" kararı, itirazın reddi ve ayın kilitlenmesi yalnızca
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
    Sistem en fazla `devamsiz_suphesi` der.
-6. **Ay sonu kilidi (sorun 11).** Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
+6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
+   Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
+   adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).
+   Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
    gelen düzeltme sonraki açık aya `fark_satiri = true` olarak yazılır. Puantaj (`puantaj_satiri`)
    yalnızca kilitli aya yazılır ve sonra değiştirilemez. Kilit önce ayın hesabı bekleyen günlerini hesaplar;
    gece işinden geçmemiş planlı gün varken (zorla bile) kilitlemez, çünkü kilitten sonra o güne gün kaydı açılamaz.
@@ -128,7 +174,7 @@ olarak veritabanının içinde çalışır.
 | 9 Geç kalma / erken çıkış | `gun_kaydi.gec_kalma_dk / erken_cikis_dk`, `hesap_tamam`; `resmi_tatil`; tolerans 10 / 5 dk ve isteğe bağlı yuvarlama (`tolerans_yuvarlama_dk`) |
 | 11 Excel'de düzeltme | Tüm düzeltme sistemde; `donem` kilidi ve fark satırı |
 | 12 İz olmaması | `duzeltme` (silinemez), görevler ayrılığı (kimse kendi kaydında işlem yapamaz) |
-| 13 Ay sonu yığılması | `amir_sorusu.son_cevap_tarihi`, `eskale_*`, `kullanici.ust_amir_id`, `departman.vekil_amir_id`, `gece_isi` + `v_gece_isi_durumu` |
+| 13 Ay sonu yığılması | `amir_sorusu.son_cevap_tarihi`, `eskale_*`, `kullanici.ust_amir_id`, `departman.vekil_amir_id` (amir bugün `izin` tablosunda izinliyse soru vekile gider), `gece_isi` + `v_gece_isi_durumu` |
 | 14 İzin/rapor | `izin` (gün), `saatlik_izin` (saat aralığı, vizite dahil); amir `v_izin_amir` ve `v_saatlik_izin_amir` görünümlerinden yalnızca "izinli" / "saatlik izin" görür |
 | 16 Tesis kayıtları (basit) | `aktarim` (aynı dosya iki kez yüklenemez), `kanit_kaydi` |
 | 6 Kart paylaşımı | `kart_paylasim_kontrol()`: aynı PDKS okuyucusunda `ayar.kart_paylasim_sn` saniye içinde arka arkaya okutan iki farklı çalışan, ayda `ayar.kart_paylasim_gun` farklı günde tekrar ederse `uyari` (`kart_paylasim_suphesi`). Tek seferlik olay uyarı değil; ceza yok, karar İK'da |
@@ -144,6 +190,9 @@ erDiagram
     kullanici ||--o{ departman : "amiri / vekili"
     kullanici ||--o{ kullanici : "üst amir"
     calisan ||--o| kullanici : "kullanıcı hesabı"
+    kullanici ||--o{ rol_onerisi : "öneri / karar"
+    kullanici ||--o{ kullanici_gecmisi : "değişiklik izi"
+    rol_onerisi |o--o{ kullanici_gecmisi : "dayanak"
     calisan ||--o{ kart : "sahibi"
     gecici_kart ||--o{ gecici_kart_zimmet : "zimmetleri"
     calisan ||--o{ gecici_kart_zimmet : "aldığı geçici kartlar"
@@ -305,23 +354,24 @@ Diyagramda okunurluk için yalnızca önemli sütunlar var. `ayar`, `ayar_gecmis
 
 | Kural | Nerede |
 |---|---|
-| Her yıl yazılı onay; yoksa fazla mesai planlanamaz | `fazla_mesai_onayi` (yalnızca İK girer, silinemez), `fm_onay_gecerli_mi()` |
+| Her yıl yazılı onay; yoksa fazla mesai planlanamaz. Fiilen yapılmışsa havuzdan onaylanabilir, `yazili_onaysiz` işaretlenir | `fazla_mesai_onayi` (yalnızca İK girer, silinemez), `fm_onay_gecerli_mi()` |
 | Onay geri alınır, bildirimden 30 gün sonra geçersiz olur | `geri_alma_bildirim_tarihi` → `gecerlilik_bitisi`; sonraki planlar kendiliğinden `iptal`, `uyari` (`fm_onay_geri_alindi`) |
 | Önceden plan: amir talep eder, İK onaylar/reddeder | `fazla_mesai_plani` (`talep → onaylandi / reddedildi / iptal`), silinemez |
 | Günlük toplam ≤ 11 saat | vardiya süresi + `planli_dk` ≤ `ayar.gunluk_azami_calisma_dk` |
-| Yılda ≤ 270 saat (takvim yılı) | onaylı planlar toplamı ≤ `ayar.fm_yillik_sinir_dk`; %80'de `uyari` (`fm_yillik_sinir_yaklasti`) |
+| Yılda ≤ 270 saat (takvim yılı) | `fm_yillik_toplam` (onaylı plan + onaylı havuz + tatil çalışması) ≤ `ayar.fm_yillik_sinir_dk`, plan talebinde ve onayında; havuz onayında aşım işaretlenir (`yillik_sinir_asildi`); %80'de `uyari` (`fm_yillik_sinir_yaklasti`) |
 | Gece vardiyasına fazla mesai yok (m.69) | gece yarısını aşan vardiyaya plan girilemez |
 | Puantaja yalnızca onaylı kadarı girer | `gun_kaydi.fazla_mesai_dk` ≤ onaylı `planli_dk` + İK'nın havuzdan onayı (+ FM100 gününde vardiya süresi) (trigger), `puantaj_satiri.fazla_mesai_dk`, `v_puantaj_canli` |
-| Onaysız fazla mesai havuzu | `fazla_mesai_inceleme`: plansız ya da planı aşan süre (`vardiya_sonrasi`) ve yazılı onayı olmayanın Pazar / resmi tatil çalışması (`tatil_calismasi`) `inceleme_bekliyor` olarak bekler. Kararı yalnızca İK verir (`fazla_mesai_inceleme_karar`); ret gerekçesi zorunlu, karar değişmez, kayıt silinmez. Bekleyen kayıt varsa ay kilitlenmez (`p_zorla` ile geçilir) |
-| FM50 / FM100 | FM100 = Pazar + tam gün resmi tatil (`cumartesi_hafta_sonu = 1` ise Cumartesi de); bu günlerde yazılı onay varsa tüm çalışma FM100. Diğer günlerde vardiyayı aşan onaylı süre FM50. Gün türüne `is_gunu` (vardiyanın başladığı gün) bakılır; arife (yarım gün) normal iş günüdür |
+| Onaysız fazla mesai havuzu | `fazla_mesai_inceleme`: plansız ya da planı aşan süre (`vardiya_sonrasi`) ve yazılı onayı olmayanın Pazar / resmi tatil çalışması ile planı olmayan günün bütün çalışması (`tatil_calismasi`) `inceleme_bekliyor` olarak bekler. Kararı yalnızca İK verir (`fazla_mesai_inceleme_karar`); ret gerekçesi zorunlu, karar değişmez, kayıt silinmez. Bekleyen kayıt varsa ay kilitlenmez (`p_zorla` ile geçilir) |
+| FM50 / FM100 | FM100 = Pazar + tam gün resmi tatil (`cumartesi_hafta_sonu = 1` ise Cumartesi de); bu günlerde yazılı onay varsa tüm çalışma FM100. Diğer günlerde vardiyayı aşan onaylı süre FM50. Gün türüne `is_gunu` (vardiyanın başladığı gün) bakılır; arifede (`resmi_tatil.yarim_gun`) 13:00'e kadar normal, sonrası FM100 (yazılı onay yoksa havuz). Arife gecesi başlayan vardiyanın tamamı FM100 |
 
 Sınırlar **onay anında** veritabanında kontrol edilir; ekran atlansa bile delinemez.
 Fazla mesai burada basitçe "planlı vardiya bitişinden sonra çalışılan süre"dir (haftalık 45 saat hesabı kapsam dışı).
 Süreler dakika olarak tutulur. Plansız ya da planı aşan çalışmayı gece işi puantaja yazmaz;
 İK'ya `fm_plansiz_calisma`, `fm_onay_yok` veya `fm_gunluk_sinir_asildi` uyarısı yazar (eşik: `ayar.fm_plansiz_esik_dk`).
-İK ekranı için `v_fazla_mesai_yillik` görünümü çalışan başına onaylı, gerçekleşen ve kalan dakikayı verir.
+İK ekranı için `v_fazla_mesai_yillik` görünümü çalışan başına plan, havuz, gerçekleşen, toplam ve kalan dakikayı verir (sınır denetimiyle aynı hesap).
 
-İK havuzdaki kaydı onaylarsa süre puantaja girer. Onay sınırı aşsa da engellenmez (iş yapılmıştır);
+İK havuzdaki kaydı onaylarsa süre puantaja girer. Çalışanın o gün için geçerli yazılı onayı yoksa
+süre yine girer; kayıt `yazili_onaysiz` işaretlenir ve `yazili_onay_eksik` uyarısı yazılır (T-56). Onay sınırı aşsa da engellenmez (iş yapılmıştır);
 yıllık onaylı toplam 270 saati geçerse `fm_yillik_sinir_asildi` uyarısı yazılır. Kilitli aya ait bir kayıt
 onaylanırsa gün kaydı değişmez; etkisi (`fm50_etki_dk`, `fm100_etki_dk`, `calisma_etki_dk`) sonraki açık ayın
 puantajına fark satırı olarak girer.
@@ -362,7 +412,7 @@ Puantaj kodları (`pdks.gun_kodlari(yıl, ay)` her gün için, `puantaj_kalemi` 
 | RPR | Rapor | 1 | 0 |
 | DVMSZ | İK'nın devamsız kararı | 1 | 0 |
 | RT | Çalışılmayan tam gün resmi tatil | 1 | 0 |
-| HT | Vardiya planı olmayan gün (hafta tatili) | 1 | 0 |
+| HT | Vardiya planı olmayan gün (hafta tatili); o gün çalışılıp havuzdan onaylanırsa FM50; hafta tatili ve resmi tatilde FM100 (T-79) | 1 | 0 |
 
 Kararı bekleyen gün (eksik, soru bekliyor, devamsızlık şüphesi) kod almaz. `gun_kodlari` izin türünü
 içerdiği için yalnızca İK ve yönetici çağırabilir. Ay kilitlenince her normal satırın kalemleri yazılır;
@@ -379,7 +429,10 @@ Dosyalar ekrandan yüklenir (`dosya_yukle`; aynı dosya ikinci kez reddedilir). 
 4. **Kanıtla düzeltme:** giriş kanıtı (kapı, yoksa servis) + yürüme payı vardiya başından önceyse giriş = vardiya başı; esnek mesaide vardiya başı olmadığı için giriş = kanıt + yürüme payı (PDKS çıkışından önceyse). Çıkışta kanıttaki saat. Her düzeltme `duzeltme_uygula()` ile, kanıt ve varsa arıza dayanağıyla.
 5. **Amire soru:** okutmalar planlı vardiyaya uymuyor ama başka bir vardiyanın başına ve sonuna `ayar.oto_vardiya_esik_dk` (60) içinde uyuyorsa önce `vardiya_uyusmazligi` sorusu (öneri: vardiya, giriş, çıkış) açılır ve başka soru sorulmaz. Yoksa: kanıt yoksa `giris_yok` / `cikis_yok`, hiçbir iz yoksa `hic_kayit_yok`, giriş kanıtı vardiya başından sonraysa `kanit_vardiya_sonrasi` (öneri: kanıt + yürüme payı). Soru departman amirine (izinliyse vekiline) gider; amirin kendi kaydıysa üst amirine, üst amiri yoksa İK'ya.
 6. **Eskalasyon:** son cevap tarihi geçen açık soru üst amire (yoksa İK'ya) gider; `soru_eskale` uyarısı.
+   Üst amir de `soru_eskalasyon_gun` gün içinde cevaplamazsa soru İK'ya geçer (`ik_karari_bekliyor`,
+   `ik_eskale_zamani`; T-39). Bir gecede soru en çok bir kademe ilerler. İK her açık soruya karar verebilir.
 7. **Hesap:** giriş ve çıkışı belli, açık sorusu olmayan günlerde geç kalma, erken çıkış (toleranslarla), mola düşülmüş çalışma dakikası, onaylı kadar fazla mesai (FM50 / FM100) ve gece çalışması; `hesap_tamam = true`. Ardından onaysız süre havuza yazılır, gece sınırı aşıldıysa uyarı verilir. Tek günün hesabı `gun_hesapla(gün)`'dür; amir cevabı, İK kararı ve İK düzeltmesi de onu hemen çağırır (kilitli ayda değil). Saatlik izin sonrası yeniden hesap (`gun_hesabini_yenile`) aynı `gun_hesabi`'nı aynı parametrelerle kullanır; mola dahil sonuç aynıdır (testi `ay_kilidi_testi.sql`'de).
+   Planı hiç olmayan günde geçerli okutma varsa gün vardiyasız açılır, süre havuza düşer, `plansiz_gun_calismasi` uyarısı yazılır (T-79).
 8. **Uyarılar:** `fm_plansiz_calisma`, `fm_onay_yok`, `fm_gunluk_sinir_asildi`, `dosya_gelmedi`; geçici kart (`gecici_kart_kontrol`) ve kart paylaşımı (`kart_paylasim_kontrol`).
 
 Sistem devamsızlık kararı vermez; en fazla soru ve uyarı üretir.
@@ -424,7 +477,16 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 
 ## Bilinçli tercihler
 
+- İşlenmiş güne girilen izin, o günde okutma ya da saat kaydı yoksa günü izinli / raporlu yapar; varsa günü değiştirmez, İK'ya uyarı yazar. Tatil ve vardiyasız gün izinle değişmez (T-46).
+- İK ve admin rolü iki adımlıdır: admin önerir, başka bir İK kullanıcısı onaylar. Bu rollerden düşürme ve pasife alma tek adımdır (yetki azalır). Bu roldeki pasif hesabı açmak da onay ister (T-72).
+- Arifede çalışma 13:00'te biter: planlı bitiş 13:00'tür, sonrası FM100'dür; 13:00'ü `fm_plansiz_esik_dk` (15) kadar geçen çıkış çalışma sayılmaz. Esnek mesaide arife hedefi yarımdır, FM100 hedefe sayılmaz (T-28).
+- Tatil çalışması (Pazar, resmî tatil) da yıllık 270 saate sayılır (çalışanı koruyan seçenek). Sınır ileriye dönük planda ret sebebidir; fiilen yapılmış çalışma reddedilmez, puantaja girer, işaretlenir ve İK'ya bildirilir (T-57).
+- Yazılı fazla mesai onayı işveren yükümlülüğüdür. Yazılı onay yokken plan yapılamaz, ama fiilen yapılan çalışma İK onayıyla puantaja girer; eksiklik işaretlenir ve İK'ya bildirilir (T-56).
+- Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için); gerekçe ve izin türü ayrıntısı gizlidir. Amir düzeltmeleri `v_duzeltme_amir`'den okur: durum ve izin düzeltmelerinde gerekçe "İK tarafından düzeltildi", "raporlu" yerine "izinli". `gun_kaydi.durum` ve `v_puantaj_canli.raporlu_gun` API'den açıktır, ekranda "İzinli" görünür (T-12).
 - Değerler için enum yerine `text + check` kullandık: okunması ve yeni değer eklemesi daha kolay.
+- Bir bilgi tek yerde tutulur. `kullanici.ad_soyad` ekranların hızlı okuması için kalır, ama kaynağı `calisan.ad` / `soyad`'dır ve trigger'la eşit tutulur; elle yazılan ad geçersizdir. "Amir izinli mi?" ayrı bir bayrakla değil `izin` tablosundan cevaplanır (T-105).
+- "Bugün" her yerde `pdks.bugun()` (İstanbul tarihi) ile alınır, `current_date` kullanılmaz. Ekrandan (PostgREST) gelen istekler ve pg_cron UTC oturumla çalışır; `current_date` İstanbul 00:00–03:00 arasında dünü verir. Okutma zamanından gün türetirken de `(zaman at time zone 'Europe/Istanbul')::date` kalıbı kullanılır.
+- RLS politikalarında oturum fonksiyonları `(select pdks.oturum_rolu())` gibi `select` içinde yazılır. Böylece PostgreSQL onları satır başına değil, sorgu başına bir kez çalıştırır (T-104). Satıra bağlı bir kontrol gerekiyorsa (ör. "bu satırın çalışanı amirin mi?") önce liste bir kez alınır: `calisan_id = any ((select pdks.oturum_calisanlari())::bigint[])`. Yeni yazılan politikalar bu kalıba uyar; eski politikaların bir kısmı henüz çevrilmedi. Kural yardımcı fonksiyonların içi için de geçerlidir: bir tabloyu tarayan yardımcı (ör. `oturum_departmanlari`, `oturum_calisanlari`) oturum fonksiyonunu `where` içinde çıplak çağırırsa her satırda yeniden hesaplar (T-108).
 - `vardiya_plani` ve `izin` değiştirilebilir; bunların etkisi `gun_kaydi`'na yine `duzeltme` üzerinden yansır.
 - Geriye dönük plan, eski planın üzerine yazılır (eski plan saklanmaz). Gün çoğunlukla zaten eski planla işlenmiş olduğu için yeni plan ancak İK onayıyla, vardiya düzeltmesi olarak güne yansır; ret hiçbir şeyi değiştirmez.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.

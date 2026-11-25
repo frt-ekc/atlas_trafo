@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GrafikKarti, ParcaliCubuk } from "@/components/panel/grafik";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
+import { geciciKartIadeSaati } from "@/lib/ayar";
 import { tarih, tarihSaat, uzunTarih } from "@/lib/bicim";
 import { bugun } from "@/lib/hafta";
 import { ROL_ADI, oturumKullanicisi } from "@/lib/oturum";
@@ -20,7 +21,6 @@ async function say(sorgu: PromiseLike<SayimYaniti>, ne: string): Promise<number>
 }
 
 const SAYIM = { count: "exact", head: true } as const;
-const IADE_SURESI_SAAT = 16; // ayar: gecici_kart_iade_saat (güvenlik ayar tablosunu okuyamaz)
 
 export default async function AnaSayfa() {
   // Layout zaten kontrol etti; cache() sayesinde veritabanına tekrar gidilmez.
@@ -83,53 +83,53 @@ async function IkOzeti({ supabase, bugunTarih, saltOkur }: { supabase: Istemci; 
       "İzinler",
     ),
     supabase.from("vardiya_plani").select("tarih").eq("ik_onay_durumu", "bekliyor").order("tarih").limit(1).maybeSingle(),
-    supabase.from("gece_isi").select("islenen_gun, durum, bitis, hata_mesaji").order("baslangic", { ascending: false }).order("islenen_gun", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("gece_isi").select("islenen_gun, durum, bitis").order("baslangic", { ascending: false }).order("islenen_gun", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
-  const geceIsi = sonGeceIsi.data as { islenen_gun: string; durum: string; bitis: string | null; hata_mesaji: string | null } | null;
+  const geceIsi = sonGeceIsi.data as { islenen_gun: string; durum: string; bitis: string | null } | null;
   const ilkPlanTarihi = (ilkBekleyenPlan.data as { tarih: string } | null)?.tarih;
   const geceIsiYok = !geceIsi;
-  const bekliyorMetni = saltOkur ? "İK kararı bekliyor" : "Kararınızı bekliyor";
+  const bekliyorMetni = saltOkur ? "İK kararı bekliyor" : "Karar bekliyor";
 
   return (
     <>
       {geceIsiYok && (
         <Alert>
-          <AlertTitle>Gece işi henüz hiç çalışmadı</AlertTitle>
+          <AlertTitle>Gece işlemi henüz çalıştırılmadı</AlertTitle>
           <AlertDescription>
-            Günlük kayıtlar, amir soruları ve uyarılar gece işi çalışınca oluşur. O zamana kadar bu sayılar sıfır görünür.
+            Gün kayıtları, sorular ve uyarılar gece işleminden sonra görüntülenir.
           </AlertDescription>
         </Alert>
       )}
 
       <section aria-labelledby="bekleyen-baslik" className="flex flex-col gap-3">
-        <h2 id="bekleyen-baslik" className="text-lg font-semibold">Bekleyen işler</h2>
+        <h2 id="bekleyen-baslik" className="text-lg font-semibold">Bekleyen işlemler</h2>
         <OzetIzgarasi>
           <OzetKarti
             baslik="Geriye dönük vardiya değişikliği"
             deger={vardiyaOnayi}
-            aciklama={vardiyaOnayi ? bekliyorMetni : "Bekleyen yok"}
+            aciklama={vardiyaOnayi ? bekliyorMetni : "Bekleyen kayıt bulunmuyor"}
             href={ilkPlanTarihi ? `/vardiya-plani?hafta=${ilkPlanTarihi}` : "/vardiya-plani"}
             ton={vardiyaOnayi ? "dikkat" : "notr"}
           />
           <OzetKarti
             baslik="Fazla mesai talebi"
             deger={fmTalebi}
-            aciklama={fmTalebi ? bekliyorMetni : "Bekleyen yok"}
+            aciklama={fmTalebi ? bekliyorMetni : "Bekleyen kayıt bulunmuyor"}
             href="/fazla-mesai?durum=talep"
             ton={fmTalebi ? "dikkat" : "notr"}
           />
           <OzetKarti
-            baslik="İK kararı bekleyen kayıt"
+            baslik="İK kararı bekleyen soru"
             deger={ikKarariBekleyenSoru}
-            aciklama="Amirin 'gelmedi' dediği ya da cevapsız kalan günler"
+            aciklama="Karar bekliyor"
             href="/sorular?durum=ik"
             ton={ikKarariBekleyenSoru ? "dikkat" : "notr"}
           />
           <OzetKarti
             baslik="Açık itiraz"
             deger={acikItiraz}
-            aciklama={acikItiraz ? "Sonuçlandırılmayı bekliyor" : "Açık itiraz yok"}
+            aciklama={acikItiraz ? "Karar bekliyor" : "Açık itiraz bulunmuyor"}
             href="/itirazlar"
             ton={acikItiraz ? "dikkat" : "notr"}
           />
@@ -141,33 +141,33 @@ async function IkOzeti({ supabase, bugunTarih, saltOkur }: { supabase: Istemci; 
         <OzetIzgarasi>
           <OzetKarti baslik="İzinli çalışan" deger={bugunIzinli} aciklama={tarih(bugunTarih)} href={`/vardiya-plani?hafta=${bugunTarih}`} />
           <OzetKarti
-            baslik="Dışarıdaki geçici kart"
+            baslik="Zimmetli geçici kart"
             deger={acikZimmet}
-            aciklama={acikZimmet ? "İade edilmedi" : "Bütün kartlar güvenlikte"}
+            aciklama={acikZimmet ? "İade bekleniyor" : "Zimmetli kart bulunmuyor"}
             href="/gecici-kartlar"
           />
           <OzetKarti
-            baslik="Amirlerde bekleyen soru"
+            baslik="Cevap bekleyen soru"
             deger={acikSoru}
-            aciklama="Kanıt bulunamayan kayıtlar"
+            aciklama="Amir cevabı bekleniyor"
             href="/sorular?durum=bekleyen"
           />
           <OzetKarti
-            baslik="Görülmemiş uyarı"
+            baslik="Yeni uyarı"
             deger={gorulmemisUyari}
-            aciklama="Arıza, dosya gelmedi, kart paylaşımı şüphesi…"
+            aciklama="Henüz görüldü olarak işaretlenmedi"
             href="/uyarilar"
             ton={gorulmemisUyari ? "dikkat" : "notr"}
           />
         </OzetIzgarasi>
         {geceIsi && (
           <p className="text-sm text-muted-foreground">
-            Son gece işi: {tarih(geceIsi.islenen_gun)} günü ·{" "}
+            Son gece işlemi: {tarih(geceIsi.islenen_gun)} günü ·{" "}
             {geceIsi.durum === "basarili"
               ? `başarılı (${tarihSaat(geceIsi.bitis)})`
               : geceIsi.durum === "calisiyor"
-                ? "şu an çalışıyor"
-                : `hata verdi${geceIsi.hata_mesaji ? `: ${geceIsi.hata_mesaji}` : ""}`}
+                ? "çalışıyor"
+                : "işlem tamamlanamadı"}
           </p>
         )}
       </section>
@@ -208,20 +208,19 @@ async function DuzeltmeGrafigi({ supabase, bugunTarih }: { supabase: Istemci; bu
 
   return (
     <GrafikKarti
-      baslik="Hatalı kayıtlar nasıl düzeldi?"
+      baslik="Kayıt düzeltme dağılımı"
       aciklama={
         <>
-          Son 30 gün ({tarih(baslangic)} – {tarih(bugunTarih)}). Sistemin kimseye sormadan, kanıt ya da izin kaydıyla düzelttiği kayıt
-          oranı: <strong className="text-foreground">%{otomatikOran}</strong>
+          Son 30 gün ({tarih(baslangic)} – {tarih(bugunTarih)}). Sistem tarafından otomatik düzeltilen kayıt oranı: <strong className="text-foreground">%{otomatikOran}</strong>
         </>
       }
     >
       <ParcaliCubuk
         birim="kayıt"
         dilimler={[
-          { etiket: "Sistem düzeltti (kanıt / izin kaydı)", deger: sistem, renk: "var(--grafik-sistem)" },
-          { etiket: "Amirin cevabıyla düzeldi", deger: amir, renk: "var(--grafik-amir)" },
-          { etiket: "İK düzeltti", deger: ik, renk: "var(--grafik-ik)" },
+          { etiket: "Otomatik düzeltme", deger: sistem, renk: "var(--grafik-sistem)" },
+          { etiket: "Amir cevabı ile düzeltme", deger: amir, renk: "var(--grafik-amir)" },
+          { etiket: "İK düzeltmesi", deger: ik, renk: "var(--grafik-ik)" },
           { etiket: "Cevap bekliyor", deger: bekleyen, renk: "color-mix(in srgb, var(--grafik-bekliyor) 25%, transparent)", desenli: true, href: "/sorular?durum=tumu" },
         ]}
       />
@@ -273,27 +272,27 @@ async function AmirOzeti({ supabase, bugunTarih }: { supabase: Istemci; bugunTar
   return (
     <>
       <section aria-labelledby="bekleyen-baslik" className="flex flex-col gap-3">
-        <h2 id="bekleyen-baslik" className="text-lg font-semibold">Bekleyen işler</h2>
+        <h2 id="bekleyen-baslik" className="text-lg font-semibold">Bekleyen işlemler</h2>
         <OzetIzgarasi>
           <OzetKarti
             baslik="Cevap bekleyen soru"
             deger={bekleyenSoru}
-            aciklama={bekleyenSoru ? "Cevapsız soru 3 gün sonra üst amire ve İK'ya gider" : "Bekleyen soru yok"}
+            aciklama={bekleyenSoru ? "Süresinde cevaplanmayan sorular üst amire iletilir" : "Bekleyen soru bulunmuyor"}
             ton={bekleyenSoru ? "dikkat" : "notr"}
             href="/sorular"
           />
           <OzetKarti
-            baslik="Fazla mesai talebiniz"
+            baslik="Fazla mesai talebi"
             deger={fmTalebi}
-            aciklama={fmTalebi ? "İK kararı bekliyor" : "Bekleyen talep yok"}
+            aciklama={fmTalebi ? "İK kararı bekliyor" : "Bekleyen talep bulunmuyor"}
             href="/fazla-mesai?durum=talep"
           />
-          <OzetKarti baslik="Açık itiraz" deger={acikItiraz} aciklama="Bölümünüzdeki çalışanların itirazları" href="/itirazlar" />
+          <OzetKarti baslik="Açık itiraz" deger={acikItiraz} aciklama="Sorumlu olunan departmanlar" href="/itirazlar" />
         </OzetIzgarasi>
       </section>
 
       <section aria-labelledby="ekip-baslik" className="flex flex-col gap-3">
-        <h2 id="ekip-baslik" className="text-lg font-semibold">Bugün ekibiniz</h2>
+        <h2 id="ekip-baslik" className="text-lg font-semibold">Bugünkü ekip durumu</h2>
         <OzetIzgarasi>
           <OzetKarti
             baslik="Planlı çalışan"
@@ -308,7 +307,7 @@ async function AmirOzeti({ supabase, bugunTarih }: { supabase: Istemci; bugunTar
                   ))}
                 </span>
               ) : (
-                "Bugün planlı vardiya yok"
+                "Bugün için vardiya planı bulunmuyor"
               )
             }
             href={`/vardiya-plani?hafta=${bugunTarih}`}
@@ -324,15 +323,16 @@ async function AmirOzeti({ supabase, bugunTarih }: { supabase: Istemci; bugunTar
 // Güvenlik: geçici kartlar
 // ---------------------------------------------------------------------
 // Şimdiki zamana bakan hesap bileşenin dışında durur (bileşenler saf olmalı).
-function gecikenIadeSayisi(zimmetler: { verilis_zamani: string }[]): number {
+function gecikenIadeSayisi(zimmetler: { verilis_zamani: string }[], iadeSaati: number): number {
   const simdi = Date.now();
-  return zimmetler.filter((z) => simdi - new Date(z.verilis_zamani).getTime() > IADE_SURESI_SAAT * 3600_000).length;
+  return zimmetler.filter((z) => simdi - new Date(z.verilis_zamani).getTime() > iadeSaati * 3600_000).length;
 }
 
 async function GuvenlikOzeti({ supabase }: { supabase: Istemci }) {
-  const [kartSonucu, zimmetSonucu] = await Promise.all([
+  const [kartSonucu, zimmetSonucu, iadeSaati] = await Promise.all([
     supabase.from("gecici_kart").select("id, durum"),
     supabase.from("gecici_kart_zimmet").select("gecici_kart_id, verilis_zamani").is("iade_zamani", null),
+    geciciKartIadeSaati(supabase),
   ]);
   if (kartSonucu.error) throw new Error(`Geçici kartlar okunamadı: ${kartSonucu.error.message}`);
   if (zimmetSonucu.error) throw new Error(`Zimmetler okunamadı: ${zimmetSonucu.error.message}`);
@@ -341,18 +341,18 @@ async function GuvenlikOzeti({ supabase }: { supabase: Istemci }) {
   const zimmetler = zimmetSonucu.data ?? [];
   const zimmetliIdler = new Set(zimmetler.map((z) => z.gecici_kart_id));
   const bosta = kartlar.filter((k) => k.durum === "aktif" && !zimmetliIdler.has(k.id)).length;
-  const geciken = gecikenIadeSayisi(zimmetler);
+  const geciken = gecikenIadeSayisi(zimmetler, iadeSaati);
 
   return (
     <section aria-labelledby="kart-baslik" className="flex flex-col gap-3">
       <h2 id="kart-baslik" className="text-lg font-semibold">Geçici kartlar</h2>
       <OzetIzgarasi>
-        <OzetKarti baslik="Verilebilir kart" deger={bosta} aciklama={`${kartlar.length} karttan`} href="/gecici-kartlar" ton={bosta ? "iyi" : "dikkat"} />
-        <OzetKarti baslik="Dışarıdaki kart" deger={zimmetler.length} aciklama="Henüz iade edilmedi" href="/gecici-kartlar" />
+        <OzetKarti baslik="Kullanılabilir kart" deger={bosta} aciklama={`${kartlar.length} karttan`} href="/gecici-kartlar" ton={bosta ? "iyi" : "dikkat"} />
+        <OzetKarti baslik="Zimmetli kart" deger={zimmetler.length} aciklama="İade bekleniyor" href="/gecici-kartlar" />
         <OzetKarti
           baslik="Geciken iade"
           deger={geciken}
-          aciklama={`${IADE_SURESI_SAAT} saatten uzun süredir dışarıda`}
+          aciklama={`${iadeSaati} saatten uzun süredir zimmetli`}
           href="/gecici-kartlar"
           ton={geciken ? "dikkat" : "notr"}
         />
@@ -379,10 +379,10 @@ async function IsgOzeti({ supabase }: { supabase: Istemci }) {
     <section aria-labelledby="isg-baslik" className="flex flex-col gap-3">
       <h2 id="isg-baslik" className="text-lg font-semibold">İSG</h2>
       <OzetIzgarasi>
-        <OzetKarti baslik="Belgesi olmayan" deger={yok} aciklama="Mavi yaka, belge türü başına" href="/isg" ton={yok ? "dikkat" : "iyi"} />
+        <OzetKarti baslik="Belgesi olmayan" deger={yok} aciklama="Mavi yaka, belge türü bazında" href="/isg" ton={yok ? "dikkat" : "iyi"} />
         <OzetKarti baslik="Süresi dolmuş" deger={dolmus} href="/isg" ton={dolmus ? "dikkat" : "iyi"} />
         <OzetKarti baslik="Süresi doluyor" deger={doluyor} aciklama="Uyarı süresi içinde" href="/isg" ton={doluyor ? "dikkat" : "notr"} />
-        <OzetKarti baslik="Görülmemiş uyarı" deger={uyari} aciklama="İSG ve yetkisiz bölge" href="/uyarilar" ton={uyari ? "dikkat" : "notr"} />
+        <OzetKarti baslik="Yeni uyarı" deger={uyari} aciklama="İSG ve yetkisiz bölge" href="/uyarilar" ton={uyari ? "dikkat" : "notr"} />
       </OzetIzgarasi>
     </section>
   );
@@ -404,11 +404,11 @@ async function AdminOzeti({ supabase }: { supabase: Istemci }) {
       <h2 id="admin-baslik" className="text-lg font-semibold">Sistem</h2>
       <OzetIzgarasi>
         <OzetKarti baslik="Aktif kullanıcı" deger={aktif} href="/kullanicilar" />
-        <OzetKarti baslik="Giriş hesabı yok" deger={hesapsiz} aciklama="Supabase Auth'ta açılmalı" href="/kullanicilar" ton={hesapsiz ? "dikkat" : "iyi"} />
+        <OzetKarti baslik="Giriş hesabı bekleyen" deger={hesapsiz} aciklama="Giriş hesabı oluşturulmalıdır" href="/kullanicilar" ton={hesapsiz ? "dikkat" : "iyi"} />
         <OzetKarti
-          baslik="Son gece işi"
+          baslik="Son gece işlemi"
           deger={gece ? (gece.durum === "basarili" ? "Başarılı" : gece.durum === "hatali" ? "Hatalı" : "Çalışıyor") : "—"}
-          aciklama={gece ? `${tarih(gece.islenen_gun)} günü${gece.hata_mesaji ? ` · ${gece.hata_mesaji}` : ""}` : "Hiç çalışmadı"}
+          aciklama={gece ? `${tarih(gece.islenen_gun)} günü${gece.hata_mesaji ? ` · ${gece.hata_mesaji}` : ""}` : "Kayıt bulunmuyor"}
           ton={gece?.durum === "hatali" ? "dikkat" : gece ? "iyi" : "notr"}
         />
       </OzetIzgarasi>

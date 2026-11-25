@@ -2,25 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
-import { metinAl, rpcCagir, sayiAl, sicildenCalisan } from "@/lib/supabase/rpc";
+import { kararAl, metinAl, rpcCagir, sayiAl, sicildenCalisan } from "@/lib/supabase/rpc";
+import { sunucuIstemcisi } from "@/lib/supabase/server";
 
 const ROLLER = ["amir", "ik", "guvenlik", "yonetici", "isg", "admin"];
 
 // Sistem yöneticisi sisteme girecek kişiyi tanımlar. Giriş hesabı Supabase Auth'ta aynı e-postayla
 // açılır; hesap zaten varsa hemen bağlanır. Admin kendine hesap açamaz (görevler ayrılığı).
+// Ad soyad yazılmaz: veritabanı onu çalışan kaydından alır (T-105).
 export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
-  const adSoyad = metinAl(form, "ad_soyad");
   const eposta = metinAl(form, "eposta");
   const rol = metinAl(form, "rol");
-  if (!adSoyad || adSoyad.length < 3) return { durum: "hata", mesaj: "Ad soyad yazın." };
-  if (!eposta) return { durum: "hata", mesaj: "E-posta yazın." };
-  if (!rol || !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Rolü seçin." };
+  if (!eposta) return { durum: "hata", mesaj: "E-posta adresi girilmelidir." };
+  if (!rol || !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Rol seçilmelidir." };
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
 
   const sonuc = await rpcCagir<number>("kullanici_ekle", {
-    p_ad_soyad: adSoyad,
     p_eposta: eposta,
     p_rol: rol,
     p_calisan_id: bulunan.calisan.id,
@@ -28,15 +27,19 @@ export async function kullaniciEkle(_onceki: IslemSonucu, form: FormData): Promi
   });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/kullanicilar");
-  return { durum: "tamam", mesaj: `${adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı Supabase Auth'ta aynı e-postayla açılmalı.` };
+  if (rol === "ik" || rol === "admin") {
+    return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} için hesap pasif olarak tanımlandı ve İK onayına gönderildi. Giriş hesabı aynı e-posta adresiyle oluşturulmalıdır.` };
+  }
+  return { durum: "tamam", mesaj: `${bulunan.calisan.adSoyad} kullanıcı olarak tanımlandı. Giriş hesabı aynı e-posta adresiyle oluşturulmalıdır.` };
 }
 
+// İK / admin rolü verme ve bu roldeki pasif hesabı açma İK onayına gider; onaya kadar hesap eski hâlinde kalır (T-72).
 // Rol, üst amir ya da aktiflik değişir; gönderilmeyen alan değişmez. Admin kendi hesabını değiştiremez.
 export async function kullaniciGuncelle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
   const kullaniciId = sayiAl(form, "kullanici_id");
   const rol = metinAl(form, "rol");
-  if (!kullaniciId) return { durum: "hata", mesaj: "Kullanıcı seçilmedi." };
-  if (rol && !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Geçersiz rol." };
+  if (!kullaniciId) return { durum: "hata", mesaj: "Kullanıcı seçilmelidir." };
+  if (rol && !ROLLER.includes(rol)) return { durum: "hata", mesaj: "Geçerli bir rol seçilmelidir." };
 
   const sonuc = await rpcCagir("kullanici_guncelle", {
     p_kullanici_id: kullaniciId,
@@ -46,5 +49,29 @@ export async function kullaniciGuncelle(_onceki: IslemSonucu, form: FormData): P
   });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/kullanicilar");
+
+  const supabase = await sunucuIstemcisi();
+  const { data: bekleyen } = await supabase
+    .from("rol_onerisi")
+    .select("id")
+    .eq("kullanici_id", kullaniciId)
+    .eq("durum", "bekliyor")
+    .maybeSingle();
+  if (bekleyen) return { durum: "tamam", mesaj: "Kullanıcı güncellendi. Rol değişikliği İK onayı bekliyor." };
   return { durum: "tamam", mesaj: "Kullanıcı güncellendi." };
+}
+
+// İK, sistem yöneticisinin önerdiği rol değişikliğine karar verir (öneren ve hesabın sahibi karar veremez).
+export async function rolOnerisiKarari(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
+  const oneriId = sayiAl(form, "oneri_id");
+  const onay = kararAl(form);
+  const aciklama = metinAl(form, "aciklama");
+  if (!oneriId) return { durum: "hata", mesaj: "Kayıt seçilmelidir." };
+  if (onay === null) return { durum: "hata", mesaj: "Onay veya ret seçilmelidir." };
+  if (!onay && (!aciklama || aciklama.length < 5)) return { durum: "hata", mesaj: "Ret gerekçesi girilmelidir." };
+
+  const sonuc = await rpcCagir("rol_onerisi_karar", { p_oneri_id: oneriId, p_onay: onay, p_aciklama: aciklama });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
+  revalidatePath("/kullanicilar");
+  return { durum: "tamam", mesaj: onay ? "Rol değişikliği onaylandı." : "Rol değişikliği reddedildi." };
 }

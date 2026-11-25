@@ -9,6 +9,8 @@
 \pset tuples_only on
 \pset format unaligned
 begin;
+-- Bu test Kasım / Aralık 2026'yı kilitler; ay bitmeden kilit olmadığı için (T-89) bugün 15.01.2027 kabul edilir
+set local pdks.test_bugun = '2027-01-15';
 set local timezone = 'Europe/Istanbul';
 
 create schema test;
@@ -247,8 +249,8 @@ select test.dogrula('Pazar çalışması (yazılı onay yok): puantaja girmedi, 
     and (select tur = 'tatil_calismasi' and dakika = 542 and durum = 'inceleme_bekliyor' from test.hv('PK05', '2026-10-04')));
 select test.dogrula('resmi tatilde çalışılan gün "tatil" değil, FM100',
     (select durum = 'tamam' and fm100_dk = 480 from test.gk('PK06', '2026-10-29')));
-select test.dogrula('arife (yarım gün tatil) normal iş günü sayılır',
-    (select fm100_dk = 0 and calisma_dk = 480 from test.gk('PK06', '2026-10-28')));
+select test.dogrula('arife: 13:00 sonrası vardiya içi çalışma FM100 (T-28)',
+    (select fm100_dk = 240 and calisma_dk = 480 from test.gk('PK06', '2026-10-28')));
 select test.dogrula('resmi tatilde okutması olmayan gün "tatil"',
     (select durum = 'tatil' and hesap_tamam from test.gk('PK07', '2026-10-29')));
 update pdks.ayar set deger = 1 where anahtar = 'cumartesi_hafta_sonu';

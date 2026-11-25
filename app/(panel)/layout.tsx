@@ -39,9 +39,9 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
       <main className="flex flex-1 items-center justify-center px-4">
         <div className="flex w-full max-w-md flex-col gap-4">
           <Alert>
-            <AlertTitle>Hesabınız sisteme bağlı değil</AlertTitle>
+            <AlertTitle>Hesap tanımlı değil</AlertTitle>
             <AlertDescription>
-              Giriş yaptınız, ancak hesabınız bir PDKS kullanıcısına bağlı değil ya da pasif. İK ile görüşün.
+              Hesap, aktif bir PDKS kullanıcısına bağlı değil. İnsan Kaynakları ile iletişime geçilmelidir.
             </AlertDescription>
           </Alert>
           <form action={cikisYap}>

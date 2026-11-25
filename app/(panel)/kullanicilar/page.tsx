@@ -14,6 +14,7 @@ import { tekDeger } from "@/lib/arama";
 import { ROL_ADI, rolGerekli, type Rol } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
+import { BekleyenRoller, type RolOnerisi } from "./bekleyen-roller";
 import { kullaniciEkle, kullaniciGuncelle } from "./actions";
 
 export const metadata = { title: "Kullanıcılar" };
@@ -30,15 +31,36 @@ type Kullanici = {
 };
 
 // Sistem yöneticisi: kimin hangi rolle gireceğini yönetir. Çalışan kayıtları üzerinde karar veremez;
-// kendi hesabını değiştiremez (görevler ayrılığı).
+// kendi hesabını değiştiremez (görevler ayrılığı). İK yalnızca onay bekleyen rol değişikliklerini görür (T-72).
 export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/kullanicilar">) {
-  const kullanici = await rolGerekli(["admin"]);
+  const kullanici = await rolGerekli(["admin", "ik"]);
   const parametre = await searchParams;
   const rolSuzgeci = tekDeger(parametre.rol);
   const durumSuzgeci = tekDeger(parametre.durum);
   const araMetni = tekDeger(parametre.ara).slice(0, 100);
   const uyar = aramaSuzgeci(araMetni);
   const supabase = await sunucuIstemcisi();
+
+  const oneriler = await tumSatirlar<RolOnerisi>((bas, son) =>
+    supabase
+      .from("rol_onerisi")
+      .select(
+        "id, kullanici_id, oneren_id, eski_rol, yeni_rol, yeni_hesap, aktif_yap, oneri_zamani, " +
+          "kullanici:kullanici!kullanici_id(ad_soyad, eposta), calisan:calisan_id(sicil_no, ad, soyad), " +
+          "oneren:kullanici!oneren_id(ad_soyad)",
+      )
+      .eq("durum", "bekliyor")
+      .order("id")
+      .range(bas, son),
+  );
+  if (kullanici.rol === "ik") {
+    return (
+      <div className="flex flex-col gap-5">
+        <h1 className="text-2xl font-semibold">Kullanıcılar</h1>
+        <BekleyenRoller oneriler={oneriler} kararVerebilir benId={kullanici.id} />
+      </div>
+    );
+  }
 
   const [kullanicilar, calisanlar] = await Promise.all([
     tumSatirlar<Kullanici>((bas, son) =>
@@ -74,28 +96,28 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Kullanıcılar</h1>
         <p className="text-sm text-muted-foreground">
-          Sisteme giren her kişi bir çalışan kaydına bağlıdır. Giriş hesabı Supabase Auth&apos;ta aynı e-postayla açılır; açılınca
-          kendiliğinden bağlanır. Kullanıcı silinmez, pasif yapılır.
+          Her kullanıcı bir çalışan kaydına bağlıdır. Giriş hesabı aynı e-posta adresiyle oluşturulduğunda kullanıcıya otomatik olarak bağlanır. Kullanıcılar silinmez, pasife alınır.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {kullanicilar.length} kullanıcı · {kullanicilar.filter((k) => !k.auth_kullanici_id).length} tanesinin giriş hesabı yok
+          {kullanicilar.length} kullanıcı · {kullanicilar.filter((k) => !k.auth_kullanici_id).length} giriş hesabı bekliyor
         </p>
         <IslemPenceresi
           dugme="Kullanıcı ekle"
           dugmeTuru="default"
           baslik="Yeni kullanıcı"
-          aciklama="Kendinize hesap açamazsınız. Aynı e-posta ya da hesabı olan çalışan reddedilir."
+          aciklama="Her çalışan ve e-posta adresi için yalnızca bir kullanıcı tanımlanabilir. Kullanıcı kendisine hesap tanımlayamaz. İnsan Kaynakları ve sistem yöneticisi hesapları İK onayına kadar pasif kalır."
           onay="Ekle"
           islem={kullaniciEkle}
         >
-          <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır.">
+          <Alan
+            etiket="Çalışanın sicil numarası"
+            htmlFor="sicil"
+            ipucu="Ad soyad bilgisi çalışan kaydından alınır."
+          >
             <Input id="sicil" name="sicil" list="k-calisanlar" required autoComplete="off" inputMode="numeric" />
-          </Alan>
-          <Alan etiket="Ad soyad" htmlFor="ad_soyad">
-            <Input id="ad_soyad" name="ad_soyad" required minLength={3} maxLength={100} />
           </Alan>
           <Alan etiket="E-posta" htmlFor="eposta">
             <Input id="eposta" name="eposta" type="email" required maxLength={200} />
@@ -118,6 +140,8 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
         <CalisanListesi id="k-calisanlar" calisanlar={calisanlar} />
       </div>
 
+      {oneriler.length > 0 && <BekleyenRoller oneriler={oneriler} kararVerebilir={false} benId={kullanici.id} />}
+
       <FiltreCubugu temizleAdres="/kullanicilar" suzgecVar={suzgecVar}>
         <FiltreAlani etiket="Rol" htmlFor="rol-suzgec">
           <Secim id="rol-suzgec" name="rol" defaultValue={rolSuzgeci}>
@@ -130,16 +154,16 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
             <option value="">Tümü</option>
             <option value="aktif">Aktif</option>
             <option value="pasif">Pasif</option>
-            <option value="hesapsiz">Giriş hesabı olmayanlar</option>
+            <option value="hesapsiz">Giriş hesabı bekleyenler</option>
           </Secim>
         </FiltreAlani>
         <FiltreAlani etiket="Ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, e-posta ya da sicil" />
+          <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, e-posta veya sicil" />
         </FiltreAlani>
       </FiltreCubugu>
 
       {gosterilen.length === 0 ? (
-        <BosDurum aciklama={suzgecVar ? "Süzgeçlere uyan kullanıcı yok. Süzgeçleri temizleyip yeniden deneyin." : "Henüz kullanıcı tanımlanmadı."} />
+        <BosDurum aciklama={suzgecVar ? "Seçilen filtrelere uygun kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
       ) : (
       <TabloKutusu>
         <Table>
@@ -168,7 +192,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                     durum={
                       <span className="flex items-center gap-1.5 whitespace-nowrap">
                         {k.aktif ? <span className="text-sm">Aktif</span> : <DurumRozeti ton="notr">Pasif</DurumRozeti>}
-                        {!k.auth_kullanici_id && <span className="text-xs text-muted-foreground">· hesap yok</span>}
+                        {!k.auth_kullanici_id && <span className="text-xs text-muted-foreground">· giriş hesabı yok</span>}
                       </span>
                     }
                   >
@@ -178,7 +202,7 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                           dugme="Düzenle"
                           dugmeTuru="ghost"
                           baslik={k.ad_soyad}
-                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. Pasif kullanıcı giriş yapamaz."
+                          aciklama="Rol değişikliği bir sonraki girişte geçerli olur. İnsan Kaynakları ve sistem yöneticisi rolleri İK onayı gerektirir. Pasif kullanıcılar sisteme giriş yapamaz."
                           onay="Kaydet"
                           islem={kullaniciGuncelle}
                           gizli={{ kullanici_id: k.id }}
@@ -189,9 +213,9 @@ export default async function KullanicilarSayfasi({ searchParams }: PageProps<"/
                                 {roller.map(([r, ad]) => <option key={r} value={r}>{ad}</option>)}
                               </Secim>
                             </Alan>
-                            <Alan etiket="Üst amir" htmlFor={`ust-${k.id}`} ipucu="Kaldırılamaz, yalnızca değiştirilir.">
+                            <Alan etiket="Üst amir" htmlFor={`ust-${k.id}`} ipucu="Üst amir kaldırılamaz, değiştirilebilir.">
                               <Secim id={`ust-${k.id}`} name="ust_amir_id" defaultValue={k.ust_amir_id ?? ""} className="h-9">
-                                <option value="">Değiştirme</option>
+                                <option value="">Değişiklik yok</option>
                                 {amirler.filter((a) => a.id !== k.id).map((a) => <option key={a.id} value={a.id}>{a.ad_soyad}</option>)}
                               </Secim>
                             </Alan>

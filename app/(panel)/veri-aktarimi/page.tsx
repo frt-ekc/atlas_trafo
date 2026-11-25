@@ -26,6 +26,8 @@ import { AktarimFormu } from "./aktarim-formu";
 export const metadata = { title: "Veri aktarımı" };
 
 type Aktarim = { id: number; kaynak: Kaynak; dosya_adi: string; veri_tarihi: string; satir_sayisi: number; aktarim_zamani: string };
+// Yükleyen boşsa: T-13'ten önce ya da SQL ile yüklenmiş dosya
+type SonAktarim = Aktarim & { yukleyen: { ad_soyad: string } | null };
 
 const KAYNAKLAR = Object.keys(KAYNAK_ADI) as Kaynak[];
 const SON_AKTARIM_SAYISI = 20;
@@ -54,7 +56,6 @@ type GeceIsi = {
   baslangic: string;
   bitis: string | null;
   ozet: Record<string, unknown> | null;
-  hata_mesaji: string | null;
 };
 
 const GECE_ISI_DURUMU: Record<GeceIsi["durum"], { ad: string; ton: Ton }> = {
@@ -70,7 +71,7 @@ function ozetMetni(ozet: GeceIsi["ozet"]): string {
     ["gun_kaydi", "gün kaydı"],
     ["duzeltme", "düzeltme"],
     ["soru", "soru"],
-    ["eskale", "eskale"],
+    ["eskale", "üst amire iletilen"],
     ["uyari", "uyarı"],
   ];
   const parcalar = adlar.filter(([k]) => typeof ozet[k] === "number" && ozet[k]).map(([k, ad]) => `${ozet[k]} ${ad}`);
@@ -105,13 +106,13 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
     ),
     supabase
       .from("aktarim")
-      .select("id, kaynak, dosya_adi, veri_tarihi, satir_sayisi, aktarim_zamani")
-      .order("veri_tarihi", { ascending: false })
-      .order("kaynak")
+      .select("id, kaynak, dosya_adi, veri_tarihi, satir_sayisi, aktarim_zamani, yukleyen:kullanici!yukleyen_id(ad_soyad)")
+      // Son yüklenen en üstte: geçmiş bir güne sonradan yüklenen dosya da listede görünür (T-13)
+      .order("id", { ascending: false })
       .limit(SON_AKTARIM_SAYISI),
     supabase
       .from("gece_isi")
-      .select("id, islenen_gun, durum, baslangic, bitis, ozet, hata_mesaji")
+      .select("id, islenen_gun, durum, baslangic, bitis, ozet")
       // Demo düğmesiyle çalışan günlerin başlangıç zamanı aynı olabilir; kayıt sırası esas alınır
       .order("id", { ascending: false })
       .limit(SON_GECE_ISI_SAYISI),
@@ -125,7 +126,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
   if (sonlar.error) throw new Error(`Aktarımlar okunamadı: ${sonlar.error.message}`);
 
   const okuyucular = (okuyucuSonucu.data ?? []) as Okuyucu[];
-  const sonAktarimlar = (sonlar.data ?? []) as Aktarim[];
+  const sonAktarimlar = (sonlar.data ?? []) as unknown as SonAktarim[];
   const geceIsleri = (geceIsiSonucu.data ?? []) as GeceIsi[];
   const arizalar = (arizaSonucu.data ?? []) as unknown as Ariza[];
   const ik = kullanici.rol === "ik";
@@ -148,8 +149,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Veri aktarımı</h1>
         <p className="text-sm text-muted-foreground">
-          PDKS, kapı, yemekhane ve servis sistemlerinin günlük dosyaları buradan alınır. Ham kayıtlar bir kez yazılır;
-          değiştirilemez ve silinemez.
+          PDKS, kapı, yemekhane ve servis sistemlerinin günlük dosyaları. Yüklenen kayıtlar değiştirilemez ve silinemez.
         </p>
       </div>
 
@@ -169,8 +169,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
           <div className="flex flex-col gap-1">
             <h2 id="yukle-baslik" className="text-lg font-semibold">Dosya yükle</h2>
             <p className="text-sm text-muted-foreground">
-              Biçim: başlık satırı <code className="font-mono">okuyucu;kart_no;zaman;yon</code>, zaman Türkiye saatiyle
-              (<code className="font-mono">2026-11-26 08:01</code>). Dosya adına günü yazın:{" "}
+              Dosya biçimi: <code className="font-mono">okuyucu;kart_no;zaman;yon</code>, zaman (<code className="font-mono">2026-11-26 08:01</code>). Dosya adı:{" "}
               <code className="font-mono">pdks_20261126.csv</code>.{" "}
               <a href="/ornek/pdks_20261201.csv" download className="text-primary underline-offset-4 hover:underline">
                 Örnek dosyayı indir
@@ -184,19 +183,19 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
       <section aria-labelledby="gece-baslik" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h2 id="gece-baslik" className="text-lg font-semibold">Gece işi</h2>
+            <h2 id="gece-baslik" className="text-lg font-semibold">Gece işlemi</h2>
             <p className="text-sm text-muted-foreground">
-              Her gece kendiliğinden çalışır: okutmaları işaretler, günlük kayıtları kurar, kanıt varsa düzeltir, yoksa amire sorar,
-              uyarıları yazar. Demoda aşağıdaki düğmeyle de çalıştırılır.
+              Gece işlemi her gece otomatik olarak çalışır; gün kayıtlarını, düzeltmeleri, soruları ve uyarıları oluşturur.
+              {kullanici.rol === "ik" && " Gerektiğinde bu ekrandan da başlatılabilir."}
             </p>
           </div>
           {kullanici.rol === "ik" && (
             <IslemPenceresi
-              dugme="Gece işini çalıştır"
+              dugme="Gece işlemini başlat"
               dugmeTuru="default"
-              baslik="Gece işini çalıştır"
-              aciklama="Seçilen günler sırayla işlenir (en fazla 62 gün). Tekrar çalıştırmak güvenlidir: var olan kayıtlar bozulmaz, yalnızca eksikler eklenir. Verisi yüklenmemiş gün işlenmez."
-              onay="Çalıştır"
+              baslik="Gece işlemini başlat"
+              aciklama="Seçilen günler sırayla işlenir (en fazla 62 gün). Mevcut kayıtlar korunur, eksik kayıtlar eklenir. Verisi yüklenmemiş günler işlenmez."
+              onay="Başlat"
               islem={geceIsiTetikle}
             >
               <div className="grid grid-cols-2 gap-3">
@@ -211,7 +210,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
           )}
         </div>
         {geceIsleri.length === 0 ? (
-          <BosDurum aciklama="Gece işi henüz hiç çalışmadı." />
+          <BosDurum aciklama="Kayıt bulunmuyor." />
         ) : (
           <TabloKutusu>
             <Table>
@@ -230,7 +229,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                     <TableCell className="tarih-hucre">{tarihSaat(g.baslangic)}</TableCell>
                     <TableCell><DurumRozeti ton={GECE_ISI_DURUMU[g.durum].ton}>{GECE_ISI_DURUMU[g.durum].ad}</DurumRozeti></TableCell>
                     <TableCell className="min-w-64 whitespace-normal text-sm">
-                      {g.durum === "hatali" ? <span className="text-destructive">{g.hata_mesaji ?? "—"}</span> : ozetMetni(g.ozet)}
+                      {g.durum === "hatali" ? <span className="text-destructive">İşlem tamamlanamadı</span> : ozetMetni(g.ozet)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -242,13 +241,13 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
 
       <section aria-labelledby="eksik-baslik" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h2 id="eksik-baslik" className="text-lg font-semibold">Gelmeyen dosyalar · {ayAdi}</h2>
+          <h2 id="eksik-baslik" className="text-lg font-semibold">Eksik dosyalar · {ayAdi}</h2>
           <p className="text-sm text-muted-foreground">
-            {sonGun ? `${tarih(ayBasi)} – ${tarih(sonGun)} arasında her gün her sistemden bir dosya beklenir.` : "Bu ay henüz dosya gelmedi."}
+            {sonGun ? `${tarih(ayBasi)} – ${tarih(sonGun)} dönemi.` : "Kayıt bulunmuyor."}
           </p>
         </div>
         {sonGun && eksikler.length === 0 ? (
-          <BosDurum baslik="Eksik dosya yok" aciklama="Bu ay beklenen bütün dosyalar geldi." />
+          <BosDurum baslik="Eksik dosya bulunmuyor" aciklama="Beklenen tüm dosyalar yüklenmiştir." />
         ) : (
           <ul className="flex flex-wrap gap-2">
             {eksikler.map((e) => (
@@ -263,7 +262,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
       <section aria-labelledby="son-baslik" className="flex flex-col gap-3">
         <h2 id="son-baslik" className="text-lg font-semibold">Son aktarımlar</h2>
         {sonAktarimlar.length === 0 ? (
-          <BosDurum aciklama="Henüz dosya aktarılmadı." />
+          <BosDurum aciklama="Kayıt bulunmuyor." />
         ) : (
           <TabloKutusu>
             <Table>
@@ -273,6 +272,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                   <TableHead>Tür</TableHead>
                   <TableHead className="w-full">Dosya</TableHead>
                   <TableHead className="text-right">Satır</TableHead>
+                  <TableHead>Yükleyen</TableHead>
                   <TableHead>Aktarım zamanı</TableHead>
                 </TableRow>
               </TableHeader>
@@ -283,6 +283,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                     <TableCell>{KAYNAK_ADI[a.kaynak]}</TableCell>
                     <TableCell className="font-mono text-xs">{a.dosya_adi}</TableCell>
                     <TableCell className="text-right tabular-nums">{a.satir_sayisi.toLocaleString("tr-TR")}</TableCell>
+                    <TableCell className={a.yukleyen ? undefined : "text-muted-foreground"}>{a.yukleyen?.ad_soyad ?? "Bilinmiyor"}</TableCell>
                     <TableCell className="tarih-hucre">{tarihSaat(a.aktarim_zamani)}</TableCell>
                   </TableRow>
                 ))}
@@ -301,15 +302,14 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
           <div className="flex flex-col gap-1">
             <h2 id="ariza-baslik" className="text-lg font-semibold">Okuyucu arızaları</h2>
             <p className="text-sm text-muted-foreground">
-              Arıza süresince okutması eksik çalışan devamsız sayılmaz: gece işi kanıt arar, yoksa amire sorar. Hiç okutma gelmeyen
-              okuyucu için gece işi “arıza şüphesi” açar; kararı İK verir.
+              Arıza süresindeki eksik okutmalar devamsızlık olarak değerlendirilmez. Okutma alınmayan okuyucular için arıza şüphesi oluşturulur; karar İK tarafından verilir.
             </p>
           </div>
           {ik && (
             <IslemPenceresi
-              dugme="Arıza gir"
+              dugme="Arıza ekle"
               baslik="Okuyucu arızası"
-              aciklama="Bitişi bilinmiyorsa boş bırakın; arıza sürüyor sayılır."
+              aciklama="Bitiş zamanı bilinmiyorsa boş bırakılır ve arıza devam ediyor olarak kaydedilir."
               onay="Kaydet"
               islem={arizaGir}
             >
@@ -339,7 +339,7 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
         {supheler.length > 0 && (
           <div className="flex flex-col gap-3">
             <h3 className="flex items-center gap-2 text-base font-semibold">
-              Karar gerekli
+              İK incelemesi bekleyenler
               <DurumRozeti ton="dikkat">{supheler.length}</DurumRozeti>
             </h3>
             {supheler.map((a) => (
@@ -359,21 +359,21 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                 zaman={
                   <>
                     <Zaman deger={a.baslangic} etiket="Başlangıç" />
-                    {a.bitis ? <> · <Zaman deger={a.bitis} etiket="Bitiş" /></> : " · sürüyor"}
+                    {a.bitis ? <> · <Zaman deger={a.bitis} etiket="Bitiş" /></> : " · devam ediyor"}
                   </>
                 }
-                alt={a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}
+                alt={a.kaynak === "manuel" ? "İK kaydı" : "Sistem kaydı"}
                 eylemler={
                   ik ? (
                     <>
-                      <HizliIslem dugme="Arıza" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
+                      <HizliIslem dugme="Onayla" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
                       <IslemMenusu>
                         {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
                         <IslemPenceresi
-                          dugme="Arıza değil"
+                          dugme="Reddet"
                           baslik="Arıza şüphesini reddet"
-                          aciklama="Okuyucu arızası reddedilecek; eksik okutmalar normal soru akışına girecek."
-                          onay="Arıza değil"
+                          aciklama="Arıza şüphesi reddedilecektir. Eksik okutmalar için soru oluşturulur."
+                          onay="Reddet"
                           onayTuru="destructive"
                           islem={arizaKarari}
                           gizli={{ ariza_id: a.id, karar: "ret" }}
@@ -383,16 +383,16 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                   ) : undefined
                 }
               >
-                {a.aciklama ?? "Açıklama yok."}
+                {a.aciklama ?? "Açıklama bulunmuyor."}
               </ListeKarti>
             ))}
           </div>
         )}
 
         <div className="flex flex-col gap-3">
-          {supheler.length > 0 && <h3 className="text-base font-semibold">Kararı verilmiş arızalar</h3>}
+          {supheler.length > 0 && <h3 className="text-base font-semibold">Sonuçlanan arızalar</h3>}
           {kararliArizalar.length === 0 ? (
-            <BosDurum aciklama={supheler.length > 0 ? "Kararı verilmiş arıza kaydı yok." : "Kayıtlı arıza yok."} />
+            <BosDurum aciklama={supheler.length > 0 ? "Kayıt bulunmuyor." : "Kayıt bulunmuyor."} />
           ) : (
             <TabloKutusu>
               <Table>
@@ -409,12 +409,12 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                   {kararliArizalar.map((a) => (
                     <TableRow key={a.id}>
                       <TableCell className="tarih-hucre">{tarihSaat(a.baslangic)}</TableCell>
-                      <TableCell className="tabular-nums">{a.bitis ? tarihSaat(a.bitis) : "Sürüyor"}</TableCell>
+                      <TableCell className="tabular-nums">{a.bitis ? tarihSaat(a.bitis) : "Devam ediyor"}</TableCell>
                       <TableCell className="font-mono">{a.okuyucu?.kod ?? "—"}</TableCell>
                       <TableCell className="min-w-56 whitespace-normal text-sm">{a.aciklama ?? "—"}</TableCell>
                       <TableCell>
                         <DurumRozeti ton={ARIZA_DURUMU[a.durum].ton}>{ARIZA_DURUMU[a.durum].ad}</DurumRozeti>
-                        <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK girdi" : "Gece işi buldu"}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{a.kaynak === "manuel" ? "İK kaydı" : "Sistem kaydı"}</div>
                       </TableCell>
                     </TableRow>
                   ))}

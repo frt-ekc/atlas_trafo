@@ -10,6 +10,7 @@ import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
 import { Zaman } from "@/components/liste/zaman";
 import { tekDeger } from "@/lib/arama";
+import { geciciKartIadeSaati } from "@/lib/ayar";
 import { sure, tarihSaat } from "@/lib/bicim";
 import { cn } from "@/lib/utils";
 import { rolGerekli } from "@/lib/oturum";
@@ -19,9 +20,6 @@ import { kartIadeAl, kartVer } from "./actions";
 
 export const metadata = { title: "Geçici kartlar" };
 
-// Veritabanındaki varsayılan (ayar: gecici_kart_iade_saat). Güvenlik ayar tablosunu
-// okuyamadığı için o rolde bu değer kullanılır.
-const VARSAYILAN_IADE_SAATI = 16;
 const SON_HAREKET_SAYISI = 50;
 
 type Kisi = { sicil_no: string; ad: string; soyad: string } | null;
@@ -53,7 +51,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
   const yazabilir = kullanici.rol === "guvenlik" || kullanici.rol === "ik";
   const supabase = await sunucuIstemcisi();
 
-  const [kartSonucu, acikSonucu, sonSonucu, ayarSonucu] = await Promise.all([
+  const [kartSonucu, acikSonucu, sonSonucu, iadeSaati] = await Promise.all([
     supabase.from("gecici_kart").select("id, kart_no, durum").order("kart_no"),
     supabase.from("gecici_kart_zimmet").select(ZIMMET_ALANLARI).is("iade_zamani", null),
     supabase
@@ -61,9 +59,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
       .select(ZIMMET_ALANLARI)
       .order("verilis_zamani", { ascending: false })
       .limit(SON_HAREKET_SAYISI),
-    kullanici.rol === "guvenlik"
-      ? Promise.resolve(null)
-      : supabase.from("ayar").select("deger").eq("anahtar", "gecici_kart_iade_saat").maybeSingle(),
+    geciciKartIadeSaati(supabase),
   ]);
 
   // Kart verirken sicil numarası listeden seçilebilsin diye aktif çalışanlar
@@ -80,7 +76,6 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
   const kartlar = kartSonucu.data ?? [];
   const acikZimmetler = (acikSonucu.data ?? []) as unknown as ZimmetSatiri[];
   const sonHareketler = (sonSonucu.data ?? []) as unknown as ZimmetSatiri[];
-  const iadeSaati = Number(ayarSonucu?.data?.deger) || VARSAYILAN_IADE_SAATI;
 
   const simdi = new Date();
   const kartNo = new Map(kartlar.map((k) => [k.id, k.kart_no]));
@@ -100,7 +95,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Geçici kartlar</h1>
         <p className="text-sm text-muted-foreground">
-          {kartlar.length} kart · {bostaSayisi} boşta · {acikZimmetler.length} zimmetli
+          {kartlar.length} kart · {bostaSayisi} kullanılabilir · {acikZimmetler.length} zimmetli
           {gecikenSayisi > 0 && ` · ${gecikenSayisi} kart ${iadeSaati} saatten uzun süredir iade edilmedi`}
         </p>
       </div>
@@ -108,7 +103,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
       <section className="flex flex-col gap-3" aria-labelledby="kartlar-baslik">
         <h2 id="kartlar-baslik" className="text-lg font-semibold">Kartlar</h2>
         {kartlar.length === 0 ? (
-          <BosDurum aciklama="Kayıtlı geçici kart yok." />
+          <BosDurum aciklama="Kayıt bulunmuyor." />
         ) : (
           // Kart başına küçük bir kutu: boşta ise "Ver", zimmetliyse kişi ve süreyle "İade al"
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -130,10 +125,10 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                   </div>
                   {z ? (
                     <dl className="flex flex-1 flex-col gap-1 text-sm">
-                      <dt className="sr-only">Kimde</dt>
+                      <dt className="sr-only">Zimmetli çalışan</dt>
                       <dd><KisiAdi kisi={z.calisan} /></dd>
-                      <dt className="sr-only">Veriliş</dt>
-                      <dd className="text-xs text-muted-foreground"><Zaman deger={z.verilis_zamani} etiket="Veriliş" /></dd>
+                      <dt className="sr-only">Veriliş zamanı</dt>
+                      <dd className="text-xs text-muted-foreground"><Zaman deger={z.verilis_zamani} etiket="Veriliş zamanı" /></dd>
                       <dt className="sr-only">Süre</dt>
                       <dd className={cn("text-xs tabular-nums", gec ? "font-medium text-kotu" : "text-muted-foreground")}>
                         Süre: {sure(z.verilis_zamani, null, simdi)}
@@ -141,7 +136,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                     </dl>
                   ) : (
                     <p className="flex-1 text-sm text-muted-foreground">
-                      {k.durum === "aktif" ? "Boşta, verilebilir." : "Kullanılamaz."}
+                      {k.durum === "aktif" ? "Zimmetlenebilir." : "Kullanılamaz."}
                     </p>
                   )}
                   {yazabilir && (z ? (
@@ -162,21 +157,21 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
       <section className="flex flex-col gap-3" aria-labelledby="hareket-baslik">
         <div className="flex flex-col gap-1">
           <h2 id="hareket-baslik" className="text-lg font-semibold">Son zimmet hareketleri</h2>
-          <p className="text-sm text-muted-foreground">En yeni {SON_HAREKET_SAYISI} kayıt. Zimmet kayıtları silinemez.</p>
+          <p className="text-sm text-muted-foreground">Son {SON_HAREKET_SAYISI} kayıt gösterilir. Zimmet kayıtları silinemez.</p>
         </div>
         <FiltreCubugu temizleAdres="/gecici-kartlar" suzgecVar={Boolean(araMetni)}>
-          <FiltreAlani etiket="Çalışan ya da kart ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
-            <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil ya da GK-01" />
+          <FiltreAlani etiket="Çalışan veya kart ara" htmlFor="ara" className="min-w-48 flex-1 sm:max-w-xs">
+            <Input id="ara" name="ara" type="search" defaultValue={araMetni} placeholder="Ad, sicil veya GK-01" />
           </FiltreAlani>
         </FiltreCubugu>
         {gosterilenHareketler.length === 0 ? (
-          <BosDurum aciklama={sonHareketler.length === 0 ? "Henüz zimmet kaydı yok." : "Aramaya uyan zimmet kaydı yok."} />
+          <BosDurum aciklama={sonHareketler.length === 0 ? "Kayıt bulunmuyor." : "Seçilen filtrelere uygun kayıt bulunmuyor."} />
         ) : (
           <TabloKutusu>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Veriliş</TableHead>
+                  <TableHead>Veriliş zamanı</TableHead>
                   <TableHead>Kart</TableHead>
                   <TableHead>Çalışan</TableHead>
                   <TableHead>İade</TableHead>
@@ -196,7 +191,7 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                         tarihSaat(z.iade_zamani)
                       ) : (
                         <DurumRozeti ton={gecikti(z) ? "kotu" : "dikkat"}>
-                          {gecikti(z) ? "İade edilmedi" : "Zimmetli"}
+                          {gecikti(z) ? "İade bekleniyor" : "Zimmetli"}
                         </DurumRozeti>
                       )}
                     </TableCell>
@@ -219,19 +214,19 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
 function KartVerPenceresi({ kartId, kartNo }: { kartId: number; kartNo: string }) {
   return (
     <IslemPenceresi
-      dugme="Ver"
+      dugme="Zimmetle"
       dugmeTuru="default"
-      baslik={`${kartNo} kartını ver`}
-      aciklama="Kartını unutan çalışana geçici kart zimmetlenir. Kart gün sonunda iade alınmalıdır."
-      onay="Kartı ver"
+      baslik={`${kartNo} kartını zimmetle`}
+      aciklama="Geçici kart çalışana zimmetlenir. Kart gün sonunda iade alınmalıdır."
+      onay="Zimmetle"
       islem={kartVer}
       gizli={{ kart_id: kartId, kart_no: kartNo }}
     >
-      <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Yazmaya başlayınca liste açılır. Kendinize kart veremezsiniz.">
+      <Alan etiket="Çalışanın sicil numarası" htmlFor="sicil" ipucu="Kullanıcı kendisine kart zimmetleyemez.">
         <Input id="sicil" name="sicil" list="calisan-listesi" required autoComplete="off" inputMode="numeric" autoFocus />
       </Alan>
       <Alan etiket="Açıklama (isteğe bağlı)" htmlFor="aciklama">
-        <Textarea id="aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. Kartını evde unuttu" />
+        <Textarea id="aciklama" name="aciklama" rows={2} maxLength={500} placeholder="ör. Kart unutuldu" />
       </Alan>
     </IslemPenceresi>
   );
@@ -244,8 +239,8 @@ function IadeAlPenceresi({ kartNo, zimmet }: { kartNo: string; zimmet: ZimmetSat
       dugme="İade al"
       dugmeTuru="secondary"
       baslik={`${kartNo} kartını iade al`}
-      aciklama={`${kisi} kartı ${tarihSaat(zimmet.verilis_zamani)} tarihinde almıştı. İade zamanı şu an olarak yazılır ve sonradan değiştirilemez.`}
-      onay="İade alındı"
+      aciklama={`${kisi} kartı ${tarihSaat(zimmet.verilis_zamani)} tarihinde teslim almıştır. İade zamanı sonradan değiştirilemez.`}
+      onay="İade al"
       islem={kartIadeAl}
       gizli={{ zimmet_id: zimmet.id, kart_no: kartNo }}
     />
@@ -255,8 +250,8 @@ function IadeAlPenceresi({ kartNo, zimmet }: { kartNo: string; zimmet: ZimmetSat
 function KartDurumu({ durum, zimmetli, gecikti }: { durum: string; zimmetli: boolean; gecikti: boolean }) {
   if (durum === "kayip") return <DurumRozeti ton="kotu">Kayıp</DurumRozeti>;
   if (durum === "iptal") return <DurumRozeti ton="notr">İptal</DurumRozeti>;
-  if (zimmetli) return <DurumRozeti ton={gecikti ? "kotu" : "dikkat"}>{gecikti ? "İade edilmedi" : "Zimmetli"}</DurumRozeti>;
-  return <DurumRozeti ton="iyi">Boşta</DurumRozeti>;
+  if (zimmetli) return <DurumRozeti ton={gecikti ? "kotu" : "dikkat"}>{gecikti ? "İade bekleniyor" : "Zimmetli"}</DurumRozeti>;
+  return <DurumRozeti ton="iyi">Kullanılabilir</DurumRozeti>;
 }
 
 function KisiAdi({ kisi }: { kisi: Kisi }) {

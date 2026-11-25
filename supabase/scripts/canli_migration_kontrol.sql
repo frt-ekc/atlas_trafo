@@ -35,7 +35,7 @@ with beklenen(surum, ad, nesne) as (values
     ('20261128010000', 'dosya_yukle_duzeltmesi',         exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'dosya_yukle'
                                                                  and pg_get_function_identity_arguments(oid) like '%p_dosya_ozeti%')),
     ('20261129010000', 'esnek_kanit',                    exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_kanitla_duzelt'
-                                                                 and prosrc like '%Esnek mesai%')),
+                                                                 and prosrc like '%v\_esnek%')),
     ('20261129020000', 'zimmet_cakisma_mesaji',          exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'yonelme_eki')),
     ('20261130010000', 'ise_giris_cikis',                exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'isten_cikis_gir')),
     ('20261201010000', 'ay_kilidi_ve_aninda_hesap',      exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gun_hesapla')),
@@ -46,7 +46,40 @@ with beklenen(surum, ad, nesne) as (values
     ('20261203010000', 'plan_onayi',                     exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_gun_kayitlari'
                                                                  and prosrc like '%ik_onay_durumu%')),
     ('20261204010000', 'dosya_yukle_where',              exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'dosya_yukle'
-                                                                 and prosrc like '%where zaman_metni is not null%'))
+                                                                 and prosrc like '%where zaman_metni is not null%')),
+    ('20261205010000', 'istanbul_tarihi',                exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'bugun')),
+    ('20261206010000', 'rls_hizi',                       exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'oturum_calisanlari')),
+    ('20261207010000', 'ay_kilidi_zamani',               exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'ay_kilitle'
+                                                                 and prosrc like '%henüz bitmedi%')),
+    ('20261208010000', 'kullanici_cift_kayit',           exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'kullanici_izinli_mi')),
+    ('20261209010000', 'kodsuz_gun',                     exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'ay_kilitle'
+                                                                 and prosrc like '%kodsuz_gun_listesi%')),
+    ('20261210010000', 'ikinci_eskale',                  exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_eskale_zamani')),
+    ('20261211010000', 'cikmis_hesap',                   exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'kullanici_guncelle'
+                                                                 and prosrc like '%hesabı yeniden açılamaz%')),
+    ('20261212010000', 'ayar_sinirlari',                 exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'ayar' and column_name = 'en_cok')),
+    ('20261213010000', 'yukleyen',                       exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'aktarim' and column_name = 'yukleyen_id')),
+    ('20261214010000', 'rapor_gizliligi',                to_regclass('pdks.v_duzeltme_amir') is not null),
+    ('20261215010000', 'ik_karar_gerekcesi',             exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karari')),
+    ('20261216010000', 'ekran_metinleri',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'ayar' and column_name = 'kategori')),
+    ('20261217010000', 'oturum_yardimcilari',            exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'oturum_calisanlari'
+                                                                 and prosrc like '%(select pdks.oturum_departmanlari())%')),
+    ('20261218010000', 'cakisan_izin',                   exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'izin_gir'
+                                                                 and prosrc like '%geçerli bir izni vardır%')),
+    ('20261219010000', 'cikis_okutma',                   exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'cikistan_sonraki_okutma')),
+    ('20261220010000', 'havuz_yazili_onay',              exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'fazla_mesai_inceleme' and column_name = 'yazili_onaysiz')),
+    ('20261221010000', 'yillik_fazla_mesai',             exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'fm_yillik_toplam')),
+    ('20261222010000', 'arife',                          exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'arife_siniri')),
+    ('20261223010000', 'rol_onayi',                      to_regclass('pdks.rol_onerisi') is not null),
+    ('20261224010000', 'plansiz_gun',                    exists (select 1 from pg_proc where pronamespace = 'pdks'::regnamespace and proname = 'gece_isi_plansiz')),
+    ('20261225010000', 'gecmis_izin',                    exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'amir_sorusu' and column_name = 'kapatan_izin_id'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

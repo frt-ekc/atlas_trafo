@@ -6,6 +6,8 @@ Seed yalnızca gece işinin işleyeceği **girdileri** yazar: organizasyon, kull
 
 Veri her çalıştırmada aynı çıkar: saatler rastgele değil, sicil ve tarihten türetilir.
 
+180 çalışanlık, gerçeğe benzer sentetik veri seti (Ekim 2026): [sentetik_veri.md](sentetik_veri.md).
+
 ## Yükleme
 
 ```bash
@@ -85,7 +87,7 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S15 | Gizem Korkmaz (3003), 20 Kas | Onaylı 120 dk fazla mesai, 19:05'te çıktı | 10 | Planlı fazla mesai |
 | S16 | Ece Ateş (3004), 23 Kas | Plansız, 19:30'a kadar kaldı | 10 | `fm_plansiz_calisma` uyarısı, karar İK'da |
 | S17 | Merve Yücel (3005), 24 Kas | Yazılı fazla mesai onayı yokken 18:40'a kadar kaldı | 10 | `fm_onay_yok` uyarısı |
-| S18 | Can Kılıç (2007) 23–25 Kas; Deniz Aksoy (2008) 26–27 Kas | Rapor / yıllık izin, okutma yok | 14 | Gün "izinli"; amir türü göremez |
+| S18 | Can Kılıç (2007) 23–25 Kas; Deniz Aksoy (2008) 26–27 Kas | Rapor / yıllık izin, okutma yok | 14 | Can'ın rapor günleri `raporlu`, Deniz'in yıllık izin günleri `izinli`. Amire ekranda ikisi de "İzinli" görünür; gerekçe gizlidir, gün durumu API'den açıktır (T-12) |
 | S19 | Kaan Bulut (2009), 25 Kas | Planı var, izni ve hiçbir okutması yok | 13 | Amire soru (`hic_kayit_yok`); devamsızlık kararı İK'da |
 | S20 | 26 Kas 08:01, PDKS-1 | Sistemde olmayan kart (K9999) | 3 | Bilinmeyen kart olarak işaretlenir |
 | S21 | 27 Kas | Servis dosyası gelmedi | 16 | `dosya_gelmedi` uyarısı |
