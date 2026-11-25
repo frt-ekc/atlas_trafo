@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CalisanListesi } from "@/components/panel/calisan-listesi";
 import { CalisanSecici } from "@/components/panel/calisan-secici";
-import { HizliIslem } from "@/components/panel/hizli-islem";
 import { DurumRozeti } from "@/components/liste/durum-rozeti";
 import { IslemMenusu } from "@/components/liste/islem-menusu";
 import { ListeKarti } from "@/components/liste/liste-karti";
@@ -278,7 +277,16 @@ export default async function VardiyaPlaniSayfasi({ searchParams }: PageProps<"/
               zaman={<Zaman deger={p.giris_zamani} etiket="Kayıt" />}
               eylemler={
                 <>
-                  <HizliIslem dugme="Onayla" dugmeTuru="default" islem={vardiyaPlaniOnayla} gizli={{ plan_id: p.id, karar: "onay" }} />
+                  {/* Onay da günü yeniden hesaplatır ve geri alınamaz: Reddet gibi pencereyle */}
+                  <IslemPenceresi
+                    dugme="Onayla"
+                    dugmeTuru="default"
+                    baslik="Planı onayla"
+                    aciklama="Plan geçerli olur; gün işlenmişse kaydı bu plana göre yeniden hesaplanır. Bu işlem geri alınamaz."
+                    onay="Onayla"
+                    islem={vardiyaPlaniOnayla}
+                    gizli={{ plan_id: p.id, karar: "onay" }}
+                  />
                   <IslemMenusu>
                     {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
                     <IslemPenceresi

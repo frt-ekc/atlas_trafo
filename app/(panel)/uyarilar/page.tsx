@@ -37,6 +37,8 @@ type Uyari = {
 // Gruplama yalnızca ekrandadır (uyarı türüne göre); veritabanında böyle bir alan yoktur.
 // Kart paylaşımı şüphesi, kural kanıtla güçlendirilene kadar yanlış alarm ürettiği için "Bilgi" grubundadır.
 const KARAR_GEREKLI = new Set(["ariza_suphesi", "gecici_kart_cakisma"]);
+// Kart paylaşımında sistemin ayrı bir karar adımı yok (T-81): İK inceler, paylaşım varsa günü elle düzeltir.
+const PAYLASIM = "kart_paylasim_suphesi";
 
 const TARIH = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -167,7 +169,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
                 Arıza kayıtlarını aç
               </Link>
             )}
-            {karar && u.calisan && calisanSayfasi && (
+            {(karar || u.tur === PAYLASIM) && u.calisan && calisanSayfasi && (
               <Link href={`/calisanlar/${u.calisan.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                 Çalışan kaydını aç
               </Link>
@@ -177,6 +179,12 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         }
       >
         {u.mesaj}
+        {u.tur === PAYLASIM && (
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Sistem yalnızca uyarır. Paylaşım varsa karar, İK&apos;nın çalışan kaydında günü elle düzeltmesiyle verilir;
+            &ldquo;Görüldü&rdquo; yalnızca uyarının okunduğunu gösterir.
+          </span>
+        )}
       </ListeKarti>
     );
   };

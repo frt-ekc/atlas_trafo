@@ -1,7 +1,6 @@
 import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { HizliIslem } from "@/components/panel/hizli-islem";
 import { Alan, IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { Secim } from "@/components/panel/secim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -366,7 +365,16 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
                 eylemler={
                   ik ? (
                     <>
-                      <HizliIslem dugme="Onayla" dugmeTuru="default" islem={arizaKarari} gizli={{ ariza_id: a.id, karar: "onay" }} />
+                      {/* Karar bir kez verilir: Reddet gibi pencereyle */}
+                      <IslemPenceresi
+                        dugme="Onayla"
+                        dugmeTuru="default"
+                        baslik="Arızayı onayla"
+                        aciklama="Okuyucu arızası onaylanacak ve karar sizin adınıza kaydedilecek. Bu işlem geri alınamaz."
+                        onay="Onayla"
+                        islem={arizaKarari}
+                        gizli={{ ariza_id: a.id, karar: "onay" }}
+                      />
                       <IslemMenusu>
                         {/* Geri alınamaz: tek tıkla değil, onay penceresiyle (aynı işlem, aynı RPC) */}
                         <IslemPenceresi
