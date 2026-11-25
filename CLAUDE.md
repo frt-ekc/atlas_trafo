@@ -22,7 +22,7 @@ Claude Code bu dosyayı her oturumda okur. Buradaki kurallar her istekte geçerl
 
 ## 2. Değişmez veritabanı kuralları
 - `ham_okutma`, `kanit_kaydi`, `aktarim`, `okutma_isareti` değiştirilemez ve silinemez.
-- `gun_kaydi` doğrudan UPDATE edilmez; yalnızca `pdks.duzeltme_uygula(...)` ile değişir.
+- `gun_kaydi` doğrudan UPDATE edilmez; düzeltme yalnızca `pdks.duzeltme_uygula(...)` ile yapılır, dakikaları ve hesap durumunu hesap fonksiyonları yazar. Trigger giriş, çıkış, vardiya ve "devamsız"ı korur; diğer alanlarda koruma yetkidir (T-01).
 - `duzeltme` ve `puantaj_satiri` silinemez, değiştirilemez.
 - Kilitli ay (`donem.durum = 'kilitli'`) açılamaz; sonradan gelen düzeltme fark satırı olur.
 - Ücret hesaplanmaz; puantajda yalnızca gün ve dakika vardır.
