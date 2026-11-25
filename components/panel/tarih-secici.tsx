@@ -3,6 +3,7 @@
 import { Popover } from "@base-ui/react/popover";
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { SaatSecici } from "@/components/panel/saat-secici";
 import { cn } from "@/lib/utils";
 
 // Sistemin tarih alanı: tarayıcının biçimlendirilemeyen takvimi yerine kendi takvimimiz.
@@ -219,13 +220,12 @@ export function TarihSecici({ id, name, defaultValue = "", required, min, max, s
       </Popover.Root>
 
       {saatli && (
-        <input
-          type="time"
+        <SaatSecici
           aria-label="Saat"
           value={saat}
-          onChange={(e) => setSaat(e.target.value)}
+          onChange={setSaat}
           required={required || Boolean(tarih)}
-          className="h-9 w-[6.25rem] shrink-0 rounded-lg border border-input bg-card px-2 text-base tabular-nums md:text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 dark:bg-input/30"
+          className="w-[6.5rem] shrink-0"
         />
       )}
 

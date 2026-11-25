@@ -23,9 +23,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      // Bildirimler: türün renginde sol çizgi ve simge; köşeler ve gölge uygulamanın diliyle
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast !rounded-xl !border-l-4 !shadow-lg !shadow-[#1f2357]/15",
+          success: "!border-l-iyi [&_[data-icon]]:!text-iyi",
+          error: "!border-l-kotu [&_[data-icon]]:!text-kotu",
+          warning: "!border-l-dikkat [&_[data-icon]]:!text-dikkat",
+          info: "!border-l-vurgu [&_[data-icon]]:!text-vurgu",
         },
       }}
       {...props}

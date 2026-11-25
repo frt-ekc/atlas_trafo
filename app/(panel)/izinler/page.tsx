@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SaatSecici } from "@/components/panel/saat-secici";
 import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -180,15 +181,16 @@ export default async function IzinlerSayfasi({ searchParams }: PageProps<"/izinl
             <Alan etiket="Çalışanın sicil numarası" htmlFor="s-sicil" ipucu="Sicil numarası veya ad ile arama yapılabilir.">
               <CalisanSecici listeId="izin-calisanlar" id="s-sicil" required />
             </Alan>
-            <div className="grid grid-cols-3 gap-3">
+            {/* Gün tek satırda tam görünsün; saatler altında yan yana */}
+            <div className="grid grid-cols-2 gap-3 [&>*:first-child]:col-span-2">
               <Alan etiket="Gün" htmlFor="s-tarih">
                 <TarihSecici id="s-tarih" name="tarih" required defaultValue={bugunTarih} />
               </Alan>
               <Alan etiket="Başlangıç" htmlFor="s-bas">
-                <Input id="s-bas" name="bas_saat" type="time" required defaultValue="10:00" />
+                <SaatSecici id="s-bas" name="bas_saat" required defaultValue="10:00" />
               </Alan>
               <Alan etiket="Bitiş" htmlFor="s-bit">
-                <Input id="s-bit" name="bit_saat" type="time" required defaultValue="12:00" />
+                <SaatSecici id="s-bit" name="bit_saat" required defaultValue="12:00" />
               </Alan>
             </div>
             <Alan etiket="Tür" htmlFor="s-tur">
