@@ -3,13 +3,28 @@
 import { useState } from "react";
 import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Textarea } from "@/components/ui/textarea";
-import { zorunluSaatler } from "./zorunlu-saatler";
+import { zorunluSaatler, type GundekiSaatler } from "./zorunlu-saatler";
 
 // Amirin "gelmedi / bilmiyorum" dediği soruda İK kararı: devamsız say ya da saat yaz.
 // Devamsızlık çalışan aleyhine karardır (KVKK m.11); gerekçe her zaman zorunludur.
-export function IkKararAlanlari({ soruTuru, girisVarsayilan, cikisVarsayilan }: { soruTuru: string; girisVarsayilan: string; cikisVarsayilan: string }) {
+export function IkKararAlanlari({
+  soruTuru,
+  gunde,
+  girisVarsayilan,
+  cikisVarsayilan,
+  kayitliGiris,
+  kayitliCikis,
+}: {
+  soruTuru: string;
+  gunde: GundekiSaatler; // gün kaydında hangi saatler var; gün görünmüyorsa null
+  girisVarsayilan: string;
+  cikisVarsayilan: string;
+  kayitliGiris: string | null; // "07:45": kayıtta zaten olan saat
+  kayitliCikis: string | null;
+}) {
   const [karar, setKarar] = useState<"" | "devamsiz" | "geldi">("");
-  const zorunlu = zorunluSaatler(soruTuru);
+  // Günde kayıtlı olmayan saat zorunludur (T-41)
+  const zorunlu = zorunluSaatler(soruTuru, gunde);
 
   return (
     <>
@@ -28,11 +43,11 @@ export function IkKararAlanlari({ soruTuru, girisVarsayilan, cikisVarsayilan }: 
       {karar === "geldi" && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="giris" className="text-sm font-medium">Giriş{zorunlu.giris && <span className="text-destructive"> (zorunlu)</span>}</label>
+            <label htmlFor="giris" className="text-sm font-medium">Giriş{zorunlu.giris && <span className="text-destructive"> (zorunlu)</span>}{kayitliGiris && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliGiris})</span>}</label>
             <TarihSecici saatli id="giris" name="giris" defaultValue={girisVarsayilan} required={zorunlu.giris} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="cikis" className="text-sm font-medium">Çıkış{zorunlu.cikis && <span className="text-destructive"> (zorunlu)</span>}</label>
+            <label htmlFor="cikis" className="text-sm font-medium">Çıkış{zorunlu.cikis && <span className="text-destructive"> (zorunlu)</span>}{kayitliCikis && <span className="font-normal text-muted-foreground"> (kayıtlı {kayitliCikis})</span>}</label>
             <TarihSecici saatli id="cikis" name="cikis" defaultValue={cikisVarsayilan} required={zorunlu.cikis} />
           </div>
         </div>

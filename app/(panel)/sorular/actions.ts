@@ -7,14 +7,22 @@ import { metinAl, rpcCagir, sayiAl, zamanAl } from "@/lib/supabase/rpc";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { eksikSaatMesaji } from "./zorunlu-saatler";
 
-// Zorunlu saat denetimi. Soru türü formdan değil veritabanından okunur: formdaki değer
-// tarayıcıda değiştirilebilir. RLS yüzünden kullanıcı yalnızca görebildiği soruyu bulur.
+// Zorunlu saat denetimi. Günde hangi saatlerin kayıtlı olduğu formdan değil veritabanından okunur:
+// formdaki değer tarayıcıda değiştirilebilir. RLS yüzünden kullanıcı yalnızca görebildiği soruyu bulur.
+// Veritabanı (cevap_saatleri_denetle) aynı kuralı ayrıca denetler; bu, kullanıcıya erken ve açık mesaj içindir.
 async function saatHatasi(soruId: number, giris: string | null, cikis: string | null): Promise<string | null> {
   const supabase = await sunucuIstemcisi();
-  const { data, error } = await supabase.from("amir_sorusu").select("soru_turu").eq("id", soruId).maybeSingle();
+  const { data, error } = await supabase
+    .from("amir_sorusu")
+    .select("soru_turu, gun:gun_kaydi_id(giris_zamani, cikis_zamani)")
+    .eq("id", soruId)
+    .maybeSingle();
   if (error) return "Soru okunamadı. Lütfen tekrar deneyin.";
   if (!data) return "Soru bulunamadı veya görüntüleme yetkisi yok.";
-  return eksikSaatMesaji(data.soru_turu, giris, cikis);
+  const gun = data.gun as unknown as { giris_zamani: string | null; cikis_zamani: string | null } | null;
+  // Gün görünmüyorsa (RLS) null: türe göre en az kural, son karar veritabanında
+  const gunde = gun ? { giris: Boolean(gun.giris_zamani), cikis: Boolean(gun.cikis_zamani) } : null;
+  return eksikSaatMesaji(data.soru_turu, gunde, giris, cikis);
 }
 
 // Amir soruyu cevaplar. Veritabanı (soru_cevapla) şunları denetler: soru bu amire atanmış ya da

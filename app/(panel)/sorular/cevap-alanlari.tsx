@@ -4,25 +4,28 @@ import { useState } from "react";
 import { TarihSecici } from "@/components/panel/tarih-secici";
 import { Textarea } from "@/components/ui/textarea";
 import { SORU_CEVABI } from "@/lib/etiketler";
-import { zorunluSaatler } from "./zorunlu-saatler";
+import { zorunluSaatler, type GundekiSaatler } from "./zorunlu-saatler";
 
 // Soru cevaplama penceresinin alanları. Saat alanları yalnızca "saat farklı" seçilince görünür;
 // bu yüzden tarayıcıda çalışan küçük bir bileşen.
 export function CevapAlanlari({
   soruTuru,
+  gunde,
   girisVarsayilan,
   cikisVarsayilan,
   kayitliGiris,
   kayitliCikis,
 }: {
   soruTuru: string;
+  gunde: GundekiSaatler; // gün kaydında hangi saatler var; gün görünmüyorsa null
   girisVarsayilan: string;
   cikisVarsayilan: string;
   kayitliGiris: string | null; // "07:45": kayıtta zaten olan saat
   kayitliCikis: string | null;
 }) {
   const [cevap, setCevap] = useState("");
-  const zorunlu = zorunluSaatler(soruTuru);
+  // Günde kayıtlı olmayan saat zorunludur (T-41)
+  const zorunlu = zorunluSaatler(soruTuru, gunde);
 
   return (
     <>
