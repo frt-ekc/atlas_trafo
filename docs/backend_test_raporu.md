@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 42'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 40'ı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 43'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 39'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 15 | 8 | 11 |
+| Orta | 34 | 16 | 8 | 10 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **42** | **25** | **40** |
+| **Toplam** | **107** | **43** | **25** | **39** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -326,7 +326,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 |
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #54) |
-| T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | Düzelt |
+| T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T91-hesapsiz-gun) |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | Düzelt |
 | T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
@@ -3341,7 +3341,11 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #10 `Q4 09.09: tamam hesap=false dk=∅` · #17 `satır ≠ kalem: 1 | S12Q4: çalışılan 22.0/21.0` · #25 `Q4 kalemleri | HT 8.0/0, NÇ 21.0/10080 | satır: çalışılan 22.0`. Ek denemede yönetici paneli de aynı günü iki kez sayıyor: `v_departman_ozet` Montaj çalışılan 208 → 209, bekleyen 3 aynı kaldı (Ek#5–6).
 - **Sade dille:** Aynı çalışan için iki resmî rakam çıkıyor: puantaj ekranında 22 gün, bordroya giden dosyada 21 gün. Hangisinin doğru olduğu belli değil. İtiraz ya da denetimde sistem kendi kendisiyle çelişiyor.
 - **Öneri:** `v_puantaj_canli`'de `calisilan_gun` için `durum = 'tamam' and hesap_tamam`; `bekleyen_gun` ile aynı kural. Kalıcı test: her kilitte satır alanları kalem toplamlarına eşit (NÇ+FM100 gün = çalışılan gün vb.).
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T91-hesapsiz-gun). Migration: `20261231040000_hesapsiz_gun.sql`, test: `hesapsiz_gun_testi.sql` (8 test).
+  - Karar: hesabı tamamlanmamış gün her yerde "bekliyor" sayılır, çalışılan sayılmaz; gün hesaplanınca kendiliğinden çalışılan olur. `v_puantaj_canli` ve `v_departman_ozet`'te `calisilan_gun` = `durum = 'tamam' and hesap_tamam`. Sütunlar ve tipleri aynı, ekran değişmedi.
+  - Bu gün ancak açık sorusu varken oluşur: kilit hesaplanmamış günleri önce hesaplar, açık sorulu günü hesaplayamaz. Normal kilit onu engeller (T-90); fark zorla kilitte ve ekrandaki sayılardaydı.
+  - Senaryo (Q4 gibi): 2 hesaplanmış gün + açık sorulu, İK'nın "tamam" yaptığı 1 gün. Önce: canlı ve panel "çalışılan 3, bekleyen 1", kalem "NÇ 2"; zorla kilitte satır 3, kalem 2. Sonra: her yerde çalışılan 2, bekleyen 1; satır = kalem. Panelde aynı gün artık iki kez sayılmıyor.
+  - Hız (2000 kişi, 505 bin gün kaydı, İK oturumu): önce ~340–390 ms, sonra ~350–490 ms (ölçüm gürültüsü içinde; tek koşul eklendi).
 
 ### T-92 · Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor
 - **Adım:** 12 · **Önem:** Orta
