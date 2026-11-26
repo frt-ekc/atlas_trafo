@@ -166,7 +166,11 @@ select test.dogrula('reddedilen plan: gün FM 0, havuz kaydı İK kararı bekliy
 set local role authenticated;
 select test.oturum('sp_ik@ornek.test');
 select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
-select test.hata('kilitli aya düşen güne plan onayı verilmez', 'kilitli',
+-- T-63: kilit, karar bekleyen talebi kendisi kapatır; kilitten sonra karar verilecek talep kalmaz
+select test.dogrula('kilit SP06''nın bekleyen talebini kapattı (iptal, dönem kilitlendi)',
+    (select durum = 'iptal' and karar_veren_id is null and karar_aciklama like 'Dönem kilitlendi%'
+     from test.plan('SP06', '2026-10-14')));
+select test.hata('kilitli aya düşen güne plan onayı verilmez', 'bulunamadı',
     format('select pdks.fazla_mesai_karar(%s, true)', (test.plan('SP06', '2026-10-14')).id));
 select pdks.fazla_mesai_inceleme_karar((test.hv('SP06', '2026-10-14')).id, true);
 reset role;

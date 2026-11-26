@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 46'sı düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 36'sı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 47'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 35'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -29,9 +29,9 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
 | Orta | 34 | 19 | 8 | 7 |
-| Düşük | 34 | 5 | 10 | 19 |
+| Düşük | 34 | 6 | 10 | 18 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **46** | **25** | **36** |
+| **Toplam** | **107** | **47** | **25** | **35** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -298,7 +298,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T61-plan-onayi-hesap) |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
-| T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | Düzelt |
+| T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T63-kilitte-fm-talebi) |
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
 | T-66 | Orta | 11 | Yanlış girilen işten çıkış geri alınamıyor | K7 | Mehmet | ✅ Sınırlılık (karar verildi) |
@@ -2549,7 +2549,12 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
   ```
 - **Sade dille:** Ay kapanırken unutulmuş bir fazla mesai talebi varsa kilit bundan söz etmiyor. Ay kapandıktan sonra o talep ne onaylanabiliyor ne reddedilebiliyor; İK ekranında sonsuza kadar "karar bekliyor" olarak duruyor.
 - **Öneri:** `ay_kilitle`'ye `bekleyen_fm_talebi` sayısı ve kilitte bu talepleri sistem iptali.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T63-kilitte-fm-talebi). Migration: `20261231080000_kilitte_fm_talebi.sql`, test: `kilitte_fm_talebi_testi.sql` (15 test).
+  - Karar (Yusuf, A seçeneği): kilit, o ayın karar bekleyen taleplerini kendisi kapatır: "iptal", kişisiz, açıklama "Dönem kilitlendi; karar verilmemiş talep kapatıldı. Çalışılan süre varsa onaysız fazla mesai listesinden karara bağlanır." Kilit mesajına "Karar bekleyen N fazla mesai talebi kapatıldı." eklenir; sonuçta `kapatilan_fm_talebi`, kilit izinde `kapatilan_fm_talep_listesi` (sicil, tarih, dakika).
+  - Talep kilidi durdurmaz: gün geçtikten sonra talebin tek başına puantaja etkisi yoktur. Çalışılan süre havuza düşmüştür; havuz kilidi zaten durdurur ve kilitten sonra da karara bağlanıp fark satırı olur (L1 senaryosu: 120 dk fark). Kilit hata verirse kapatma da geri alınır.
+  - Kişisiz iptal yalnızca kilit içinden: `ay_kilitle` işlem süresince `pdks.kilit_kapanisi` ayarını açar, tetikleyici başka durumda kişisiz iptali (yazılı onay geçerliyse) eskisi gibi reddeder. Ekran kullanıcısının tabloda yalnızca okuma yetkisi var.
+  - Ekran kodu değişmedi (Puantaj ekranı kilit mesajını olduğu gibi gösteriyor). `ay_kilidi_testi` (kilit sonucu anahtarı) ve `plan_onayi_hesap_testi` (SP06: kilitten sonra talep kapalı) yeni kurala göre güncellendi.
+  - Hız: eklenen sorgu 104 000 planlık tabloda ~6 ms (indeksli); kilidin kendisi 2000 kişide ~2 sn.
 
 ### T-64 · Günlük 11 saat sınırı molayı da çalışma sayıyor
 - **Adım:** 9 · **Önem:** Görüş
