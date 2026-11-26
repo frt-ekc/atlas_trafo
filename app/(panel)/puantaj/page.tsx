@@ -15,6 +15,7 @@ import { sunucuIstemcisi } from "@/lib/supabase/server";
 import type { ErpSatiri } from "@/lib/erp-aktarim";
 import { IslemPenceresi } from "@/components/panel/islem-penceresi";
 import { ayKilitle } from "./actions";
+import { ZorlaKilitAlanlari } from "./zorla-kilit-alanlari";
 import { ErpIndir } from "./erp-indir";
 import { ExcelIndir } from "./excel-indir";
 import { aramaSuzgeci } from "@/components/liste/arama";
@@ -96,6 +97,28 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
     kilitleyen: { ad_soyad: string } | null;
   } | null;
   const kilitli = donem?.durum === "kilitli";
+
+  // Kilidin izi (T-92, donem_kilit_izi): zorla kilitlendiyse gerekçe ve kilit anında sonuçlanmamış
+  // kayıtların sayısı gösterilir. Yalnızca İK ve yönetici okur. T-92 öncesi kilitlenen ayların izi yoktur.
+  const kilitIzi = kilitli && donem
+    ? ((await supabase.from("donem_kilit_izi").select("zorla, gerekce, ozet").eq("donem_id", donem.id).maybeSingle()).data as {
+        zorla: boolean;
+        gerekce: string | null;
+        ozet: {
+          zorla_gecilen?: { acik_soru_gun?: number; acik_itiraz?: number; bekleyen_fazla_mesai?: number; bekleyen_plan_onayi?: number };
+          kodsuz_gun?: number;
+        };
+      } | null)
+    : null;
+  const gecilenler = kilitIzi?.zorla
+    ? [
+        kilitIzi.ozet.zorla_gecilen?.acik_soru_gun ? `${kilitIzi.ozet.zorla_gecilen.acik_soru_gun} açık sorulu gün` : null,
+        kilitIzi.ozet.zorla_gecilen?.acik_itiraz ? `${kilitIzi.ozet.zorla_gecilen.acik_itiraz} açık itiraz` : null,
+        kilitIzi.ozet.zorla_gecilen?.bekleyen_fazla_mesai ? `${kilitIzi.ozet.zorla_gecilen.bekleyen_fazla_mesai} onaysız fazla mesai` : null,
+        kilitIzi.ozet.zorla_gecilen?.bekleyen_plan_onayi ? `${kilitIzi.ozet.zorla_gecilen.bekleyen_plan_onayi} onay bekleyen geriye dönük plan` : null,
+        kilitIzi.ozet.kodsuz_gun ? `${kilitIzi.ozet.kodsuz_gun} kodsuz gün` : null,
+      ].filter(Boolean)
+    : [];
 
   // Kilidi engelleyen açık işler: soru, itiraz, kararı bekleyen onaysız fazla mesai,
   // İK onayı bekleyen geriye dönük vardiya planı
@@ -274,6 +297,18 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
         )}
       </OzetIzgarasi>
 
+      {kilitIzi?.zorla && (
+        <Alert className="border-dikkat/40 bg-dikkat-zemin/60">
+          <AlertTitle>Bu ay zorla kilitlendi</AlertTitle>
+          <AlertDescription>
+            <span className="block">Gerekçe: {kilitIzi.gerekce ?? "—"}</span>
+            {gecilenler.length > 0 && (
+              <span className="block">Kilit anında sonuçlanmamış kayıtlar: {gecilenler.join(", ")}.</span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!veriVar && !kilitli && (
         <Alert>
           <AlertTitle>Kayıt bulunmuyor</AlertTitle>
@@ -310,10 +345,7 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
                   {(bekleyenPlan?.count ?? 0) > 0 && (
                     <p>İşlenmemiş günü bulunan bekleyen planlar, ay kilitlenmeden önce onaylanmalı veya reddedilmelidir.</p>
                   )}
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" name="zorla" value="evet" />
-                    Bekleyen kayıtlarla birlikte kilitle
-                  </label>
+                  <ZorlaKilitAlanlari />
                 </div>
               ) : (
                 <p className="rounded-lg bg-muted p-3 text-sm">Bu ayda bekleyen kayıt bulunmuyor.</p>
