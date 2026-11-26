@@ -134,6 +134,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/ik_karari_cevaplayan_testi.sql` | İK kararı ve cevaplayan (T-32): gelmedi / bilmiyorum / cevapsız soru, karar zamanı, görevler ayrılığı, yalnızca İK kapatır, check, işten çıkış için 17 test |
 | `supabase/migrations/20261231030000_eksik_saat_reddi.sql` | Amirin cevabı ya da İK'nın "geldi" kararı uygulanınca günde giriş ve çıkış kalmayacaksa reddedilir (`cevap_saatleri_denetle`); kilitli ayda fark satırındaki saat de sayılır (T-41) |
 | `supabase/tests/eksik_saat_reddi_testi.sql` | Tek saatli cevap (T-41): giriş yok / kanıt vardiya sonrası / hiç kayıt yok / çıkış yok, saat doğru ve kart unuttu, İK geldi ve devamsız, kilitli ay için 15 test |
+| `supabase/migrations/20261231040000_hesapsiz_gun.sql` | Hesabı tamamlanmamış gün canlı puantajda ve yönetici panelinde çalışılan değil bekleyen sayılır; satır ile kod listesi aynı sayar (T-91) |
+| `supabase/tests/hesapsiz_gun_testi.sql` | Hesabı tamamlanmamış gün (T-91): canlı puantaj, kod listesi, panel, hesap sonrası, zorla kilitte satır = kalem için 8 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
