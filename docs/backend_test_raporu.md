@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 25 Kasım itibarıyla 40'ı düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 43'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 41'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 42'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 13 | 7 | 14 |
+| Orta | 34 | 14 | 7 | 13 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **40** | **24** | **43** |
+| **Toplam** | **107** | **41** | **24** | **42** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -267,7 +267,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-29 | Düşük | 6 | Mükerrer çıkışta ilk okutma tutuluyor, son okutma atılıyor | K10 | Yusuf | Düzelt (zaman kalırsa) |
 | T-30 | Görüş | 6 | Giriş çıkıştan sonra gelirse amire "çıkış yok" soruluyor | K10 | — | ✅ Sınırlılık (karar verildi) |
 | T-31 | Kritik | Endpoint | `dosya_yukle` ekrandan (HTTP) hiç çalışmıyor: "UPDATE requires a WHERE clause" | K8 | Yusuf | Düzeltildi (PR #35) |
-| T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | Düzelt |
+| T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | ✅ Düzeltildi (feature/T32-ik-karari-cevaplayan) |
 | T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | Ekran ✅ PR #40; veritabanı: Düzelt |
 | T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | Düzelt (zaman kalırsa) |
@@ -1656,7 +1656,13 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
   ```
 - **Sade dille:** Devamsızlık kararı (çalışan aleyhine) amirin "gelmedi" demesine dayanıyor. İK karar verince "gelmedi"yi kimin söylediği kayıttan siliniyor. Çalışan itiraz ederse ya da iş mahkemesine giderse, kararın dayanağını gösteremeyiz.
 - **Öneri:** Yeni migration: `amir_sorusu`'na İK kararı için ayrı sütunlar; `soru_ik_karari` `cevaplayan_id`'ye dokunmasın. Kalıcı test: İK kararından sonra `cevaplayan_id` değişmemiş olmalı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T32-ik-karari-cevaplayan). Migration: `20261231020000_ik_karari_cevaplayan.sql`, test: `ik_karari_cevaplayan_testi.sql` (17 test).
+  - `amir_sorusu`'na `ik_karar_veren_id` ve `ik_karar_zamani`. `soru_ik_karari` bunları yazar; amirin `cevaplayan_id`, `cevap`, `cevap_zamani`'na dokunmaz. Sonuç (`ik_karari`), kararı veren ve zamanı birlikte dolu ya da boş (check).
+  - Kök: "İK kararı bekleyen soruyu yalnızca İK kapatır" (`amir_sorusu_kontrol`) ve görevler ayrılığı trigger'ı kapatanı `cevaplayan_id`'den okuyordu; ezme bu yüzdendi. İkisi de yeni sütuna bakar (`ik_karar_veren_id` ya da T-46'nın `kapatan_id`'si).
+  - Aynı kalıp `isten_cikis_gir`'de de vardı (açık soruyu `cevaplayan_id = İK` ile kapatıp İK gerekçesini amirin açıklamasına ekliyordu). Artık kapanış sütunlarıyla kapatır: `kapatan_id`, `kapanis_nedeni` "İşten çıkış (GG.AA.YYYY)", `onceki_durum`. Çıkış nedeni (ör. istifa) amirin okuduğu soruya yazılmaz, düzeltme gerekçesinde kalır.
+  - Eski kayıtlar (karar: amirin silinmiş adı geri getirilemez, cevaplayan boş kalır, "bilinmiyor"): İK kararı olan soruda İK `ik_karar_veren_id`'ye taşınır, karar zamanı o sorunun İK düzeltmesinden alınır; işten çıkışla kapanmış sorular kapanış sütunlarına taşınır. Eski kodla üretilen kayıtlarla kuru denendi.
+  - Senaryo: amir "gelmedi" → İK devamsız. Önce: cevaplayan İK, amirin adı hiçbir yerde yok. Sonra: "Cevap: Gelmedi · amir" ve "İK kararı: devamsız" (kararı veren İK, zamanı ayrı).
+  - Ekran değişmedi; Sorular sayfası cevabın yanında artık amiri gösteriyor. "İK kararı" satırına kararı veren ve zamanı eklemek ekran işi (Gökalp).
 
 ### T-33 · Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor
 - **Adım:** Endpoint · **Önem:** Orta
