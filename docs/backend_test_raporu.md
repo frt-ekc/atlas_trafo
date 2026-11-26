@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 47'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 35'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 48'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 34'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 19 | 8 | 7 |
+| Orta | 34 | 20 | 8 | 6 |
 | Düşük | 34 | 6 | 10 | 18 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **47** | **25** | **35** |
+| **Toplam** | **107** | **48** | **25** | **34** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -302,7 +302,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
 | T-66 | Orta | 11 | Yanlış girilen işten çıkış geri alınamıyor | K7 | Mehmet | ✅ Sınırlılık (karar verildi) |
-| T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | Düzelt |
+| T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | ✅ Düzeltildi (feature/T67-kilitli-ay-cikis) |
 | T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | Düzelt |
 | T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | Düzelt (zaman kalırsa) |
 | T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | Düzelt |
@@ -3005,7 +3005,13 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** E#61 "9/2026 kilitlendi" · E#63 `{"silinen_plan": 3, …, "vardiya_yok_yapilan_gun": 3}` · E#64 L2 planları: `14.09,15.09` · E#66 `16.09 durum soru_bekliyor→vardiya_yok fark=true hedef_donem=2026/10` (×3) · E#68 `"bekleyen_gun":3`.
 - **Sade dille:** Kapatılmış bir ayın vardiya planı, işten çıkış girilince sessizce siliniyor. Puantaj rakamları değişmiyor, ama kapanmış ayın kaydı artık kendi içinde tutarsız: planı olmayan gün için "soru bekliyor" yazıyor. Denetimde "bu kişinin 16 Eylül'de vardiyası var mıydı?" sorusunun cevabı kaybolmuş olur.
 - **Öneri:** Silme `and not pdks.donem_kilitli_mi(tarih)` ile sınırlansın; ayrıca `vardiya_plani`'na kilitli dönemde DELETE / UPDATE'i engelleyen tetikleyici. Kalıcı test: kilitli aya düşen çıkıştan sonra kilitli ayın plan sayısı aynı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T67-kilitli-ay-cikis). Migration: `20261231090000_kilitli_ay_cikis.sql`, test: `kilitli_ay_cikis_testi.sql` (9 test).
+  - Karar (Yusuf, 1. öneri): çıkış kilitli ayın planına ve iznine dokunmaz. Yalnızca kilitli olmayan ayların planları silinir, izinleri ve bekleyen fazla mesai talepleri iptal edilir; gün kayıtları eskisi gibi sonraki aya fark satırı olur.
+  - Aynı kökte ikinci sorun bulundu: çıkış kilitli ayda başlayan izni de iptal ediyordu (Ahmet'in 21–22 Eylül izni; canlı puantajda Eylül izinli günü 2 → 0). Artık kalır.
+  - Çıkış kilitli aya düştüyse İK uyarılır: çıkış sonucunda `kilitli_ayda_kalan_plan`, `kilitli_ayda_kalan_izin`, `kilitli_ay_uyarisi` (ekrandaki çıkış bildirimine eklenir) ve kalıcı uyarı `cikis_kilitli_ay` ("İşten çıkış kilitli aya düştü"; Uyarılar ekranı).
+  - Kilitli ayın vardiya planı hiçbir yoldan silinemez (tetikleyici `vardiya_plani_kilitli_silme`). Güncelleme engellenmedi: kilitli ayda bekleyen planın reddi önceki planı geri yükler (T-49, T-93).
+  - Bilinçli bedel: kilitli puantajda çıkıştan sonraki izin ve çalışma günleri kalır; İK gerekirse bordroda elle düzeltir (uyarı bunu söyler).
+  - Ekran (yerel, İK): Ekim kilitli, sahte çalışan 9901'in çıkışı 15.10 girildi → 16–17 Ekim planı ve 20–21 Ekim izni kaldı, 2 gün Kasım'a fark, Uyarılar'da uyarı göründü. `ise_giris_cikis_testi` çıkış özeti iki yeni sayıyla güncellendi.
 
 ### T-68 · Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor
 - **Adım:** 11 · **Önem:** Düşük
