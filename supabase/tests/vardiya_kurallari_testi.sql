@@ -231,7 +231,7 @@ select test.dogrula('İK vardiya düzeltmesi: planlı başlangıç / bitiş 08:0
 -- 7) Ay kilidi: mola ve esnek sütunları puantaja yazılır --------------------------------------
 set local role authenticated;
 select test.oturum('vk_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 select test.dogrula('kilitli puantaj: esnek hedef 1920, fark −30, mola 180 dk',
     (select s.esnek_hedef_dk = 1920 and s.esnek_fark_dk = -30 and s.mola_dk = 180 and s.calisma_dk = 1890

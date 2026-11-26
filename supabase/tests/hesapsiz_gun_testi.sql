@@ -83,7 +83,7 @@ select test.dogrula('HS03 10 Eylül hesaplanınca (gun_hesapla): çalışılan 1
 --    zorla kilit soruyu geçer.
 set local role authenticated;
 select test.oturum('hs_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 9::smallint, true) \g /dev/null
+select pdks.ay_kilitle(2026::smallint, 9::smallint, true, 'Test: zorla kilit gerekçesi') \g /dev/null
 reset role;
 select test.dogrula('zorla kilit: HS01 satırı çalışılan 2, NÇ kalemi 2 gün (önce satır 3, kalem 2)',
     (select s.calisilan_gun = 2 and k.gun = 2

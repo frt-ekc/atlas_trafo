@@ -133,7 +133,7 @@ reset role;
 -- 3) Kilitli ay: saat fark satırında, kural onu da sayar --------------------------------------
 set local role authenticated;
 select test.oturum('es_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 7::smallint, true) \g /dev/null
+select pdks.ay_kilitle(2026::smallint, 7::smallint, true, 'Test: zorla kilit gerekçesi') \g /dev/null
 reset role;
 -- İK'nın girişi (kilitli ayda gün kaydı değişmez, düzeltme fark satırı olur)
 select pdks.duzeltme_uygula(test.g('ES08'), 'giris_zamani', '2026-07-15 08:04+03', 'Kapı kaydı', 'ik', test.k('es_ik@ornek.test')) \g /dev/null

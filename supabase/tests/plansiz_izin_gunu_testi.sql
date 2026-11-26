@@ -121,7 +121,7 @@ select test.dogrula('işe girişten sonra 21 (planlı) ve 22 (plansız) Yİ, izi
 -- 8) Ay kilidi: bordroya giden satır ve kalemler aynı sayıyı yazar --------------------------
 set local role authenticated;
 select test.oturum('pi_ik1@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 select test.dogrula('kilit: PI01 satırı izinli gün 4, Yİ kalemi 4',
     (select s.izinli_gun = 4 and k.gun = 4

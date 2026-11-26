@@ -36,7 +36,7 @@ Sorun–tablo eşlemesi (17 sorun): [docs/veritabani.md](docs/veritabani.md).
 
 | Katman | Teknoloji | Not |
 |---|---|---|
-| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 38 tablo |
+| Veritabanı | **Supabase (PostgreSQL)** | `pdks` şeması, 39 tablo |
 | İş kuralları | PostgreSQL fonksiyonları ve trigger'lar | Gece işi, düzeltme, görevler ayrılığı, ay kilidi veritabanının içinde çalışır; ekran atlansa bile kural delinemez |
 | Giriş ve yetki | **Supabase Auth + RLS** | Roller: `amir`, `ik`, `guvenlik`, `yonetici`, `isg`, `admin`. Her kullanıcı yalnızca rolünün izin verdiği satırları görür |
 | Frontend | **Next.js + TypeScript** | Tailwind CSS + shadcn/ui |
@@ -85,7 +85,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 
 ## 4. Veritabanı
 
-`pdks` şemasında **38 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2 + plan geçmişi 1). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
+`pdks` şemasında **39 tablo** (temel 24 + fazla mesai 2 + geçici kart 2 + puantaj kuralları 3 + İSG 4 + rol onayı 2 + plan geçmişi 1 + kilit izi 1). Ayrıntı ve ER diyagramı: [docs/veritabani.md](docs/veritabani.md).
 
 | Grup | Tablolar |
 |---|---|
@@ -94,7 +94,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | Ham veri (değiştirilemez) | aktarim, okuyucu, ham_okutma, kanit_kaydi, okutma_isareti |
 | İSG | bolge, bolge_yetkisi, bolge_yetkisi_gecmisi, isg_belge (yalnızca geçerlilik tarihi) |
 | İşleme | gece_isi, ariza, uyari |
-| Gün, karar, düzeltme, dönem | gun_kaydi, amir_sorusu, itiraz, duzeltme, donem, puantaj_satiri, puantaj_kalemi |
+| Gün, karar, düzeltme, dönem | gun_kaydi, amir_sorusu, itiraz, duzeltme, donem, donem_kilit_izi (değiştirilemez), puantaj_satiri, puantaj_kalemi |
 | Fazla mesai | fazla_mesai_onayi, fazla_mesai_plani, fazla_mesai_inceleme (onaysız fazla mesai havuzu) |
 
 **Veritabanının zorladığı kurallar:** ham kayıt, `duzeltme` ve `puantaj_satiri` değiştirilemez ve silinemez · `gun_kaydi` yalnızca `pdks.duzeltme_uygula()` ile değişir · devamsızlık ve itiraz reddi yalnızca İK · kilitli ay açılamaz · kimse kendi kaydında işlem yapamaz (görevler ayrılığı) · her kullanıcı yalnızca rolünün izin verdiği satırları görür (RLS).
@@ -162,6 +162,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261231020000_ik_karari_cevaplayan.sql` | İK kararı amirin cevabını silmez; kararı veren ve zamanı ayrı sütunlarda, işten çıkış da cevaba dokunmaz (T-32) |
 | `20261231030000_eksik_saat_reddi.sql` | Tek saatli cevap reddedilir: cevaptan sonra günde giriş ve çıkış olmalı (T-41) |
 | `20261231040000_hesapsiz_gun.sql` | Hesabı tamamlanmamış gün her yerde bekleyen sayılır; puantaj satırı ile kodlar aynı (T-91) |
+| `20261231050000_zorla_kilit_izi.sql` | Zorla kilitte gerekçe zorunlu; her kilidin değiştirilemez izi (+1 tablo) (T-92) |
 
 ---
 
@@ -273,6 +274,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | İK kararı ve cevaplayan (T-32): amirin cevabı kalır, kararı veren ayrı, görevler ayrılığı, işten çıkış (17 test) | ✅ |
 | Tek saatli cevap reddi (T-41): soru türleri, saat doğru / kart unuttu, İK kararı, kilitli ay (15 test) | ✅ |
 | Hesabı tamamlanmamış gün (T-91): canlı puantaj, panel, zorla kilitte satır = kalem (8 test) | ✅ |
+| Zorla kilit izi (T-92): gerekçe zorunlu, iz ve özet, değiştirilemez, amir göremez (18 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

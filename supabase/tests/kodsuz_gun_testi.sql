@@ -39,7 +39,8 @@ end $$;
 create function test.c(p text) returns bigint language sql security definer as $$
     select id from pdks.calisan where sicil_no = p $$;
 create function test.kilit(p_yil int, p_ay int, p_zorla boolean) returns jsonb language sql as $$
-    select pdks.ay_kilitle(p_yil::smallint, p_ay::smallint, p_zorla) $$;
+    select pdks.ay_kilitle(p_yil::smallint, p_ay::smallint, p_zorla,
+                           case when p_zorla then 'Test: zorla kilit gerekçesi' end) $$;
 grant usage on schema test to authenticated;
 grant execute on all functions in schema test to authenticated;
 

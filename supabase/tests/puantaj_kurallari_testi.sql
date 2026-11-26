@@ -344,7 +344,7 @@ select test.dogrula('İK gün kodlarını görür', (select count(*) > 0 from pd
 -- 8) Ay kilidi ve puantaj kalemleri -------------------------------------------------
 select test.hata('İK kararı bekleyen havuz kaydı varken ay kilitlenmez', 'onaysız fazla mesai',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint)$$);
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 
 select test.dogrula('PK01 Ekim kalemleri: NÇ 5 gün / 2288 dk, HT 25 gün, RT 1 gün',
@@ -399,7 +399,7 @@ select test.dogrula('kilitli aya ait havuz onayı Kasım''a fark olarak yönlend
 delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('pk_ik1@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 11::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 11::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 
 select test.dogrula('Kasım fark satırı (düzeltme): geç kalma −12, çalışma +12, NÇ kalemi +12 dk',
