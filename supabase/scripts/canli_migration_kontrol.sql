@@ -97,7 +97,8 @@ with beklenen(surum, ad, nesne) as (values
                                                          ~ 'hesap_tamam(\)\)| AND \(NOT pdks\.sayilmayan_tatil_calismasi\([^)]*\)\)\)\)) AS calisilan_gun'),
     ('20261231050000', 'zorla_kilit_izi',                to_regclass('pdks.donem_kilit_izi') is not null),
     ('20261231060000', 'kilitli_vardiya',                exists (select 1 from pg_trigger where tgname = 'duzeltme_kilitli_vardiya')),
-    ('20261231070000', 'reddedilen_tatil',               pg_get_viewdef('pdks.v_departman_ozet'::regclass) like '%sayilmayan_tatil_calismasi%')
+    ('20261231070000', 'reddedilen_tatil',               pg_get_viewdef('pdks.v_departman_ozet'::regclass) like '%sayilmayan_tatil_calismasi%'),
+    ('20261231080000', 'kilitte_fm_talebi',              pg_get_functiondef('pdks.ay_kilitle(smallint, smallint, boolean, text)'::regprocedure) like '%kapatilan_fm_talebi%')
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
