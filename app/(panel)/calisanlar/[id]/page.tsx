@@ -71,6 +71,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
   // Açık itirazı (açık / inceleniyor) olan günler: aynı güne ikinci itiraz girilmez (T-51).
   const itirazByGun = new Map<number, DuzeltmeItirazi[]>();
   const acikItirazliGun = new Set<number>();
+  const calismaDisi = (gun: string) => gun < calisan.iseGirisTarihi || (calisan.cikisTarihi != null && gun > calisan.cikisTarihi);
   if (duzeltebilir || itirazGirebilir) {
     const ids = dokum.gunler.map((g) => g.gunKaydiId).filter((x): x is number => x !== null);
     if (ids.length) {
@@ -256,12 +257,16 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                           )}
                           {/* İK'da İtiraz yan düğmedir, amirde tek işlemdir; görünümü IslemMenusu belirler */}
                           <IslemMenusu>
-                            {itirazGirebilir && acikItirazliGun.has(g.gunKaydiId) && (
+                            {/* T-69: işe girişten önceki ve çıkıştan sonraki güne itiraz girilmez */}
+                            {itirazGirebilir && calismaDisi(g.tarih) && (
+                              <span className="text-xs whitespace-nowrap text-muted-foreground">Çalışma dönemi dışında</span>
+                            )}
+                            {itirazGirebilir && !calismaDisi(g.tarih) && acikItirazliGun.has(g.gunKaydiId) && (
                               <Link href="/itirazlar" className="text-xs whitespace-nowrap text-muted-foreground underline-offset-4 hover:underline">
                                 Açık itiraz var
                               </Link>
                             )}
-                            {itirazGirebilir && !acikItirazliGun.has(g.gunKaydiId) && (
+                            {itirazGirebilir && !calismaDisi(g.tarih) && !acikItirazliGun.has(g.gunKaydiId) && (
                               <IslemPenceresi
                                 dugme="İtiraz ekle"
                                 baslik={`${calisan.adSoyad} · ${g.tarihMetni} itirazı`}

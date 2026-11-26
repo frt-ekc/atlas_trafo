@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
+import { bugun } from "@/lib/hafta";
 import { metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
+import { gunMetni, isgBelgeAraligi } from "@/lib/tarih-sinirlari";
 
 const BELGE_TURLERI = ["isg_egitimi", "saglik_muayenesi"];
 
@@ -13,6 +15,11 @@ export async function isgBelgeGir(_onceki: IslemSonucu, form: FormData): Promise
   const bitis = tarihAl(form, "gecerlilik_bitis");
   if (!tur || !BELGE_TURLERI.includes(tur)) return { durum: "hata", mesaj: "Belge türü seçilmelidir." };
   if (!bitis) return { durum: "hata", mesaj: "Geçerlilik bitiş tarihi girilmelidir." };
+  // T-87: yanlışlıkla girilen 2999 gibi tarihler; çalışan bir daha hiç uyarı listesine girmezdi
+  const aralik = isgBelgeAraligi(bugun());
+  if (bitis < aralik.min || bitis > aralik.max) {
+    return { durum: "hata", mesaj: `Geçerlilik bitişi ${gunMetni(aralik.min)} ile ${gunMetni(aralik.max)} arasında olmalıdır.` };
+  }
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };

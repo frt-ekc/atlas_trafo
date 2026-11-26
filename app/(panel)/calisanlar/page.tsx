@@ -12,6 +12,7 @@ import { aramaTemizle, tekDeger } from "@/lib/arama";
 import { tarih } from "@/lib/bicim";
 import { bolumNumarasi, gorunurBolumler } from "@/lib/bolumler";
 import { bugun } from "@/lib/hafta";
+import { iseGirisAraligi } from "@/lib/tarih-sinirlari";
 import { rolGerekli } from "@/lib/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
 import { calisanEkle } from "./actions";
@@ -91,7 +92,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                 <Input id="sicil_no" name="sicil_no" required maxLength={20} autoComplete="off" className="font-mono uppercase" />
               </Alan>
               <Alan etiket="İşe giriş" htmlFor="ise_giris_tarihi">
-                <TarihSecici id="ise_giris_tarihi" name="ise_giris_tarihi" required defaultValue={bugunTarih} />
+                <TarihSecici id="ise_giris_tarihi" name="ise_giris_tarihi" required defaultValue={bugunTarih} {...iseGirisAraligi(bugunTarih)} />
               </Alan>
               <Alan etiket="Ad" htmlFor="ad">
                 <Input id="ad" name="ad" required maxLength={50} />

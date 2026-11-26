@@ -1,4 +1,6 @@
 import { TarihSecici } from "@/components/panel/tarih-secici";
+import { bugun } from "@/lib/hafta";
+import { isgBelgeAraligi } from "@/lib/tarih-sinirlari";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalisanListesi, type ListeCalisani } from "@/components/panel/calisan-listesi";
@@ -135,7 +137,7 @@ export default async function IsgSayfasi({ searchParams }: PageProps<"/isg">) {
                   </Alan>
                   <div className="grid grid-cols-2 gap-3">
                     <Alan etiket="Geçerlilik bitişi" htmlFor="gecerlilik_bitis">
-                      <TarihSecici id="gecerlilik_bitis" name="gecerlilik_bitis" required />
+                      <TarihSecici id="gecerlilik_bitis" name="gecerlilik_bitis" required {...isgBelgeAraligi(bugun())} />
                     </Alan>
                     <Alan etiket="Belge no (isteğe bağlı)" htmlFor="belge_no">
                       <Input id="belge_no" name="belge_no" maxLength={50} />
