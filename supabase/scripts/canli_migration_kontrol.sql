@@ -88,7 +88,9 @@ with beklenen(surum, ad, nesne) as (values
                                                                  and prosrc like '%Geçmiş bir güne fazla mesai planı girilemez%')),
     ('20261229010000', 'plan_gecmisi',                   to_regclass('pdks.vardiya_plani_gecmisi') is not null),
     ('20261230010000', 'saatlik_izin_iptal',             to_regprocedure('pdks.saatlik_izin_iptal(bigint, text)') is not null),
-    ('20261231010000', 'plansiz_izin_gunu',              to_regprocedure('pdks.plansiz_izin_gunleri(date, date)') is not null)
+    ('20261231010000', 'plansiz_izin_gunu',              to_regprocedure('pdks.plansiz_izin_gunleri(date, date)') is not null),
+    ('20261231020000', 'ik_karari_cevaplayan',           exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karar_veren_id'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

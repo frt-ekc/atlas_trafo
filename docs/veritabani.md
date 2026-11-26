@@ -130,6 +130,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/saatlik_izin_iptal_testi.sql` | Saatlik izin iptali (T-50): yeniden hesap, iz, yetki, görevler ayrılığı, kilitli ay, gece işi, silinmezlik, amir görünümü için 25 test |
 | `supabase/migrations/20261231010000_plansiz_izin_gunu.sql` | Planı olmayan izin günü puantajda izin kodunu alır, HT değil (`plansiz_izin_gunleri`, `gun_kodlari_hesapla`, `v_puantaj_canli`); kilitli ayın böyle gününe izin girişi / iptali reddedilir; `izin` okuma politikası sorgu başına bir kez (T-94) |
 | `supabase/tests/plansiz_izin_gunu_testi.sql` | Planı olmayan izin günü (T-94): kodlar, Cumartesi ayarı, rapor / arife / bayram, iptal, işe giriş, kilit, RLS altında aynı sonuç, hız yapıları, kilitli ayda ret için 35 test |
+| `supabase/migrations/20261231020000_ik_karari_cevaplayan.sql` | İK kararı amirin cevabını silmez: `amir_sorusu.ik_karar_veren_id` / `ik_karar_zamani`; işten çıkış soruyu kapanış sütunlarıyla kapatır; "yalnızca İK kapatır" ve görevler ayrılığı yeni sütuna bakar; eski kayıtlar taşınır (T-32) |
+| `supabase/tests/ik_karari_cevaplayan_testi.sql` | İK kararı ve cevaplayan (T-32): gelmedi / bilmiyorum / cevapsız soru, karar zamanı, görevler ayrılığı, yalnızca İK kapatır, check, işten çıkış için 17 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -150,7 +152,8 @@ olarak veritabanının içinde çalışır.
 4. **Gece işi yalnızca kanıtla düzeltir.** `kaynak = 'gece_isi'` olan düzeltmede kanıt kaydı ya da izin zorunlu.
 5. **Çalışan aleyhine kararı İK verir.** "devamsız" kararı, itirazın reddi ve ayın kilitlenmesi yalnızca
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
-   Sistem en fazla `devamsiz_suphesi` der.
+   Sistem en fazla `devamsiz_suphesi` der. İK'nın kararı amirin cevabını silmez: kim ne dedi
+   (`cevaplayan_id`, `cevap`) ve kim karar verdi (`ik_karar_veren_id`, `ik_karar_zamani`) ayrı tutulur (T-32).
 6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
    Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
    adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).
@@ -311,6 +314,9 @@ erDiagram
         text durum
         date son_cevap_tarihi
         text cevap
+        bigint cevaplayan_id FK "amirin cevabı, İK kararı değiştirmez"
+        text ik_karari "devamsiz / geldi"
+        bigint ik_karar_veren_id FK
     }
     itiraz {
         bigint id PK

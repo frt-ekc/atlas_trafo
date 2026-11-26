@@ -176,8 +176,9 @@ select test.dogrula('IG01: çıkıştan sonraki 7 Ekim günü "vardiya yok" oldu
     and exists (select 1 from pdks.duzeltme d where d.gun_kaydi_id = (test.gk('IG01', '2026-10-07')).id
                 and d.alan = 'durum' and d.yeni_deger = 'vardiya_yok' and d.kaynak = 'ik'
                 and d.yapan_id = test.k('ig_ik1@ornek.test') and d.gerekce = 'İşten çıkış (06.10.2026): İstifa'));
-select test.dogrula('IG01: 7 Ekim''in açık sorusu kapandı',
-    (select durum = 'kapandi' and cevaplayan_id = test.k('ig_ik1@ornek.test') and cevap_aciklama like '%İşten çıkış%'
+select test.dogrula('IG01: 7 Ekim''in açık sorusu kapandı: kapatan İK, neden "İşten çıkış (06.10.2026)", cevaplayan ve açıklamaya dokunulmadı (T-32)',
+    (select durum = 'kapandi' and kapatan_id = test.k('ig_ik1@ornek.test') and kapanis_nedeni = 'İşten çıkış (06.10.2026)'
+            and onceki_durum is not null and cevaplayan_id is null and cevap_aciklama is null
      from pdks.amir_sorusu where gun_kaydi_id = (test.gk('IG01', '2026-10-07')).id));
 select test.dogrula('IG01: çıkıştan önceki günler (5–6 Ekim) olduğu gibi kaldı',
     (select count(*) = 2 from pdks.gun_kaydi where calisan_id = test.c('IG01')

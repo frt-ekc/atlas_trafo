@@ -159,6 +159,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261229010000_plan_gecmisi.sql` | Vardiya planı geçmişi (+1 tablo); İK geriye dönük değişikliği reddedince önceki plan geri gelir (T-49) |
 | `20261230010000_saatlik_izin_iptal.sql` | Yanlış saatlik izin iptal edilir (iz kalır), gün yeniden hesaplanır (T-50) |
 | `20261231010000_plansiz_izin_gunu.sql` | Planı olmayan izin günü puantajda izin kodunu alır, HT değil; kilitli ayın böyle gününe izin girişi / iptali reddedilir (T-94) |
+| `20261231020000_ik_karari_cevaplayan.sql` | İK kararı amirin cevabını silmez; kararı veren ve zamanı ayrı sütunlarda, işten çıkış da cevaba dokunmaz (T-32) |
 
 ---
 
@@ -267,6 +268,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Plan geçmişi (T-49): ret sonrası önceki plan ve gün işleme, silinmezlik, görünürlük (18 test) | ✅ |
 | Saatlik izin iptali (T-50): yeniden hesap, iz, yetki, kilitli ay, gece işi, silinmezlik (25 test) | ✅ |
 | Planı olmayan izin günü (T-94): kodlar, tatil / Cumartesi, rapor, iptal, kilit, RLS, hız yapıları, kilitli ayda ret (35 test) | ✅ |
+| İK kararı ve cevaplayan (T-32): amirin cevabı kalır, kararı veren ayrı, görevler ayrılığı, işten çıkış (17 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 
