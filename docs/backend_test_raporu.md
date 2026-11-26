@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 50'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 32'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 53'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 29'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 22 | 8 | 4 |
-| Düşük | 34 | 6 | 10 | 18 |
+| Orta | 34 | 24 | 8 | 2 |
+| Düşük | 34 | 7 | 10 | 17 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **50** | **25** | **32** |
+| **Toplam** | **107** | **53** | **25** | **29** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -252,11 +252,11 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-14 | Orta | 3 | Vekil amir her zaman yetkili | K9 | — | ✅ Sınırlılık (karar verildi) |
 | T-15 | Düşük | 3 | İK kendi itirazını "incelemeye alabiliyor" | K9 | Yusuf | Düzelt |
 | T-16 | Düşük | 3 | "Talep eden onaylayamaz" kuralı ham İngilizce hata mesajıyla dönüyor | K13 | Yusuf | Düzelt (zaman kalırsa) |
-| T-17 | Orta | 4 | Satır tarihleri dosyanın günüyle karşılaştırılmıyor | K8 | Yusuf | Düzelt (karar verildi) |
-| T-18 | Orta | 4 | İleri tarihli bir dosya, gece işinin gelecekteki bir gün için çalışmasına ve açık soruların… | K8 | Yusuf | Düzelt (karar verildi) |
+| T-17 | Orta | 4 | Satır tarihleri dosyanın günüyle karşılaştırılmıyor | K8 | Yusuf | ✅ Düzeltildi (feature/T17-T18-dosya-tarihi) |
+| T-18 | Orta | 4 | İleri tarihli bir dosya, gece işinin gelecekteki bir gün için çalışmasına ve açık soruların… | K8 | Yusuf | ✅ Düzeltildi (feature/T17-T18-dosya-tarihi) |
 | T-19 | Görüş | 4 | İşlenmiş bir güne sonradan gelen dosya sessizce yok sayılıyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-20 | Düşük | 4 | Dosya özeti istemciden geliyor | K8 | — | ✅ Sınırlılık (karar verildi) |
-| T-21 | Düşük | 4 | Hata mesajı kullanıcı girdisini kısaltmadan geri yansıtıyor | K8 | Yusuf | Düzelt |
+| T-21 | Düşük | 4 | Hata mesajı kullanıcı girdisini kısaltmadan geri yansıtıyor | K8 | Yusuf | ✅ Düzeltildi (feature/T17-T18-dosya-tarihi) |
 | T-22 | Düşük | 5 | `docs/ornek_veri.md` S18'in beklenen sonucu veritabanıyla tutmuyor | K15 | Mehmet | ✅ Düzeltildi (belge, feature/T103-belge-duzeltmeleri) |
 | T-23 | Orta | 5 | Kapı / servis dosyası PDKS'den sonra gelirse kanıt kullanılmıyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-24 | Orta | 5 | Gece işi 2000 çalışanda ekrandan çalışmıyor (8 saniye zaman aşımı) | K8 | — | ✅ Sınırlılık (karar verildi) |
@@ -1182,7 +1182,11 @@ Raporda **bilinen sınırlılık** olarak yazılmalı: "Demo ve ders projesi kap
   - `dosya_yukle`, satırların en az %X'i `p_veri_tarihi` ile ertesi gün dışındaysa reddetsin (ya da `p_zorla` istesin).
   - Kilitli aya ait satırları reddetsin.
   - `dosya_yukle_testi`'ne üç kontrol eklensin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T17-T18-dosya-tarihi). Migration: `20261231120000_dosya_tarihi.sql`, test: `dosya_tarihi_testi.sql` (13 test, T-17 / T-18 / T-21 birlikte).
+  - Karar (K8): her satırın İstanbul tarihi dosyanın günü ya da ertesi gün olmalı (gece vardiyasının çıkışı ertesi sabah); değilse dosya ilk aykırı satırın numarası ve tarihiyle reddedilir: "1. satırın tarihi (10.12.2026) dosyanın günü (07.12.2026) ya da ertesi gün değil. Doğru dosyayı ve günü seçin." Reddedilen dosya aktarım bırakmaz; gün "veri yok" kalır.
+  - Tek istisna: önceki dosyada zaten gelmiş okutmanın tekrarı (çakışan dışa aktarım) yazılmadan atlandığı için günü yanıltmaz, kurala takılmaz (`dosya_yukle_testi`'ndeki "çakışan" senaryosu).
+  - Kilitli aya dosya yüklenemez: "15.09.2026 kilitli bir aya ait; bu güne dosya yüklenemez."
+  - Hız değişmedi (40 000 satırlık dosya ~2,2 sn, önce ve sonra).
 
 ### T-18 · İleri tarihli bir dosya, gece işinin gelecekteki bir gün için çalışmasına ve açık soruların hepsinin erken eskale olmasına yol açıyor
 - **Adım:** 4 · **Önem:** Orta
@@ -1201,7 +1205,9 @@ Raporda **bilinen sınırlılık** olarak yazılmalı: "Demo ve ders projesi kap
   - `dosya_yukle`: `p_veri_tarihi <= bugün + 1` kontrolü.
   - `gece_isi_calistir`'ın sınırı `current_date`'i aşmasın; demo da bugünden ileriye gitmiyor (7 Aralık dosyası 7 Aralık'ta yükleniyor).
   - Bunun ayrıca bir de testi yazılsın.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T17-T18-dosya-tarihi). Migration: `20261231120000_dosya_tarihi.sql`, test: `dosya_tarihi_testi.sql` (13 test, T-17 / T-18 / T-21 birlikte).
+  - Dosyanın günü ve satırların tarihi bugünden ileri olamaz; gece işi bugünden ileri bir günü hiçbir zaman işlemez (eskiden yüklenmiş ileri tarihli bir aktarım olsa bile).
+  - Etkisi (bilinçli): örnek veri Kasım'ın tamamını kapsar; 30 Kasım'dan önce Kasım'ın kalan günleri gece işinde işlenemez, 7 Aralık demo dosyaları da 7 Aralık'tan önce yüklenemez (prova için yerelde `pdks.test_bugun` gerekir; ekrandan gelen istek her zaman gerçek tarihi kullanır). Demo 7 Aralık'ta yapıldığı için demo akışı etkilenmez. `gece_isi_testi`, `ornek_veri_testi`, `rls_hizi_testi` demo gününü (`test_bugun = 2026-12-07`), `dosya_yukle_testi` Mart 2027'yi bugün kabul eder.
 
 ### T-19 · İşlenmiş bir güne sonradan gelen dosya sessizce yok sayılıyor
 - **Adım:** 4 · **Önem:** Görüş
@@ -1238,7 +1244,7 @@ Raporda **bilinen sınırlılık** olarak yazılmalı: "Demo ve ders projesi kap
 - **Kanıt:** `4o 1000 karakter okuyucu | red | Okuyucu tanımlı değil …: XXXXXXXX… (1000 karakter)`
 - **Sade dille:** Bozuk bir dosyada ekrana sayfa uzunluğunda bir hata mesajı çıkar. Güvenlik sorunu değil (SQL metnine eklenmiyor), yalnızca görünüm.
 - **Öneri:** `left(v_deger, 40)`.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T17-T18-dosya-tarihi, T-17 / T-18 ile aynı fonksiyon). Mesajdaki okuyucu kodu 40 karakterde kısaltılır ("…").
 
 ### Denediklerim
 - **45 deneme** (sonuç tablosu):

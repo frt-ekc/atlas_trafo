@@ -102,7 +102,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231090000', 'kilitli_ay_cikis',               exists (select 1 from pg_trigger where tgname = 'vardiya_plani_kilitli_silme')),
     ('20261231100000', 'gecersiz_amir',                  exists (select 1 from pg_trigger where tgname = 'kullanici_amir_gecersiz')),
     ('20261231110000', 'kart_tanimlayan',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
-                                                                 and table_name = 'kart' and column_name = 'tanimlayan_id'))
+                                                                 and table_name = 'kart' and column_name = 'tanimlayan_id')),
+    ('20261231120000', 'dosya_tarihi',                   pg_get_functiondef('pdks.dosya_yukle(text, text, date, jsonb, text)'::regprocedure) like '%ertesi gün değil%')
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
