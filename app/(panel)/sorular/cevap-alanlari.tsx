@@ -9,20 +9,19 @@ import { zorunluSaatler } from "./zorunlu-saatler";
 // Soru cevaplama penceresinin alanları. Saat alanları yalnızca "saat farklı" seçilince görünür;
 // bu yüzden tarayıcıda çalışan küçük bir bileşen.
 export function CevapAlanlari({
-  soruTuru,
   girisVarsayilan,
   cikisVarsayilan,
   kayitliGiris,
   kayitliCikis,
 }: {
-  soruTuru: string;
   girisVarsayilan: string;
   cikisVarsayilan: string;
   kayitliGiris: string | null; // "07:45": kayıtta zaten olan saat
   kayitliCikis: string | null;
 }) {
   const [cevap, setCevap] = useState("");
-  const zorunlu = zorunluSaatler(soruTuru);
+  // Günde kayıtlı olmayan saat zorunludur (T-41)
+  const zorunlu = zorunluSaatler({ giris: Boolean(kayitliGiris), cikis: Boolean(kayitliCikis) });
 
   return (
     <>

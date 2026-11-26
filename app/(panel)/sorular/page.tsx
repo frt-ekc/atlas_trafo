@@ -259,7 +259,6 @@ function CevaplaPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <CevapAlanlari
-        soruTuru={soru.soru_turu}
         girisVarsayilan={girisVarsayilan}
         cikisVarsayilan={cikisVarsayilan}
         kayitliGiris={g?.giris_zamani ? saat(g.giris_zamani) : null}
@@ -304,9 +303,10 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <IkKararAlanlari
-        soruTuru={soru.soru_turu}
         girisVarsayilan={yerelZamanGirdisi(g?.giris_zamani ? null : ((soru.soru_turu !== "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_baslangic))}
         cikisVarsayilan={yerelZamanGirdisi(g?.cikis_zamani ? null : ((soru.soru_turu === "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_bitis))}
+        kayitliGiris={g?.giris_zamani ? saat(g.giris_zamani) : null}
+        kayitliCikis={g?.cikis_zamani ? saat(g.cikis_zamani) : null}
       />
     </IslemPenceresi>
   );
