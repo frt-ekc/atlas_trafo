@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { bugun } from "@/lib/hafta";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { metinAl, rpcCagir, sayiAl, tarihAl, zamanAl } from "@/lib/supabase/rpc";
 
@@ -48,13 +49,16 @@ const OZET_ADI: Record<string, string> = {
   uyari: "uyarı",
 };
 
-// Demo düğmesi: tarih aralığını gün gün gece işinden geçirir (normalde pg_cron her gece yapar).
+// Demo düğmesi: seçilen günü gece işinden geçirir (normalde pg_cron her gece yapar).
 // Tekrar çalıştırmak güvenlidir; var olan kayıtlar bozulmaz, yalnızca eksikler eklenir.
+// T-24: ekrandan yalnızca tek gün. Çok gün tek istekte işlenirse veritabanının 8 saniyelik istek
+// sınırına takılır ve işlem yarıda kalır; toplu işlem SQL Editor'den ya da pg_cron ile yapılır.
 export async function geceIsiTetikle(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
-  const baslangic = tarihAl(form, "baslangic");
-  const bitis = tarihAl(form, "bitis") ?? baslangic;
-  if (!baslangic || !bitis) return { durum: "hata", mesaj: "Başlangıç günü seçilmelidir." };
-  if (bitis < baslangic) return { durum: "hata", mesaj: "Bitiş günü, başlangıç gününden önce olamaz." };
+  const gun = tarihAl(form, "gun");
+  if (!gun) return { durum: "hata", mesaj: "İşlenecek gün seçilmelidir." };
+  if (gun >= bugun()) return { durum: "hata", mesaj: "Yalnızca geçmiş günler işlenebilir." };
+  const baslangic = gun;
+  const bitis = gun;
 
   const sonuc = await rpcCagir<GunSonucu[]>("gece_isi_tetikle", { p_baslangic: baslangic, p_bitis: bitis });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };

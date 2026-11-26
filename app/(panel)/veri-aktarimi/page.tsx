@@ -193,18 +193,15 @@ export default async function VeriAktarimiSayfasi({ searchParams }: PageProps<"/
               dugme="Gece işlemini başlat"
               dugmeTuru="default"
               baslik="Gece işlemini başlat"
-              aciklama="Seçilen günler sırayla işlenir (en fazla 62 gün). Mevcut kayıtlar korunur, eksik kayıtlar eklenir. Verisi yüklenmemiş günler işlenmez."
+              aciklama="Seçilen gün işlenir. Mevcut kayıtlar korunur, eksik kayıtlar eklenir. Verisi yüklenmemiş gün işlenmez. Ekrandan bir seferde tek gün işlenir; birden çok gün gerekirse sırayla başlatılır."
               onay="Başlat"
               islem={geceIsiTetikle}
             >
-              <div className="grid grid-cols-2 gap-3">
-                <Alan etiket="Başlangıç" htmlFor="baslangic">
-                  <TarihSecici id="baslangic" name="baslangic" required defaultValue={ayBasi <= dun ? ayBasi : dun} />
-                </Alan>
-                <Alan etiket="Bitiş" htmlFor="bitis">
-                  <TarihSecici id="bitis" name="bitis" required defaultValue={dun} />
-                </Alan>
-              </div>
+              {/* T-24: ekrandan tek gün. Çok gün tek istekte işlenince veritabanının 8 sn sınırına takılır;
+                  toplu işlem (ör. kurulumda bir ay) SQL Editor'den ya da her gece pg_cron ile yapılır. */}
+              <Alan etiket="İşlenecek gün" htmlFor="gun">
+                <TarihSecici id="gun" name="gun" required defaultValue={dun} max={dun} />
+              </Alan>
             </IslemPenceresi>
           )}
         </div>

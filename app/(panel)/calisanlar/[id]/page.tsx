@@ -68,8 +68,10 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
 
   // Düzeltme bir itiraza bağlanabilsin diye bu ayın itirazları (gün kaydına göre).
   // Reddedilmiş itiraz listelenmez: düzeltme reddedilmiş bir itiraza dayanamaz (T-34).
+  // Açık itirazı (açık / inceleniyor) olan günler: aynı güne ikinci itiraz girilmez (T-51).
   const itirazByGun = new Map<number, DuzeltmeItirazi[]>();
-  if (duzeltebilir) {
+  const acikItirazliGun = new Set<number>();
+  if (duzeltebilir || itirazGirebilir) {
     const ids = dokum.gunler.map((g) => g.gunKaydiId).filter((x): x is number => x !== null);
     if (ids.length) {
       const { data } = await supabase
@@ -79,6 +81,7 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
         .in("durum", ["acik", "inceleniyor", "kabul"])
         .order("id");
       for (const i of (data ?? []) as (DuzeltmeItirazi & { gun_kaydi_id: number })[]) {
+        if (i.durum === "acik" || i.durum === "inceleniyor") acikItirazliGun.add(i.gun_kaydi_id);
         const liste = itirazByGun.get(i.gun_kaydi_id) ?? [];
         liste.push({ id: i.id, metin: i.metin, durum: i.durum });
         itirazByGun.set(i.gun_kaydi_id, liste);
@@ -253,7 +256,12 @@ export default async function CalisanSayfasi({ params, searchParams }: PageProps
                           )}
                           {/* İK'da İtiraz yan düğmedir, amirde tek işlemdir; görünümü IslemMenusu belirler */}
                           <IslemMenusu>
-                            {itirazGirebilir && (
+                            {itirazGirebilir && acikItirazliGun.has(g.gunKaydiId) && (
+                              <Link href="/itirazlar" className="text-xs whitespace-nowrap text-muted-foreground underline-offset-4 hover:underline">
+                                Açık itiraz var
+                              </Link>
+                            )}
+                            {itirazGirebilir && !acikItirazliGun.has(g.gunKaydiId) && (
                               <IslemPenceresi
                                 dugme="İtiraz ekle"
                                 baslik={`${calisan.adSoyad} · ${g.tarihMetni} itirazı`}

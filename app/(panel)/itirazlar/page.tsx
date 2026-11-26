@@ -49,6 +49,8 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
   const bitGun = tarihParametresi(tekDeger(parametre.bit));
   const uyar = aramaSuzgeci(araMetni);
   const suzgecVar = tumu || Boolean(araMetni || basGun || bitGun);
+  // Kullanıcının kendi çalışan kaydına ait itiraz (görevler ayrılığı)
+  const kendiItirazi = (i: { calisan: { id: number } | null }) => i.calisan?.id != null && i.calisan.id === kullanici.calisanId;
 
   const supabase = await sunucuIstemcisi();
   const tumItirazlar = await tumSatirlar<Itiraz>((bas, son) => {
@@ -189,8 +191,12 @@ export default async function ItirazlarSayfasi({ searchParams }: PageProps<"/iti
                     <DurumIslem
                       durum={<DurumRozeti ton={ITIRAZ_DURUMU[i.durum]?.ton}>{ITIRAZ_DURUMU[i.durum]?.ad ?? i.durum}</DurumRozeti>}
                     >
-                      {ik && (i.durum === "acik" || i.durum === "inceleniyor") && <KararPenceresi itiraz={i} />}
-                      {ik && i.durum === "acik" && (
+                      {/* Görevler ayrılığı (T-15): İK kendi itirazında işlem yapamaz; düğmeler gösterilmez */}
+                      {ik && kendiItirazi(i) && (i.durum === "acik" || i.durum === "inceleniyor") && (
+                        <span className="text-xs text-muted-foreground">Kendi kaydınız · başka bir İK kullanıcısı karar verir</span>
+                      )}
+                      {ik && !kendiItirazi(i) && (i.durum === "acik" || i.durum === "inceleniyor") && <KararPenceresi itiraz={i} />}
+                      {ik && !kendiItirazi(i) && i.durum === "acik" && (
                         <IslemMenusu>
                           <HizliIslem dugme="İncelemeye al" dugmeTuru="ghost" islem={itirazIncelemeyeAl} gizli={{ itiraz_id: i.id }} />
                         </IslemMenusu>

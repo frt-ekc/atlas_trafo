@@ -38,7 +38,10 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
   const araMetni = tekDeger(parametre.ara);
   const kelimeler = aramaTemizle(araMetni);
   const departmanId = bolumNumarasi(tekDeger(parametre.departman));
-  const tumu = tekDeger(parametre.durum) === "tumu";
+  // T-80 (karar): sistem yöneticisi çalışanlardan yalnızca sicil, ad, soyad ve departmanı görür;
+  // işe giriş, çıkış ve aktiflik gösterilmez, ayrılanlar listelenmez.
+  const admin = kullanici.rol === "admin";
+  const tumu = !admin && tekDeger(parametre.durum) === "tumu";
 
   const supabase = await sunucuIstemcisi();
 
@@ -121,12 +124,14 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
             ))}
           </Secim>
         </FiltreAlani>
-        <FiltreAlani etiket="Durum" htmlFor="durum">
-          <Secim id="durum" name="durum" defaultValue={tumu ? "tumu" : ""}>
-            <option value="">Çalışanlar</option>
-            <option value="tumu">Ayrılanlar dahil</option>
-          </Secim>
-        </FiltreAlani>
+        {!admin && (
+          <FiltreAlani etiket="Durum" htmlFor="durum">
+            <Secim id="durum" name="durum" defaultValue={tumu ? "tumu" : ""}>
+              <option value="">Çalışanlar</option>
+              <option value="tumu">Ayrılanlar dahil</option>
+            </Secim>
+          </FiltreAlani>
+        )}
       </FiltreCubugu>
 
       <p className="text-sm text-muted-foreground" aria-live="polite">{calisanlar.length} çalışan</p>
@@ -143,8 +148,8 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                 <TableHead className="w-24">Sicil</TableHead>
                 <TableHead>Ad soyad</TableHead>
                 <TableHead className="w-full">Departman</TableHead>
-                <TableHead>İşe giriş</TableHead>
-                <TableHead>Durum</TableHead>
+                {!admin && <TableHead>İşe giriş</TableHead>}
+                {!admin && <TableHead>Durum</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -159,8 +164,8 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                     )}
                   </TableCell>
                   <TableCell className="whitespace-normal">{c.departman?.ad ?? "—"}</TableCell>
-                  <TableCell className="tarih-hucre">{tarih(c.ise_giris_tarihi)}</TableCell>
-                  <TableCell>
+                  {!admin && <TableCell className="tarih-hucre">{tarih(c.ise_giris_tarihi)}</TableCell>}
+                  {!admin && <TableCell>
                     {c.aktif && c.ise_giris_tarihi > bugunTarih ? (
                       <Badge variant="default">Başlayacak · {tarih(c.ise_giris_tarihi)}</Badge>
                     ) : c.aktif ? (
@@ -169,7 +174,7 @@ export default async function CalisanlarSayfasi({ searchParams }: PageProps<"/ca
                     ) : (
                       <Badge variant="outline">Ayrıldı{c.isten_cikis_tarihi ? ` · ${tarih(c.isten_cikis_tarihi)}` : ""}</Badge>
                     )}
-                  </TableCell>
+                  </TableCell>}
                 </TableRow>
               ))}
             </TableBody>
