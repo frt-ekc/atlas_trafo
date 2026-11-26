@@ -25,7 +25,20 @@ export async function ayKilitle(_onceki: IslemSonucu, form: FormData): Promise<I
   if (metinAl(form, "onay") !== "evet") return { durum: "hata", mesaj: "Kilidin geri açılamayacağı onaylanmalıdır." };
   const [yil, ayNo] = ay.split("-").map(Number);
 
-  const sonuc = await rpcCagir<KilitOzeti>("ay_kilitle", { p_yil: yil, p_ay: ayNo, p_zorla: metinAl(form, "zorla") === "evet" });
+  // Zorla kilitte gerekçe zorunlu (T-92). p_gerekce yalnızca zorla kilitte gönderilir:
+  // zorlamasız kilit, veritabanı ve ekran hangi sırayla güncellenirse güncellensin aynı çalışır.
+  const zorla = metinAl(form, "zorla") === "evet";
+  const gerekce = metinAl(form, "gerekce")?.trim() ?? "";
+  if (zorla && gerekce.length < 10) {
+    return { durum: "hata", mesaj: "Zorla kilitte gerekçe yazılmalıdır (en az 10 karakter)." };
+  }
+
+  const sonuc = await rpcCagir<KilitOzeti>("ay_kilitle", {
+    p_yil: yil,
+    p_ay: ayNo,
+    p_zorla: zorla,
+    ...(zorla ? { p_gerekce: gerekce } : {}),
+  });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
 
   revalidatePath("/", "layout");
