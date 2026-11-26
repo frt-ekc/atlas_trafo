@@ -92,9 +92,12 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231020000', 'ik_karari_cevaplayan',           exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'amir_sorusu' and column_name = 'ik_karar_veren_id')),
     ('20261231030000', 'eksik_saat_reddi',               to_regprocedure('pdks.cevap_saatleri_denetle(bigint, timestamptz, timestamptz, text)') is not null),
-    ('20261231040000', 'hesapsiz_gun',                   pg_get_viewdef('pdks.v_puantaj_canli'::regclass) like '%hesap_tamam)) AS calisilan_gun%'),
+    -- T-102 calisilan_gun koşuluna bir şart ekledi; T-91 izi iki hâlde de aranır
+    ('20261231040000', 'hesapsiz_gun',                   pg_get_viewdef('pdks.v_puantaj_canli'::regclass)
+                                                         ~ 'hesap_tamam(\)\)| AND \(NOT pdks\.sayilmayan_tatil_calismasi\([^)]*\)\)\)\)) AS calisilan_gun'),
     ('20261231050000', 'zorla_kilit_izi',                to_regclass('pdks.donem_kilit_izi') is not null),
-    ('20261231060000', 'kilitli_vardiya',                exists (select 1 from pg_trigger where tgname = 'duzeltme_kilitli_vardiya'))
+    ('20261231060000', 'kilitli_vardiya',                exists (select 1 from pg_trigger where tgname = 'duzeltme_kilitli_vardiya')),
+    ('20261231070000', 'reddedilen_tatil',               pg_get_viewdef('pdks.v_departman_ozet'::regclass) like '%sayilmayan_tatil_calismasi%')
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

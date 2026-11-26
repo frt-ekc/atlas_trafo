@@ -99,7 +99,7 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S27 | Selim Ünal (5402, Depo) 19 Kas 14:10; Hakan Ekinci (5202, Boyahane) 09:00 | İkisi de Boyahane kapısından geçti | İSG | Selim'e `yetkisiz_bolge_okutmasi`, Hakan'a yok |
 | S28 | Ece Ateş (S16), Merve Yücel (S17), Erkan Duman (S30) | Onaysız fazla mesai | 10 | İK Fazla mesai ekranında 3 bekleyen havuz kaydı: 150, 100 ve 485 dk (tatil çalışması) |
 | S29 | Mehmet Kaya (1002), 22 Kas Pazar | Yazılı onayı var; Gündüz planıyla çalıştı | 10 | FM100 480 dk, puantaj kodu FM100 |
-| S30 | Erkan Duman (5102), 29 Kas Pazar | Yazılı onayı yok; 08–16 planıyla çalıştı | 10 | FM100 0; süre havuzda `tatil_calismasi`, karar İK'da |
+| S30 | Erkan Duman (5102), 29 Kas Pazar | Yazılı onayı yok; 08–16 planıyla çalıştı | 10 | FM100 0; süre havuzda `tatil_calismasi`, karar İK'da. Onaylanırsa FM100 1 gün / 480 dk; reddedilirse gün HT, çalışılan gün sayılmaz (T-102) |
 | S31 | Onur Baysal (6002), İrem Toprak (6202) | Esnek mesai | — | Ay sonu fark: Onur −152 dk, İrem +29 dk |
 | S32 | İrem Toprak (6202), 18 Kas | Esnek; PDKS girişi yok, kapı girişi 09:12 | 1 | Giriş 09:17 (kanıt + yürüme payı), amire soru yok |
 

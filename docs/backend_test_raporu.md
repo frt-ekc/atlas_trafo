@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 45'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 37'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 46'sı düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 36'sı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 18 | 8 | 8 |
+| Orta | 34 | 19 | 8 | 7 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **45** | **25** | **37** |
+| **Toplam** | **107** | **46** | **25** | **36** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -337,7 +337,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-99 | Orta | 12 (ek; Adım 12 şüphesinden) | Saniyesiz okutma zamanı kabul ediliyor | K8 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-100 | Orta | 12 (ek; Adım 12 şüphesinden) | Fark hesabı kilitli ayın "önce" değerini bugünkü ayarla hesaplıyor | K6 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-101 | Görüş | 12 (ek; Adım 12 şüphesinden) | Kilit, kodsuz kalan günlerin listesini vermiyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (PR #54, T-90 ile) |
-| T-102 | Orta | 13 | Reddedilen tatil çalışması puantajda "FM100 1 gün / 0 dk" kodlanıyor | K4 | Yusuf | Düzelt |
+| T-102 | Orta | 13 | Reddedilen tatil çalışması puantajda "FM100 1 gün / 0 dk" kodlanıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T102-reddedilen-tatil) |
 | T-103 | Düşük | 13 | `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım | K15 | Mehmet | ✅ Düzeltildi (belge, feature/T103-belge-duzeltmeleri) |
 | T-104 | Yüksek | PR incelemesi | Amirin Departmanlar sayfası RLS'li görünümler yüzünden 8 sn'de zaman aşımına düşüyor | K16 | Yusuf | ✅ Düzeltildi (PR #48); kalan 46 politika ayrı iş |
 | T-105 | Orta | Normalizasyon | `kullanici` tablosunda iki çift kayıt: `izinli_mi` hiç değişmiyor, `ad_soyad` çalışandan bağımsız | — | — | ✅ Düzeltildi (20261208010000_kullanici_cift_kayit.sql) |
@@ -3645,7 +3645,7 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
 | T-41 | 4. adım | Amir "Saat farklı" deyip yalnızca bir saat girerse gün askıda kalır, soru kapanır | Ali için "Geldi, saat doğru" (saat girmeden); Mustafa için "Bilmiyorum". Doğaçlama yapılmasın |
 | T-46 | 4–6. adım | ✅ Düzeltildi: işlenmiş güne girilen izin günü izinli / raporlu yapar, soruyu kapatır; okutma varsa uyarı yazılır | 7 Aralık'ta okutması olmayan birine izin girilebilir |
 | T-56 | 6. adım | ✅ Düzeltildi: İK Merve'nin ya da Erkan'ın havuz kaydını onaylarsa süre puantaja girer, kayıt "Yazılı onay yok" diye işaretlenir ve uyarı oluşur | Etiket ve uyarı gösterilebilir |
-| T-102 (yeni) | 6. adım, Puantaj / Excel | Erkan'ın havuzu reddedilirse ERP'de "FM100 1 gün / 0 dk" görünür | Demoda havuz reddedilmesin; ya da kodun anlamı önceden anlatılsın |
+| T-102 | 6. adım, Puantaj / Excel | ✅ Düzeltildi: Erkan'ın havuzu reddedilirse 29 Kasım "HT 1 gün" kodlanır, çalışılan güne sayılmaz (Puantaj'da 21 gün) | Ret de onay da gösterilebilir; onayda gün FM100 1 gün / 480 dk olur |
 | T-79 | — | 7 Aralık'ta plansız çalışan yok | Yeni veri eklenmesin |
 | T-81 | 1. adım, Uyarılar | Paylaşım uyarısında İK yalnızca "görüldü" diyebilir; "karar nerede?" sorusunun cevabı yok | "Sistem uyarır, karar İK'nın elle düzeltmesiyle olur" diye anlatılsın; "görüldü" butonu sonuç bekleniyormuş gibi gösterilmesin |
 | T-83 | 2. adım | Osman'a kart demo saatiyle verilir; geçmiş saat seçilemez | Belgedeki gibi "o anın saatiyle" anlatılsın |
@@ -3676,7 +3676,12 @@ Yeniden görülen eski bulgular: T-39, T-41, T-48, T-63, T-67, T-79, T-81.
   - ya da yeni bir kod (ör. `OTÇ`, onaysız tatil çalışması, gün 1 / dakika = gerçek süre) ve ERP'de ödenmeyen kod olarak tanımlanması.
 
   Ayrıca `calisilan_gun` bu günü sayıyor mu, belgede yazılsın. Kalıcı test: reddedilen tatil havuzunda kod ve satır tutarlı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T102-reddedilen-tatil). Migration: `20261231070000_reddedilen_tatil.sql`, test: `reddedilen_tatil_testi.sql` (15 test).
+  - Karar (Yusuf, 1. öneri): tatil gününde (Pazar, tam gün resmi tatil; ayar açıksa Cumartesi) "tamam" görünen ama sayılan çalışması 0 dk olan gün, çalışılmamış tatil gibi kodlanır: tam gün resmi tatilse RT, değilse HT (1 gün / 0 dk). Çalışılan gün sayılmaz. Planı olmayan günde reddedilen çalışma zaten böyleydi (T-79, "vardiya yok" → HT); iki yol artık aynı.
+  - Kural havuzun durumuna değil günün dakikasına bakar (`pdks.sayilmayan_tatil_calismasi`); kod listesi (`gun_kod_satirlari`), gün katkısı (kilit ve fark satırı), canlı puantaj ve yönetici paneli aynı fonksiyonu çağırır. Karar bekleyen gün de (zorla kilitte) HT görünür; İK onaylayınca gün yeniden hesaplanır, kod kendiliğinden FM100 olur.
+  - Erkan (5102, örnek veri): ret sonrası Kasım "NÇ 21 + HT 9", 29 Kasım "HT 1 gün / 0 dk", Puantaj ekranında çalışılan gün 21 (önce: FM100 1 / 0, HT 8, çalışılan gün 22). Mehmet (1002, onaylı) değişmedi: FM100 1 / 480, HT 8. `ay_kilidi_testi` uçtan uca bölümü buna göre güncellendi.
+  - Bilinçli bedel (T-79 ile aynı): karar bekleyen gün zorla kilitten sonra onaylanırsa kilitli ayda HT kalır; dakika sonraki aya fark satırı olarak gelir (FM100 0 gün / 480 dk), gün sayısı değişmez.
+  - Hız (2000 kişi × 61 gün, ortanca): canlı puantaj ve yönetici paneli değişmedi (panel 80 → 83 ms); her ret edilmiş Pazar'ı 0 dk olan uç veride (1800 gün) canlı puantaj 122 → 150 ms.
 
 ### T-103 · `docs/demo_akisi.md`'de üç eksik ya da belirsiz adım
 - **Adım:** 13 · **Önem:** Düşük

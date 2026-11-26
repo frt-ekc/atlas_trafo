@@ -324,10 +324,12 @@ select test.dogrula('uçtan uca: Kaan 20 gün NÇ + 1 gün DVMSZ',
 select test.dogrula('uçtan uca: 76 çalışanın her birinde ayın 30 günü tam bir kez kodlandı (ERP normal satırları)',
     (select count(*) from (select sicil from pdks.v_puantaj_aktarim where donem = '2026-11' and satir_turu = 'normal'
                            group by sicil having sum(gun) = 30) x) = 76);
-select test.dogrula('uçtan uca: hafta tatili 9 gün; Pazar çalışanlarda 8 (Mehmet 1002 ve Erkan 5102)',
+-- T-102: Erkan'ın (5102) yazılı onaysız Pazar çalışması havuzda reddedildi; gün FM100 değil HT kodlanır
+select test.dogrula('uçtan uca: hafta tatili 9 gün; Pazar çalışan Mehmet 1002''de 8, reddedilen Pazar (Erkan 5102) HT 9 ve FM100 yok',
     (select count(*) from (select sicil from pdks.v_puantaj_aktarim where donem = '2026-11' and satir_turu = 'normal'
-                                 and kod = 'HT' group by sicil having sum(gun) = 9) x) = 74
-    and test.kod_gun('2026-11', '1002', 'HT') = 8 and test.kod_gun('2026-11', '5102', 'HT') = 8);
+                                 and kod = 'HT' group by sicil having sum(gun) = 9) x) = 75
+    and test.kod_gun('2026-11', '1002', 'HT') = 8 and test.kod_gun('2026-11', '5102', 'HT') = 9
+    and coalesce(test.kod_gun('2026-11', '5102', 'FM100'), 0) = 0);
 select test.dogrula('uçtan uca: ERP''de izin kodları (Can RPR 3, Deniz Yİ 2, Derya MZR 1) ve FM100 (Mehmet)',
     test.kod_gun('2026-11', '2007', 'RPR') = 3 and test.kod_gun('2026-11', '2008', 'Yİ') = 2
     and test.kod_gun('2026-11', '4005', 'MZR') = 1 and test.kod_gun('2026-11', '1002', 'FM100') = 1);
