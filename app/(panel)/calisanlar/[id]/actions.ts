@@ -96,6 +96,8 @@ type CikisOzeti = {
   iptal_edilen_izin: number;
   iptal_edilen_fm_talebi: number;
   pasif_yapilan_hesap: number;
+  // T-67: çıkış kilitli aya düştüyse (kilitli ayın planı ve izni değişmez)
+  kilitli_ay_uyarisi?: string;
 };
 
 // İK işten çıkışı girer (isten_cikis_gir). Veritabanı denetler: iade edilmemiş geçici kart,
@@ -125,5 +127,6 @@ export async function istenCikis(_onceki: IslemSonucu, form: FormData): Promise<
   ].filter(Boolean);
 
   revalidatePath("/", "layout");
-  return { durum: "tamam", mesaj: `${adSoyad} için işten çıkış kaydedildi${parcalar.length ? `: ${parcalar.join(", ")}` : ""}.` };
+  const mesaj = `${adSoyad} için işten çıkış kaydedildi${parcalar.length ? `: ${parcalar.join(", ")}` : ""}.`;
+  return { durum: "tamam", mesaj: o?.kilitli_ay_uyarisi ? `${mesaj} ${o.kilitli_ay_uyarisi}` : mesaj };
 }

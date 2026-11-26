@@ -164,7 +164,8 @@ select test.hata('çıkıştan sonra okutması olan gün varsa çıkış tarihi 
 select test.dogrula('IG01 çıkışı girildi; özet sayıları doğru',
     pdks.isten_cikis_gir(test.c('IG01'), '2026-10-06', 'İstifa')
     = '{"iptal_edilen_kart": 1, "vardiya_yok_yapilan_gun": 1, "silinen_plan": 2, "iptal_edilen_izin": 0,
-        "iptal_edilen_fm_talebi": 0, "pasif_yapilan_hesap": 0}'::jsonb);
+        "iptal_edilen_fm_talebi": 0, "pasif_yapilan_hesap": 0,
+        "kilitli_ayda_kalan_plan": 0, "kilitli_ayda_kalan_izin": 0}'::jsonb);
 reset role;
 select test.dogrula('IG01: çıkış tarihi yazıldı, kayıt pasif',
     (select isten_cikis_tarihi = '2026-10-06' and not aktif from pdks.calisan where id = test.c('IG01')));
@@ -195,7 +196,8 @@ select test.oturum('ig_ik2@ornek.test');
 select test.dogrula('IG02 çıkışı girildi; hesap pasif, izin ve FM talebi iptal',
     pdks.isten_cikis_gir(test.c('IG02'), '2026-10-13')
     = '{"iptal_edilen_kart": 1, "vardiya_yok_yapilan_gun": 0, "silinen_plan": 2, "iptal_edilen_izin": 1,
-        "iptal_edilen_fm_talebi": 1, "pasif_yapilan_hesap": 1}'::jsonb);
+        "iptal_edilen_fm_talebi": 1, "pasif_yapilan_hesap": 1,
+        "kilitli_ayda_kalan_plan": 0, "kilitli_ayda_kalan_izin": 0}'::jsonb);
 select test.hata('çıkış iki kez girilmez', 'zaten girilmiş',
     $$select pdks.isten_cikis_gir(test.c('IG02'), '2026-10-13')$$);
 select test.hata('işten ayrılmış çalışanın sicili yeniden kullanılamaz', 'işten ayrılmış bir çalışana ait',
