@@ -60,7 +60,7 @@
   Atlas paleti (logodan):
     lacivert   #2C3178  logonun rengi; ana renk (düğmeler, kenar çubuğu, seçili öğe)
     indigo     #3B4296  üzerine gelince, ikincil vurgu
-    gece       #1F2357  kenar çubuğunun koyu ucu; koyu temanın tabanı
+    gece       #1F2357  kenar çubuğunun koyu ucu
     gök        #6A9BFC  ışıma, odak halkası, seçili sekme çizgisi (beyaz zeminde yazı için kullanılmaz: kontrast 2,7)
     buz        #D6ECEF  zemin geçişi, seçili satır
     beyaz      #FFFFFF  kartlar ve pencereler
@@ -104,45 +104,49 @@
   --ust-bar: rgb(255 255 255 / 0.78);
 }
 
-/* Koyu tema: gece laciverti zemin, indigo ışıma, gök mavisi vurgu */
+/* Koyu tema: yalnızca sistem yöneticisi (admin) paneli. Nötr siyah tonlar:
+     #0A0A0A zemin · #1D1D1F kart · #1F2024 pencere ve açılır menü · #232324 ikincil alan
+   Düğmeler ve vurgular da nötr: beyazdan gümüşe geçiş, koyu yazı. Zeminde tonlar arasında renk geçişi vardır. */
 .dark {
-  --background: #0e1130;
-  --foreground: #e9edf9;
-  --card: #151940;
-  --card-foreground: #e9edf9;
-  --popover: #191e4a;
-  --popover-foreground: #e9edf9;
-  --primary: #6a9bfc;
-  --primary-foreground: #0e1130;
-  --secondary: #1d2253;
-  --secondary-foreground: #d6ecef;
-  --muted: #1a1f4b;
-  --muted-foreground: #a6aed3;
-  --accent: #222864;
-  --accent-foreground: #d6ecef;
+  --background: #0a0a0a;
+  --foreground: #ededef;
+  --card: #1d1d1f;
+  --card-foreground: #ededef;
+  --popover: #1f2024;
+  --popover-foreground: #ededef;
+  --primary: #ededef;
+  --primary-foreground: #0a0a0a;
+  --secondary: #232324;
+  --secondary-foreground: #e4e4e7;
+  --muted: #232324;
+  --muted-foreground: #a1a1a8;
+  --accent: #2a2b2f;
+  --accent-foreground: #f4f4f5;
   --destructive: #f29b93;
-  --border: rgb(106 155 252 / 0.16);
-  --input: rgb(106 155 252 / 0.26);
-  --ring: #6a9bfc;
-  --vurgu: #6a9bfc;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.15);
+  --ring: #a1a1a8;
+  --vurgu: #d4d4d8;
   --chart-1: #6a9bfc;
   --chart-2: #d6ecef;
-  --chart-3: #3b4296;
-  --chart-4: #a6aed3;
-  --chart-5: #2c3178;
+  --chart-3: #8b8b93;
+  --chart-4: #a1a1a8;
+  --chart-5: #3b4296;
+  /* Geçiş: üstte nötr ışıma, köşelerde #232324 / #1F2024 tonları, aşağı doğru #0A0A0A */
   --zemin:
-    /* Işımanın merkezi kenar çubuğunun sağında: köşede olsa en parlak yeri çubuğun altında kalır */
-    radial-gradient(1150px 760px at 18% -8%, rgb(84 94 205 / 1), transparent 64%),
-    radial-gradient(950px 660px at 96% 4%, rgb(106 155 252 / 0.3), transparent 60%),
-    radial-gradient(1250px 820px at 100% 100%, rgb(106 155 252 / 0.4), transparent 66%),
-    radial-gradient(850px 600px at 0% 100%, rgb(76 84 190 / 0.55), transparent 62%),
-    linear-gradient(180deg, #131a4a 0%, #0a0d26 100%);
-  --ust-bar: rgb(21 25 64 / 0.72);
+    radial-gradient(1100px 720px at 20% -8%, rgb(255 255 255 / 0.07), transparent 62%),
+    radial-gradient(900px 640px at 96% 2%, rgb(35 35 36 / 1), transparent 62%),
+    radial-gradient(1200px 820px at 100% 100%, rgb(31 32 36 / 1), transparent 66%),
+    radial-gradient(800px 560px at 0% 100%, rgb(255 255 255 / 0.03), transparent 62%),
+    linear-gradient(180deg, #161618 0%, #0a0a0a 100%);
+  --ust-bar: rgb(29 29 31 / 0.8);
 }
 
-/* Kenar çubuğu iki temada da logonun lacivertinde: uygulamanın kimliği burada.
-   Açık temada canlı lacivert-indigo geçiş ve üstte gök ışıması; koyu temada daha derin, gece laciverti. */
+/* Kenar çubuğu: açık temada logonun lacivertinde canlı lacivert-indigo geçiş ve üstte gök ışıması;
+   koyu temada (yalnızca admin) nötr siyah tonlarda geçiş ve hafif gök ışıması. */
 :root {
+  /* Başlık ve öne çıkan sayılar: laciverde yakın yazıdan vurguya hafif geçiş */
+  --yazi-gecis: linear-gradient(100deg, var(--foreground) 0%, color-mix(in oklab, var(--vurgu) 85%, var(--foreground)) 100%);
   --kenar-zemin:
     radial-gradient(420px 260px at 0% 0%, rgb(106 155 252 / 0.38), transparent 70%),
     radial-gradient(360px 300px at 100% 100%, rgb(106 155 252 / 0.18), transparent 70%),
@@ -152,16 +156,18 @@
   --dugme-golge: 0 1px 2px rgb(31 35 87 / 0.25), 0 6px 14px -6px rgb(59 66 150 / 0.55);
 }
 .dark {
+  /* Kenar kartı: #2A2B2F'den #0A0A0A'ya geçiş, üst köşede hafif nötr ışıma */
   --kenar-zemin:
-    radial-gradient(420px 260px at 100% 0%, rgb(106 155 252 / 0.24), transparent 70%),
-    radial-gradient(380px 320px at 0% 100%, rgb(84 94 205 / 0.35), transparent 70%),
-    linear-gradient(165deg, #1d2260 0%, #161a48 50%, #0d102e 100%);
-  /* Koyu temada gök mavisi geçiş, koyu yazı (en açık uçta 9:1) */
-  --dugme-gecis: linear-gradient(135deg, #4f82ec 0%, #6a9bfc 50%, #93b6ff 100%);
-  --dugme-golge: 0 0 0 1px rgb(255 255 255 / 0.06), 0 6px 16px -6px rgb(106 155 252 / 0.6);
+    radial-gradient(420px 260px at 0% 0%, rgb(255 255 255 / 0.09), transparent 70%),
+    radial-gradient(380px 320px at 100% 100%, rgb(255 255 255 / 0.04), transparent 70%),
+    linear-gradient(165deg, #2a2b2f 0%, #1f2024 40%, #0a0a0a 100%);
+  /* Ana düğme: beyazdan koyu gümüşe belirgin, metalik geçiş; siyah yazı (en koyu uçta 6,5:1) */
+  --dugme-gecis: linear-gradient(135deg, #ffffff 0%, #d6d8df 42%, #8f93a2 100%);
+  /* Başlık ve öne çıkan sayılar: beyazdan çelik grisine geçiş */
+  --yazi-gecis: linear-gradient(100deg, #ffffff 0%, #d9dbe3 38%, #8e92a1 100%);
+  --dugme-golge: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 6px 16px -8px rgb(0 0 0 / 0.9);
 }
-:root,
-.dark {
+:root {
   --sidebar: #2c3178;
   --sidebar-foreground: #eef1fc;
   --sidebar-primary: #ffffff;
@@ -170,6 +176,16 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.1);
   --sidebar-ring: #6a9bfc;
+}
+.dark {
+  --sidebar: #1f2024;
+  --sidebar-foreground: #ededef;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-ring: #a1a1a8;
 }
 
 @layer base {
@@ -243,8 +259,9 @@
     letter-spacing: 0.02em;
   }
   /* Sayfa başlığı: logonun renklerinde hafif bir geçiş */
-  main h1 {
-    background: linear-gradient(100deg, var(--foreground) 0%, color-mix(in oklab, var(--vurgu) 85%, var(--foreground)) 100%);
+  main h1,
+  .yazi-gecis {
+    background: var(--yazi-gecis);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -319,17 +336,20 @@
 .dark .vardiya-v2 { background: rgb(168 150 240 / 0.16); color: #d3caf8; }
 .dark .vardiya-v3 { background: #2c3178; color: #ffffff; box-shadow: inset 0 0 0 1px rgb(106 155 252 / 0.4); }
 
-/* Grafik renkleri: dataviz denetiminden geçti (açık: beyaz, koyu: #151940 zemin; renk körlüğünde de ayrışır) */
+/* Grafik renkleri: dataviz denetiminden geçti (açık: beyaz, koyu: #1D1D1F kart; renk körlüğünde de ayrışır) */
 :root {
   --grafik-sistem: #4a52b8;
   --grafik-amir: #c0508a;
   --grafik-ik: #5b8cf0;
-  --grafik-bekliyor: #c26a1a;
+  /* Cevap bekliyor: logodaki buz mavisinin (#D6ECEF) koyu camgöbeği tonu. Grafikte her zaman çizgili
+     desenle çizilir; deuteranopide pembeye yaklaşsa da deseni ve yazılı değeri onu ayırır. */
+  --grafik-bekliyor: #1a9e8f;
 }
 .dark {
   --grafik-sistem: #6f78e8;
   --grafik-amir: #d16b9c;
   --grafik-ik: #3a93cf;
+  /* Koyu temayı yalnızca admin görür; bu grafik admin'de yok. Koyu temada camgöbeği İK mavisine çok yakın kaldığı için eski ton durur. */
   --grafik-bekliyor: #bd7a2c;
 }
 
@@ -337,5 +357,19 @@
   from {
     opacity: 0;
     transform: translateY(4px);
+  }
+}
+
+/* Gece işi grafiği: ışık sütunları soldan sağa sırayla yükselir */
+@keyframes isik-yuksel {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .isik-sutunu {
+    animation: isik-yuksel 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: bottom;
   }
 }

@@ -1,5 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GrafikKarti, ParcaliCubuk } from "@/components/panel/grafik";
+import { GeceIsiGrafigi, type GeceIsiGunu } from "@/components/panel/gece-isi-grafigi";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
 import { VardiyaEtiketi } from "@/components/panel/vardiya-etiketi";
 import { geciciKartIadeSaati } from "@/lib/ayar";
@@ -398,6 +399,7 @@ async function AdminOzeti({ supabase }: { supabase: Istemci }) {
     supabase.from("gece_isi").select("islenen_gun, durum, hata_mesaji").order("baslangic", { ascending: false }).order("islenen_gun", { ascending: false }).limit(1).maybeSingle(),
   ]);
   const gece = sonGeceIsi.data as { islenen_gun: string; durum: string; hata_mesaji: string | null } | null;
+  const gecmis = await geceIsiGecmisi(supabase);
 
   return (
     <section aria-labelledby="admin-baslik" className="flex flex-col gap-3">
@@ -412,6 +414,65 @@ async function AdminOzeti({ supabase }: { supabase: Istemci }) {
           ton={gece?.durum === "hatali" ? "dikkat" : gece ? "iyi" : "notr"}
         />
       </OzetIzgarasi>
+      <GrafikKarti
+        baslik="Gece işi, son 30 gün"
+      >
+        <GeceIsiGrafigi gunler={gecmis.gunler} />
+      </GrafikKarti>
     </section>
   );
+}
+
+// Son 30 gün (dün dahil, bugün hariç: bugünün gece işi henüz çalışmadı) için gece işi sonuçları.
+// Aynı gün birden çok kez çalıştırıldıysa en son çalıştırma sayılır, kaç kez çalıştığı da tutulur.
+async function geceIsiGecmisi(supabase: Istemci) {
+  const gunEkle = (g: string, n: number) => {
+    const d = new Date(`${g}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const dun = gunEkle(bugun(), -1);
+  const ilk = gunEkle(dun, -29);
+  const { data } = await supabase
+    .from("gece_isi")
+    .select("islenen_gun, baslangic, bitis, durum, ozet, hata_mesaji")
+    .gte("islenen_gun", ilk)
+    .lte("islenen_gun", dun)
+    .order("baslangic", { ascending: true });
+  const satirlar = (data ?? []) as {
+    islenen_gun: string;
+    baslangic: string;
+    bitis: string | null;
+    durum: "basarili" | "hatali" | "calisiyor";
+    ozet: Record<string, unknown> | null;
+    hata_mesaji: string | null;
+  }[];
+
+  const sonGun = new Map<string, GeceIsiGunu>();
+  for (const s of satirlar) {
+    const onceki = sonGun.get(s.islenen_gun);
+    // Özette yalnızca sayılar gösterilir
+    const ozet = Object.fromEntries(Object.entries(s.ozet ?? {}).filter((e): e is [string, number] => typeof e[1] === "number"));
+    sonGun.set(s.islenen_gun, {
+      gun: s.islenen_gun,
+      durum: s.durum,
+      sureSn: s.bitis ? Math.max(0, (Date.parse(s.bitis) - Date.parse(s.baslangic)) / 1000) : null,
+      ozet,
+      hata: s.hata_mesaji,
+      tekrar: (onceki?.tekrar ?? 0) + 1,
+    });
+  }
+
+  const gunler: GeceIsiGunu[] = Array.from({ length: 30 }, (_, i) => {
+    const g = gunEkle(ilk, i);
+    return sonGun.get(g) ?? { gun: g, durum: null, sureSn: null, ozet: {}, hata: null, tekrar: 0 };
+  });
+  const sureler = gunler.map((g) => g.sureSn).filter((x): x is number => x != null);
+  return {
+    gunler,
+    basarili: gunler.filter((g) => g.durum === "basarili").length,
+    hatali: gunler.filter((g) => g.durum === "hatali").length,
+    calismadi: gunler.filter((g) => g.durum === null).length,
+    ortalamaSn: sureler.length ? sureler.reduce((t, x) => t + x, 0) / sureler.length : null,
+  };
 }

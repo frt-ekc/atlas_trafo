@@ -80,7 +80,9 @@ export function Secim({ id, name, defaultValue, value, onChange, required, disab
     .filter((g) => g.ogeler.length > 0);
   const etiketler = Object.fromEntries(tumu.map((o) => [o.value, o.label]));
   const kokDeger = secili === "" && yerTutucu ? null : secili;
-  // Tarayıcının listesi gibi: düğme en uzun seçenek kadar geniş (ekrandan taşmaz, className genişliği önceliklidir)
+  // Tarayıcının listesi gibi: düğme en uzun seçenek kadar geniş (ekrandan taşmaz).
+  // En az genişlik satır içi stil değil, bir CSS değişkeni + sınıftır: className (ör. min-w-0) ve
+  // pencere içindeki kural (dialog.tsx: sütunu doldurur) onu ezebilir.
   const enUzun = Math.min(Math.max(...tumu.map((o) => o.label.length), 6), 34);
 
   return (
@@ -103,9 +105,10 @@ export function Secim({ id, name, defaultValue, value, onChange, required, disab
         ref={tetik}
         id={id}
         aria-label={rest["aria-label"]}
-        style={{ minWidth: `min(calc(${enUzun}ch + 2.75rem), calc(100vw - 4.5rem))` }}
+        data-secim=""
+        style={{ "--secim-en": `min(calc(${enUzun}ch + 2.75rem), calc(100vw - 4.5rem))` } as React.CSSProperties}
         className={cn(
-          "flex h-9 min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-card px-2.5 text-left text-sm outline-none transition-colors",
+          "flex h-9 min-w-(--secim-en) items-center justify-between gap-2 rounded-lg border border-input bg-card px-2.5 text-left text-sm outline-none transition-colors",
           "hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 data-[popup-open]:border-ring",
           "disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
           className,
