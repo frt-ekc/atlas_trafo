@@ -138,6 +138,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/hesapsiz_gun_testi.sql` | Hesabı tamamlanmamış gün (T-91): canlı puantaj, kod listesi, panel, hesap sonrası, zorla kilitte satır = kalem için 8 test |
 | `supabase/migrations/20261231050000_zorla_kilit_izi.sql` | Zorla kilitte gerekçe zorunlu (`ay_kilitle` 4. parametre `p_gerekce`); her kilidin değiştirilemez izi `donem_kilit_izi` (+1 tablo; yalnızca İK / yönetici okur) (T-92) |
 | `supabase/tests/zorla_kilit_izi_testi.sql` | Zorla kilit izi (T-92): gerekçe zorunlu, iz ve özet listeleri, değiştirilemezlik, check, amir göremez, normal kilit ve 3 parametreli çağrı için 18 test |
+| `supabase/migrations/20261231060000_kilitli_vardiya.sql` | Kilitli ayın vardiyası değişmez: kilitli güne vardiya düzeltmesi reddedilir (plan onayı, kayıt düzeltmesi, amir cevabı); trigger `duzeltme_kilitli_vardiya` (T-93) |
+| `supabase/tests/kilitli_vardiya_testi.sql` | Kilitli ayda vardiya (T-93): plan onayı reddi, bekleyen planın reddi, kayıt düzeltmesi, saat düzeltmesi fark olur, açık ayda havuz için 11 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -530,6 +532,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - `vardiya_plani` ve `izin` değiştirilebilir; bunların etkisi `gun_kaydi`'na yine `duzeltme` üzerinden yansır.
 - Planı olmayan izin günü için gün kaydı açılmaz; izin yalnızca puantaj hesabına (`gun_kodlari_hesapla`, `v_puantaj_canli`) girer. Kural tek yerde, `pdks.plansiz_izin_gunleri`. Fark satırı gün kaydından üretildiği için kilitli ayın böyle gününe sonradan izin girilmesi ya da iptali reddedilir (T-94).
 - Geriye dönük plan, eski planın üzerine yazılır; eski hâl `vardiya_plani_gecmisi`'ne yazılır (T-49). Gün çoğunlukla zaten eski planla işlenmiş olduğu için yeni plan ancak İK onayıyla, vardiya düzeltmesi olarak güne yansır. Ret son geçerli planı geri yükler; gün onay beklediği için işlenmemişse hemen işlenir. Önceden plan yoksa plan "reddedildi" kalır.
+- Kilitli ayın vardiyası değişmez: kilitli güne vardiya düzeltmesi yazılamaz (plan onayı, kayıt düzeltmesi, amir cevabı); bekleyen plan kilitten sonra yalnızca reddedilebilir. Fark satırı yeni vardiyanın dışında kalan çalışmayı havuza taşıyamadığı için sonuç çalışan aleyhine olurdu. Saat, durum ve izin düzeltmeleri sonraki aya fark olarak gider (T-93). Bedeli: kilitten sonra yanlış plan yüzünden çalışan aleyhine bir sonuç (ör. geç kalma) fark edilirse sistem içinde düzeltilemez, İK bordroda elle düzeltir. Bu yüzden bekleyen plan varken ay ancak gerekçeli zorla kilitlenir ve plan kilit izine yazılır (T-92); plan gün içinde yanlışsa amire zaten "vardiya uyuşmazlığı" sorusu gider.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.

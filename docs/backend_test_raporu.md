@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 44'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 38'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 45'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 37'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 17 | 8 | 9 |
+| Orta | 34 | 18 | 8 | 8 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **44** | **25** | **38** |
+| **Toplam** | **107** | **45** | **25** | **37** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -328,7 +328,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #54) |
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T91-hesapsiz-gun) |
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (veritabanı feature/T92-zorla-kilit-izi; ekran Gökalp) |
-| T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | Düzelt |
+| T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T93-kilitli-vardiya) |
 | T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
 | T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | Düzelt (zaman kalırsa) |
 | T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Düzelt (zaman kalırsa) |
@@ -3372,7 +3372,12 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #49 + #61 + #65 `S12EP1 05.10 vardiya_sonrasi 185 dk` · #32 `GP1 … düzeltme: vardiya_id→2 fark=true hedef=2026/10 | havuz: -` · #77 `S12GP1 kaynak=2026/9: çalışma -145, geç 115 … | kalem: NÇ 0.0/-145`.
 - **Sade dille:** Ay kapandıktan sonra İK "o gün aslında sabah vardiyasındaydı" diye planı düzeltirse, çalışanın öğleden sonra çalıştığı 3 saat silinip gidiyor; sistem yalnızca "geç geldi, eksik çalıştı" diye kesinti yazıyor. Ay açıkken aynı düzeltme bu 3 saati fazla mesai incelemesine gönderiyordu. Çalışan aleyhine bir sonuç.
 - **Öneri:** Kilitli günde vardiya / saat düzeltmesi sonrası `fazla_mesai_inceleme`'ye fark olarak kayıt (kilitli ay mantığı havuz için zaten var: `fark_satiri`, `hedef_donem_id`). Ya da kilitli ayın vardiya planı onayı reddedilsin ve İK `kayit_duzelt` ile ilerlesin. Karar İK ile.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T93-kilitli-vardiya). Migration: `20261231060000_kilitli_vardiya.sql`, test: `kilitli_vardiya_testi.sql` (11 test).
+  - Karar (Yusuf, 2. öneri): kilitli ayın vardiyası değişmez. Vardiya planı "o gün nasıl çalışılacaktı" planıdır; ay kapandıktan sonra değiştirmek anlam taşımaz ve kilitli günde doğru hesaplanamaz (yeni vardiyanın dışında kalan çalışma havuza taşınamaz). Gerçek hatalar saat / durum / izin düzeltmesiyle sonraki aya fark olarak gitmeye devam eder.
+  - Kural `duzeltme` tablosunun trigger'ında (`duzeltme_kilitli_vardiya`): kilitli günün `vardiya_id` düzeltmesi reddedilir. Vardiyayı değiştiren üç yolun hepsi kapanır: plan onayı (bekleyen plan yalnızca reddedilebilir; ret önceki planı geri getirir, T-49), İK kayıt düzeltmesi ve amirin "vardiya uyuşmazlığı" cevabı. Mesaj: "Kilitli ayda vardiya değiştirilemez (09.2026). Bekleyen plan yalnızca reddedilebilir; giriş ya da çıkış saati yanlışsa kayıt düzeltmesiyle düzeltin."
+  - Kilitli aya yeni plan girmek zaten reddediliyordu (`vardiya_plani_gir`); boşluk kilitten önce girilip sonra onaylanan plandaydı. Zorla kilit bu planları artık kilit izine yazıyor (T-92).
+  - GP1 senaryosu: plan Gündüz, okutma 08:00–17:05, amir "Sabah (06–14)" dedi, plan beklerken Eylül zorla kilitlendi. Önce: onay Ekim'e "geç +120, çalışma −150" yazıyor, 185 dk kayboluyordu. Sonra: onay reddediliyor, Eylül günü değişmiyor. Açık ayda (EP1) aynı onay eskisi gibi 185 dk'yı havuza düşürüyor.
+  - Bilinçli bedel: kilitten sonra yanlış plan yüzünden çalışan aleyhine bir sonuç fark edilirse sistem içinde düzeltilemez, İK bordroda elle düzeltir. Seyrek: plan gün içinde yanlışsa amire "vardiya uyuşmazlığı" sorusu gider, bekleyen plan varken ay ancak gerekçeli zorla kilitlenir (T-92).
 
 ### T-94 · Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor
 - **Adım:** 12 · **Önem:** Orta
