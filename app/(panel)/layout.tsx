@@ -6,11 +6,9 @@ import { Konum } from "@/components/panel/konum";
 import { MenuBaglantisi } from "@/components/panel/menu-baglantisi";
 import { MenuGrubu } from "@/components/panel/menu-grubu";
 import { MobilMenu } from "@/components/panel/mobil-menu";
-import { TemaDugmesi } from "@/components/panel/tema-dugmesi";
 import { MENU, gruplanmisMenu } from "@/lib/menu";
 import { ROL_ADI, oturumKullanicisi, type OturumKullanicisi } from "@/lib/oturum";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { temaOku } from "@/lib/tema";
 
 // Menüdeki rozetler: bekleyen iş sayıları. Her sayı RLS'e göre kullanıcının görebildiğidir
 // (amir yalnızca kendi sorularını sayar). Menüde olmayan sayfanın sayısı sorulmaz.
@@ -53,7 +51,7 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
     );
   }
 
-  const [sayilar, tema] = await Promise.all([bekleyenSayilar(kullanici), temaOku()]);
+  const sayilar = await bekleyenSayilar(kullanici);
   const aramaVar = MENU[kullanici.rol].some((o) => o.yol === "/calisanlar");
 
   // Masaüstünde solda sabit durur; telefonda MobilMenu içinde açılır
@@ -157,7 +155,6 @@ export default async function PanelDuzeni({ children }: LayoutProps<"/">) {
               />
             </form>
           )}
-          <TemaDugmesi tema={tema} />
         </header>
 
         <main className="flex-1 px-1 pb-6 md:px-3">{children}</main>

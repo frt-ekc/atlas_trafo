@@ -1,11 +1,12 @@
-import { cookies } from "next/headers";
+import "server-only";
+import { oturumRolu } from "@/lib/oturum";
 
 export type Tema = "acik" | "koyu";
-export const TEMA_CEREZI = "tema";
 
-// Seçilen tema tarayıcıda çerezde durur (kişisel tercih; veritabanına yazılmaz).
-// Çerez yoksa açık tema açılır (logo lacivert-beyaz; açık tema varsayılan).
+// Tema kullanıcı tarafından seçilmez, role göre gelir:
+// - Sistem yöneticisi (admin) paneli koyu temadır (nötr siyah tonlar, renk geçişli).
+// - Diğer bütün roller ve giriş sayfası açık temadır.
+// Sunucuda belirlenir; sayfa doğru renkle çizilir, açılışta yanıp sönmez.
 export async function temaOku(): Promise<Tema> {
-  const deger = (await cookies()).get(TEMA_CEREZI)?.value;
-  return deger === "koyu" ? "koyu" : "acik";
+  return (await oturumRolu()) === "admin" ? "koyu" : "acik";
 }
