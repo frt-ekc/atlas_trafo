@@ -10,6 +10,8 @@
 \pset format unaligned
 begin;
 set local timezone = 'Europe/Istanbul';
+-- T-18: gece işi bugünden ileri bir günü işlemez; örnek veri Kasım'ın tamamını kapsar, demo günü esas alınır
+set local pdks.test_bugun = '2026-12-07';
 
 create schema test;
 create function test.dogrula(p_ad text, p_kosul boolean) returns void language plpgsql as $$

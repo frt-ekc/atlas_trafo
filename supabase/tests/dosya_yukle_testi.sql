@@ -11,6 +11,8 @@
 \pset format unaligned
 begin;
 set local timezone = 'Europe/Istanbul';
+-- T-18: dosyanın günü bugünden ileri olamaz; test Mart 2027 dosyaları kullanır
+set local pdks.test_bugun = '2027-03-31';
 
 create schema test;
 create function test.dogrula(p_ad text, p_kosul boolean) returns void language plpgsql as $$

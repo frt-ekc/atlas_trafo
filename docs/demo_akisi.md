@@ -49,6 +49,7 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
 
 ### 3. 7 Aralık dosyalarını yükleme ve gece işi (İK, Veri aktarımı)
 1. **Dosya yükle:** dört dosya sırayla yüklenir. Gün dosya adından okunur (07.12.2026). Ekran yüklemeden önce satırları denetler ve özet gösterir.
+   - Not (T-18): dosyanın günü bugünden ileri olamaz; 7 Aralık dosyaları ekrandan ancak 7 Aralık'ta (ya da sonra) yüklenir. Daha önceki provada ekran "Dosyanın günü (07.12.2026) bugünden ileri olamaz" der. Satırları başka bir güne ait dosya da reddedilir (T-17).
 2. **Gece işlemini başlat:** başlangıç ve bitiş 07.12.2026.
 3. **Beklenen özet:** 10 gün kaydı, 2 kanıtla düzeltme, 2 amir sorusu, 8 hesaplanan gün, yeni uyarı yok.
 
