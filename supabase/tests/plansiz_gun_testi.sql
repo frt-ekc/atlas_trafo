@@ -255,7 +255,7 @@ set local role authenticated;
 select test.oturum('pg_ik2@ornek.test');
 select test.hata('kararı bekleyen plansız gün ay kilidini durdurur', 'onaysız fazla mesai',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint)$$);
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 select pdks.fazla_mesai_inceleme_karar((test.hv('PG20', '2026-10-17')).id, true);
 reset role;
 select test.dogrula('kilitten sonra onay: gün değişmez, FM50 270 fark olur',

@@ -136,6 +136,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/eksik_saat_reddi_testi.sql` | Tek saatli cevap (T-41): giriş yok / kanıt vardiya sonrası / hiç kayıt yok / çıkış yok, saat doğru ve kart unuttu, İK geldi ve devamsız, kilitli ay için 15 test |
 | `supabase/migrations/20261231040000_hesapsiz_gun.sql` | Hesabı tamamlanmamış gün canlı puantajda ve yönetici panelinde çalışılan değil bekleyen sayılır; satır ile kod listesi aynı sayar (T-91) |
 | `supabase/tests/hesapsiz_gun_testi.sql` | Hesabı tamamlanmamış gün (T-91): canlı puantaj, kod listesi, panel, hesap sonrası, zorla kilitte satır = kalem için 8 test |
+| `supabase/migrations/20261231050000_zorla_kilit_izi.sql` | Zorla kilitte gerekçe zorunlu (`ay_kilitle` 4. parametre `p_gerekce`); her kilidin değiştirilemez izi `donem_kilit_izi` (+1 tablo; yalnızca İK / yönetici okur) (T-92) |
+| `supabase/tests/zorla_kilit_izi_testi.sql` | Zorla kilit izi (T-92): gerekçe zorunlu, iz ve özet listeleri, değiştirilemezlik, check, amir göremez, normal kilit ve 3 parametreli çağrı için 18 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -163,6 +165,8 @@ olarak veritabanının içinde çalışır.
 6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
    Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
    adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).
+   Zorla kilitte gerekçe zorunludur; her kilit (zorla mı, gerekçe, geçilen açık soru / itiraz / fazla mesai /
+   plan listeleri) değiştirilemez `donem_kilit_izi`'ne yazılır, yalnızca İK ve yönetici okur (T-92).
    Kilitli ayın kayıtları değişmez ve kilit geri açılamaz. Kilitten sonra
    gelen düzeltme sonraki açık aya `fark_satiri = true` olarak yazılır. Puantaj (`puantaj_satiri`)
    yalnızca kilitli aya yazılır ve sonra değiştirilemez. Kilit önce ayın hesabı bekleyen günlerini hesaplar;
@@ -243,6 +247,7 @@ erDiagram
     kullanici |o--o{ duzeltme : "yapan"
     donem ||--o{ duzeltme : "hedef dönem"
     donem ||--o{ puantaj_satiri : ""
+    donem ||--o| donem_kilit_izi : "kilit izi"
     calisan ||--o{ puantaj_satiri : ""
     calisan |o--o{ uyari : ""
     calisan ||--o{ saatlik_izin : ""
@@ -336,6 +341,13 @@ erDiagram
         smallint yil
         smallint ay
         text durum "acik / kilitli"
+    }
+    donem_kilit_izi {
+        bigint donem_id PK "DEĞİŞTİRİLEMEZ"
+        boolean zorla
+        text gerekce "zorla ise zorunlu"
+        jsonb ozet
+        bigint kilitleyen_id FK
     }
     puantaj_satiri {
         bigint id PK "SİLİNEMEZ"

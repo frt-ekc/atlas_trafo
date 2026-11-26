@@ -155,7 +155,7 @@ select test.hata('reddedilmiş kayda işaret konamaz', 'yillik_sinir_check',
 delete from pdks.vardiya_plani where tarih between '2026-10-01' and '2026-10-31'
     and not exists (select 1 from pdks.gun_kaydi g where g.calisan_id = vardiya_plani.calisan_id and g.is_gunu = tarih);
 set local role authenticated;
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 select pdks.fazla_mesai_inceleme_karar((test.hv('YF04', '2026-10-18')).id, true);
 reset role;
 select test.dogrula('kilitli ayda onaylanan tatil çalışması toplamda (FM100 farkı 480)',

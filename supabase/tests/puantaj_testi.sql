@@ -100,7 +100,7 @@ select test.hata('uygulama puantajı doğrudan yazamaz', 'permission denied',
 select test.oturum('pt_ik@ornek.test');
 select test.hata('açık soru varken ay kilitlenmez', 'açık soru',
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint)$$);
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 
 -- 2) Normal satırlar ---------------------------------------------------------
@@ -142,7 +142,7 @@ select test.dogrula('düzeltme Kasım''a fark olarak yönlendirildi',
 delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('pt_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 11::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 11::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 
 select test.dogrula('Kasım puantajında PT02 için Ekim kaynaklı fark: +1 gün, +480 dk (mola düşülmüş)',

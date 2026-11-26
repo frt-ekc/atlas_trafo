@@ -224,7 +224,7 @@ select test.dogrula('amirin cevabı İK''nın girişini ezmez, çıkışı tamam
 -- 6) Kilitli ay -----------------------------------------------------------------------------------
 set local role authenticated;
 select test.oturum('gi_ik1@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 select pdks.izin_gir(test.c('GI08'), 'rapor', '2026-10-13', '2026-10-13');
 reset role;
 select test.dogrula('kilitli ay: gün değişmedi, düzeltme sonraki aya fark satırı; soru kapandı',

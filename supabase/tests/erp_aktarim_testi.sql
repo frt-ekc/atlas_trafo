@@ -68,7 +68,7 @@ select test.dogrula('açık ay ERP aktarımında yok',
 
 set local role authenticated;
 select test.oturum('ea_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 
 -- 2) Kilitli ay -----------------------------------------------------------------------
@@ -99,7 +99,7 @@ set local role authenticated;
 select test.oturum('ea_ik@ornek.test');
 select pdks.kayit_duzelt((test.gk('EA02', '2026-10-06')).id, 'giris_zamani', '2026-10-06 08:00+03',
                          'Kilit sonrası belge geldi: 08:00 girişi');
-select pdks.ay_kilitle(2026::smallint, 11::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 11::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 select test.dogrula('fark satırı: dönem 2026-11, kaynak dönem 2026-10, NÇ +20 dk',
     (select gun = 0 and dakika = 20 from pdks.v_puantaj_aktarim

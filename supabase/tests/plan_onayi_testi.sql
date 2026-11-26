@@ -95,7 +95,7 @@ set local role authenticated;
 select test.oturum('po_ik1@ornek.test');
 select test.hata('onay bekleyen planın işlenmemiş günü zorla geçilemez; mesaj "İK onayı bekleyen plan" der',
     '10/2026 döneminde işlenmemiş 2 planlı gün bulunuyor (2 çalışan, ilk gün 05.10.2026); 2 günün geriye dönük planı İK onayı bekliyor. Kilitlemeden önce bu günler işlenmelidir; İK onayı bekleyen plan onaylanmalı veya reddedilmelidir.',
-    $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true)$$);
+    $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi')$$);
 
 -- ---------------------------------------------------------------------
 -- Görevler ayrılığı: İK kendi çalışan kaydının planını onaylayamaz / reddedemez (Eylül: kilitler etkilenmez)
@@ -160,7 +160,7 @@ select test.dogrula('ret: işlenmemiş gün işlenmemiş kaldı (PO05)', (test.g
 select test.oturum('po_ik1@ornek.test');
 select test.hata('reddedilmiş planın işlenmemiş günü varken kilit reddedilir; mesaj reddedilmiş planı söyler (zorla da)',
     '10/2026 döneminde işlenmemiş 1 planlı gün bulunuyor (1 çalışan, ilk gün 05.10.2026); 1 günün geriye dönük planı reddedilmiş',
-    $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true)$$);
+    $$select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi')$$);
 select pdks.vardiya_plani_gir(test.c('PO05'), '2026-10-05', test.v('GUNDUZ_8'), 'Doğru plan');
 select test.dogrula('doğru plan girilince yeniden İK onayı bekler (geriye dönük)',
     (test.plan('PO05')).ik_onay_durumu = 'bekliyor' and (test.plan('PO05')).giren_id = test.k('po_ik1@ornek.test'));
@@ -178,7 +178,7 @@ select test.hata('onay bekleyen plan varken zorlamadan kilit reddedilir', 'İK o
     $$select pdks.ay_kilitle(2026::smallint, 10::smallint)$$);
 select test.dogrula('onay bekleyen plan zorla geçildi; kilit özeti bunu sayar',
     (select r -> 'zorla_gecilen' ->> 'bekleyen_plan_onayi' = '1' and r ->> 'kodsuz_gun' = '0'
-     from (select pdks.ay_kilitle(2026::smallint, 10::smallint, true) as r) x));
+     from (select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi') as r) x));
 reset role;
 create temp table once as
 select g.calisma_dk, g.erken_cikis_dk, h.calisma_dk as yeni_calisma, h.erken_cikis_dk as yeni_erken
@@ -199,7 +199,7 @@ select test.dogrula('kilitli ayda onay: gün değişmedi, vardiya düzeltmesi Ka
 delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
 set local role authenticated;
 select test.oturum('po_ik1@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 11::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 11::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
 select test.dogrula('fark satırının dakika farkı doğru: NÇ ve erken çıkış, gün iki planla ayrı ayrı hesaplanınca çıkan fark kadar',
     (select o.yeni_calisma - o.calisma_dk = -5 and o.yeni_erken - o.erken_cikis_dk = -55 from once o)

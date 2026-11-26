@@ -184,7 +184,7 @@ select test.dogrula('gece işi: iptal edilen izin sayılmadı, erken çıkış 1
 set local role authenticated;
 select test.oturum('si_ik1@ornek.test');
 select pdks.saatlik_izin_gir(test.c('SI02'), '2026-10-14', test.ts('2026-10-14 15:00'), test.ts('2026-10-14 17:00'), 'mazeret');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 select test.hata('kilitli aydaki izin iptal edilemez', 'kilitli',
     $$select pdks.saatlik_izin_iptal((test.si('SI02', '2026-10-14')).id, 'Yanlış saat girildi')$$);
 reset role;

@@ -92,7 +92,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231020000', 'ik_karari_cevaplayan',           exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'amir_sorusu' and column_name = 'ik_karar_veren_id')),
     ('20261231030000', 'eksik_saat_reddi',               to_regprocedure('pdks.cevap_saatleri_denetle(bigint, timestamptz, timestamptz, text)') is not null),
-    ('20261231040000', 'hesapsiz_gun',                   pg_get_viewdef('pdks.v_puantaj_canli'::regclass) like '%hesap_tamam)) AS calisilan_gun%')
+    ('20261231040000', 'hesapsiz_gun',                   pg_get_viewdef('pdks.v_puantaj_canli'::regclass) like '%hesap_tamam)) AS calisilan_gun%'),
+    ('20261231050000', 'zorla_kilit_izi',                to_regclass('pdks.donem_kilit_izi') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

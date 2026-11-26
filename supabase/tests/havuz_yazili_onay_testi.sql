@@ -140,7 +140,7 @@ select test.dogrula('yeniden hesapta yazılı onaysız dakika yine sayılır (HY
 --   HY05: belge kilitten sonra girilir · HY07: belge hiç girilmez
 set local role authenticated;
 select test.oturum('hy_ik@ornek.test');
-select pdks.ay_kilitle(2026::smallint, 10::smallint, true);
+select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi');
 select pdks.fazla_mesai_onayi_gir(test.c('HY05'), 2026::smallint, '2026-01-05', 'HY-FMO-5');
 select pdks.fazla_mesai_inceleme_karar((test.hv('HY05', '2026-10-18')).id, true);
 select pdks.fazla_mesai_inceleme_karar((test.hv('HY07', '2026-10-18')).id, true);

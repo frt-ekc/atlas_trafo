@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 43'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 39'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 44'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 38'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 16 | 8 | 10 |
+| Orta | 34 | 17 | 8 | 9 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **43** | **25** | **39** |
+| **Toplam** | **107** | **44** | **25** | **38** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -327,7 +327,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 |
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #54) |
 | T-91 | Orta | 12 | Puantaj satırı ile gün kodları "tamam ama hesaplanmamış" günü farklı sayıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T91-hesapsiz-gun) |
-| T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | Düzelt |
+| T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (veritabanı feature/T92-zorla-kilit-izi; ekran Gökalp) |
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | Düzelt |
 | T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
 | T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | Düzelt (zaman kalırsa) |
@@ -3355,7 +3355,12 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #12 özet · #14 `{"id":…,"yil":2026,"ay":9,"durum":"kilitli","kilitleyen_id":2,"kilit_zamani":"…"}`.
 - **Sade dille:** İK müdürü ay sonunda bekleyen her şeyi tek tıkla "zorla" geçebiliyor. Açık itirazı olan çalışanın itirazı karara bağlanmadan ayın puantajı kapanıyor. Ama sistemde "bu ay zorla kapatıldı" diye bir kayıt kalmıyor; iş mahkemesinde ya da denetimde bu kararın izini sürmek mümkün değil.
 - **Öneri:** `donem`'e `zorla boolean`, `zorla_gerekce text`, `kilit_ozeti jsonb` (değiştirilemez); `ay_kilitle(p_yil, p_ay, p_zorla, p_gerekce)`: zorla ise gerekçe zorunlu (≥ 10 karakter). Kalıcı test: gerekçesiz zorla reddedilir; özet dönem satırında durur.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi. Veritabanı: feature/T92-zorla-kilit-izi, migration `20261231050000_zorla_kilit_izi.sql`, test `zorla_kilit_izi_testi.sql` (18 test). Ekran: gerekçe alanı (Gökalp, aynı gün birleşir).
+  - `ay_kilitle(p_yil, p_ay, p_zorla, p_gerekce)`: zorla kilitte gerekçe zorunlu (en az 10 karakter, boşluklar sayılmaz); yoksa "Zorla kilitte gerekçe yazılmalıdır (en az 10 karakter)." Ekranın 3 parametreli çağrısı normal kilitte değişmeden çalışır.
+  - Her kilit (zorla olsun olmasın) yeni `pdks.donem_kilit_izi`'ne yazılır: zorla mı, gerekçe, kilitleyen, zaman, özet (ekrana dönen özet + açık sorulu gün, açık itiraz, onaysız fazla mesai ve bekleyen plan listeleri; sicil ve tarih, itiraz metni yok). İz değiştirilemez, silinemez; gerekçe kuralı tablonun check kısıtında da var.
+  - Öneriden sapma: `donem`'i giriş yapmış herkes okuyor (amir ayın kilitli olduğunu görür). Gerekçe ve özet başka departmanların çalışanlarını ve itirazlarını içerdiği için `donem`'e değil, yalnızca İK ve yöneticinin okuduğu ayrı tabloya yazıldı (+1 tablo, 39).
+  - Senaryo: Eylül'de Veli'nin açık sorusu ve Ali'nin açık itirazı varken gerekçesiz zorla kilit reddedildi; gerekçeyle kilitlendi, iz "zorla, gerekçe …, açık soru ZK01 10.09, açık itiraz ZK02 12.09" diyor; amir izi göremiyor.
+  - T-92 öncesi kilitlenmiş ayların izi yok (o bilgi kaydedilmemişti). Zorla kilit kullanan 16 test dosyasına test gerekçesi eklendi.
 
 ### T-93 · Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor; yeni vardiyanın dışında kalan çalışma havuza düşmüyor
 - **Adım:** 12 · **Önem:** Orta
