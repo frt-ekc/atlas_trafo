@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 42'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 41'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 42'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 40'ı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 15 | 7 | 12 |
+| Orta | 34 | 15 | 8 | 11 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **42** | **24** | **41** |
+| **Toplam** | **107** | **42** | **25** | **40** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -59,7 +59,7 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
   2. İK'nın `kayit_duzelt`'i, izin girişi (T-46) ve sonradan gelen kanıt (T-42) o günün açık sorusunu bu yolla kapatır. Kapanmış güne amir cevabı saat yazamaz (T-40).
   3. Cevap soru türünün gerektirdiği saatleri istemeli (T-41; ekranda da Gökalp).
   4. Karar sütunları ayrı tutulur; amirin cevabı silinmez (T-32), aleyhe saat işaretlenir (T-44).
-- **Sınırlılık:** T-19 ve T-23 (geç gelen dosya, işlenmiş günü yeniden işlemiyor). İşletme kuralıyla çözülür: "Dört dosya yüklenir, gece işi en son çalışır." T-43 (vekile devir) ve T-98 (panelde soru sayısı).
+- **Sınırlılık:** T-19, T-23 ve T-42 (geç gelen dosya, işlenmiş günü ve açık soruyu yeniden işlemiyor). İşletme kuralıyla çözülür: "Dört dosya yüklenir, gece işi en son çalışır." T-43 (vekile devir) ve T-98 (panelde soru sayısı).
 
 #### K3 · Ay kilidi ve puantaj — T-89, T-90, T-91, T-92, T-93, T-95, T-96, T-101, T-26, T-97 · en yüksek: Yüksek
 - **Kök:** `ay_kilitle` "ne zaman kilitlenebilir" ve "kilitte ne kalıyor" sorularını tam sormuyor ve cevabını saklamıyor. Puantaj satırı ile gün kodları aynı günü farklı kurallarla sayıyor.
@@ -277,7 +277,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | ✅ Düzeltildi (PR #55) |
 | T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | ✅ Düzeltildi (ekran feature/53-t41-t11-ekran; veritabanı feature/T41-eksik-saat-reddi) |
-| T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
+| T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-43 | Düşük | 7 | Amir izne çıkınca önceden açılmış soruları vekile geçmiyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
@@ -356,7 +356,7 @@ Kodla düzeltilmeyecek konular (karar, bulgunun altında) ve karar ya da düzelt
 - **Veri aktarımını yapan kişi (T-13).** Prototipte dosyaları İK elle yükler; yükleyen kaydedilir (`aktarim.yukleyen_id`) ve kendi okutmasını içeren dosyada diğer İK'ya uyarı gider. Okutmanın gerçekliği doğrulanmaz: İK başka bir çalışanın okutmasını uydurabilir, yalnızca izi kalır. Gerçek kurulumda dosyaları bir sistem hesabı otomatik yükler. T-13'ten önce yüklenmiş dosyalarda yükleyen boştur.
 - **Vekil amir her zaman yetkilidir.** Vekillik için tarih aralığı tutulmaz; vekil, atandığı sürece amirle aynı yetkiye sahiptir. Proje kararı. Vekil amir, atandığı sürece görev yapan sürekli yardımcı amir olarak kabul edilir; vekillik sona erdiğinde atama kaldırılır. Vekilin girdiği her işlem kendi adıyla kaydedilir. (T-14)
 - **İşlenmiş güne geç gelen dosya.** Gece işi bir günü bir kez işler; işlenmiş güne sonradan gelen okutma güne yansımaz ve ayrıca bildirilmez. Prosedürle karşılanır. Gece işi, o günün dosyaları tamamlandıktan sonra çalıştırılır; sonradan gelen okutma ham kayıt olarak saklanır ve gün İK düzeltmesiyle güncellenir. (T-19)
-- **Geç gelen kanıt dosyası.** Kapı, yemekhane ve servis dosyaları PDKS'den sonra yüklenirse o günün kanıtları kullanılmaz ve amire gereksiz soru gidebilir. Prosedürle karşılanır. Gerçek kurulumda PDKS, kapı, yemekhane ve servis dosyaları otomatik aktarılır; gece işi dört dosya tamamlandıktan sonra çalıştırılır. Geç gelen kanıt, amirin cevabında ve İK düzeltmesinde değerlendirilir. (T-23)
+- **Geç gelen kanıt dosyası.** Kapı, yemekhane ve servis dosyaları PDKS'den sonra yüklenirse o günün kanıtları kullanılmaz ve amire gereksiz soru gidebilir. Prosedürle karşılanır. Gerçek kurulumda PDKS, kapı, yemekhane ve servis dosyaları otomatik aktarılır; gece işi dört dosya tamamlandıktan sonra çalıştırılır. Geç gelen kanıt, amirin cevabında ve İK düzeltmesinde değerlendirilir. Bu durumda daha önce açılmış soru kanıtla kapanmaz, süresi dolarsa üst amire gider; amir "Saat farklı" seçip kanıttaki saati girer ("Saat doğru" plan saatini yazar). (T-23, T-42)
 - **Dosya özeti ekrandan gelir.** Aynı dosya farklı bir özetle "yeni dosya" gibi kaydedilebilir. Kapsam dışı. Aynı okutma ikinci kez yazılmadığı için puantaj etkilenmez; yalnızca ek bir aktarım kaydı oluşabilir. Gerçek kurulumda dosyaları sistem hesabı otomatik aktarır. (T-20)
 - **Gece işinin hızı.** 2000 çalışanda bir günün ekrandan işlenmesi 8 saniyelik sınırı aşar. Gerçek kurulumda gece işi zamanlanmış görev olarak çalışır ve ekranın 8 saniyelik sınırına tabi değildir; ekrandaki düğme demo ve tek gün içindir. 24.11.2026 yerel ölçüm (örnek veri + 180 kişilik sentetik veri): 61 gün hatasız, en uzun gün 4,4 sn. 2000 çalışan için sorgu iyileştirmesi kapsam dışıdır. (T-24)
 - **Gece işinde tek hata günü durdurur.** Bir çalışanda çıkan hata o günü bütün çalışanlar için durdurur ve mesaj çalışanı belirtmez. Bilinçli tercih. Gün bütün olarak işlenir; hata durumunda o günün hiçbir değişikliği kalmaz ve yarım veriyle puantaj oluşmaz. Hata kaydı İK'ya görünür, sorun giderilince gün yeniden çalıştırılır. (T-25)
@@ -1950,7 +1950,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** Kapı kaydı geç geldiyse sistem onu görmüyor. Soru amirden üst amire gidiyor; amir "geldi" dediğinde sistem kapıdaki gerçek saati değil plandaki saati yazıyor. T-23'te gereksiz soruyu görmüştük; burada sorunun üst amire kadar gittiğini ve yanlış saatle kapandığını görüyoruz.
 - **Öneri:** T-23'ün 2. önerisi (gece işi her çalıştığında açık sorulu günlere yeni kanıtı uygulasın) bunu da çözer. Adım 14'te T-19 ve T-23 ile birlikte karar.
-- **Durum:** Açık
+- **Karar:** Prosedürle karşılanır, T-23 ile aynı karar (kök aynı: gece işi işlenmiş günü yeniden işlemiyor). Gerçek kurulumda dört dosya otomatik gelir ve gece işi hepsi tamamlanınca çalışır; kanıt geç gelmez, soru açılmaz. Demoda dosyalar aynı gün birlikte yüklenir. Kanıt yine de geç gelirse açık soru kanıtla kapanmaz: amir "Saat farklı" seçip kanıttaki saati girer ("Saat doğru" plan saatini yazar), cevap gecikirse soru üst amire, sonra İK'ya gider; İK kayıt düzeltmesiyle kanıttaki saati yazabilir (T-40 soruyu kapatır). Kodla düzeltme (gece işi her çalışmada açık sorulu günlere yeni kanıtı uygulasın) merkezi gece işine dokunur ve T-23 kararıyla çelişir; teslimden sonra ele alınabilir.
+- **Durum:** ✅ Sınırlılık olarak kabul edildi (karar yukarıda; bkz. Bilinen sınırlılıklar).
 
 ### T-43 · Amir izne çıkınca önceden açılmış soruları vekile geçmiyor
 - **Adım:** 7 · **Önem:** Düşük
