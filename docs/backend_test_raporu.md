@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 49'u düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 33'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 50'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 32'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 21 | 8 | 5 |
+| Orta | 34 | 22 | 8 | 4 |
 | Düşük | 34 | 6 | 10 | 18 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **49** | **25** | **33** |
+| **Toplam** | **107** | **50** | **25** | **32** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -317,7 +317,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
 | T-80 | Düşük | 11 (Adım 10 betiğinde yeniden doğrulandı) | Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor | K6 | Yusuf + Fırat (CLAUDE.md) | Düzelt (karar verildi) |
 | T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Düzelt (zaman kalırsa) |
-| T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | Düzelt |
+| T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | ✅ Düzeltildi (feature/T82-kart-tanimlayan) |
 | T-83 | Düşük | 10 | Geçici kart zimmeti yalnızca "şu an" girilebiliyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-84 | Düşük | 10 (Adım 8 şüphesi) | Sistem yolunda ileri tarihli zimmet ve ileri tarihli iade kabul ediliyor | K11 | Yusuf | Düzelt |
 | T-85 | Düşük | 10 | Kaybolan geçici kart sistemde "kayıp" yapılamıyor | K11 | Yusuf | Düzelt (zaman kalırsa) |
@@ -2765,7 +2765,11 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #34 `İK kendi asıl kartını iptal | Görevler ayrılığı … (kart.iptal_eden_id)` · #35 `ik.muduru, ik.uzmani'nın kartını iptal OK` · #36 `İK kendine yeni asıl kart tanımlar OK 160` · #37 `K4001/iptal verilis=2024-11-25, K10-IKU/aktif verilis=2026-11-22` · #11 `kart` sütunları.
 - **Sade dille:** Kart, PDKS'de kimin geldiğini belirleyen şey. Bir İK çalışanı kendine kart tanımlayabiliyorsa, örneğin bir arkadaşının elindeki kartın numarasını kendi adına kaydedip onun okutmalarını kendi günü gibi gösterebilir. Bunu kimin yaptığı da sonradan bulunamaz.
 - **Öneri:** `kart`'a `tanimlayan_id` (zorunlu, `kart_tanimla` doldurur) ve `kart_gorev_ayriligi` tetikleyicisinin argümanlarına eklenmesi. Kalıcı test: İK kendine kart tanımlayamaz; tanımlayan yazılır.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T82-kart-tanimlayan). Migration: `20261231110000_kart_tanimlayan.sql`, test: `kart_tanimlayan_testi.sql` (8 test).
+  - `kart.tanimlayan_id`: `kart_tanimla` oturumdaki İK kullanıcısını yazar; sonradan değiştirilemez (tetikleyici `kart_tanimlayan_degismez`). Eski kayıtlarda ve seed verisinde boş olduğu için NOT NULL değil.
+  - Görevler ayrılığı tetikleyicisi `tanimlayan_id`'ye de bakar: kimse kendine kart tanımlayamaz ("Görevler ayrılığı: kimse kendi kaydında işlem yapamaz (kart.tanimlayan_id)").
+  - Ekran kendi sayfasında kart işlemlerini zaten göstermiyordu; açık olan yol doğrudan RPC çağrısıydı, veritabanı artık reddediyor. Geçici kart zimmetinde veren / iade alan zaten denetleniyordu (kök tarandı).
+  - Ekran (yerel, İK): Yasin Avcı'ya ekrandan tanımlanan K5103B kartında tanımlayan Elif Şen; Elif'in RPC ile kendine kart tanımlaması reddedildi.
 
 ### T-83 · Geçici kart zimmeti yalnızca "şu an" girilebiliyor; zimmet sisteme geç girilirse ilk okutma kayboluyor, unutulan zimmet sonradan yazılamıyor
 - **Adım:** 10 · **Önem:** Düşük

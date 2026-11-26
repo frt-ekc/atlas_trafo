@@ -147,6 +147,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/kilitli_ay_cikis_testi.sql` | Kilitli aya düşen çıkış (T-67): kilitli ayın planı ve izni kalır, açık ayınki silinir / iptal, fark satırı, sonuç ve uyarı, açık ayda eski davranış, doğrudan silme engeli için 9 test |
 | `supabase/migrations/20261231100000_gecersiz_amir.sql` | Soru cevaplayamayan amir (pasif hesap, rol değişikliği, işten çıkış): sorular vekile / üst amire / İK'ya açılır ve devredilir, eskale pasif üst amire gitmez, İK'ya `amirsiz_departman` uyarısı (T-70) |
 | `supabase/tests/gecersiz_amir_testi.sql` | Soru cevaplayamayan amir (T-70): devir, uyarı metni, pasif / rol / vekil / üst amir / İK sırası, devralanın cevabı, eskale, geri dönen amir, vekil uyarısı için 14 test |
+| `supabase/migrations/20261231110000_kart_tanimlayan.sql` | Kartı kimin tanımladığı (`kart.tanimlayan_id`, değiştirilemez); görevler ayrılığı kart tanımlamayı da kapsar: kimse kendine kart tanımlayamaz (T-82) |
+| `supabase/tests/kart_tanimlayan_testi.sql` | Kart tanımlayan (T-82): yazılır, kendine tanımlama reddi, başka İK tanımlar, değiştirilemez, doğrudan ekleme reddi için 8 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -545,6 +547,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - Ay kilitlenirken o ayın karar bekleyen fazla mesai talepleri kendiliğinden kapanır ("iptal", kişisiz, "Dönem kilitlendi"); talep kilidi durdurmaz, çünkü çalışılan süre havuza düşer ve havuz kilidi durdurur. Kapatılan talepler kilit mesajında ve kilit izinde görünür. Kişisiz iptal yalnızca `ay_kilitle` içinden yapılabilir (T-63).
 - İşten çıkış kilitli ayın kaydına dokunmaz: kilitli ayın vardiya planı silinmez, kilitli ayda başlayan izin iptal edilmez; o aydaki gün kayıtlarının düzeltmesi sonraki aya fark satırı olur. Çıkış kilitli aya düşerse İK'ya `cikis_kilitli_ay` uyarısı yazılır; kilitli puantajda kalan izin / çalışma günleri gerekirse bordroda elle düzeltilir. Kilitli ayın vardiya planı hiçbir yoldan silinemez (T-67).
 - Amir sorusu yalnızca soru alabilen kişiye açılır (hesap aktif, rol amir, çalışanı çıkmamış): amir (izinde değilse) → vekil → amir → amirin üst amiri → İK; eskale de aynı koşulla. Amir ya da vekil soru alamaz hâle gelince açık soruları devredilir ve İK'ya `amirsiz_departman` uyarısı yazılır (T-70).
+- Kartı tanımlayan `kart.tanimlayan_id`'de saklanır ve değiştirilemez; kimse kendine kart tanımlayamaz (T-82).
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.

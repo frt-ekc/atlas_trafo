@@ -100,7 +100,9 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231070000', 'reddedilen_tatil',               pg_get_viewdef('pdks.v_departman_ozet'::regclass) like '%sayilmayan_tatil_calismasi%'),
     ('20261231080000', 'kilitte_fm_talebi',              pg_get_functiondef('pdks.ay_kilitle(smallint, smallint, boolean, text)'::regprocedure) like '%kapatilan_fm_talebi%'),
     ('20261231090000', 'kilitli_ay_cikis',               exists (select 1 from pg_trigger where tgname = 'vardiya_plani_kilitli_silme')),
-    ('20261231100000', 'gecersiz_amir',                  exists (select 1 from pg_trigger where tgname = 'kullanici_amir_gecersiz'))
+    ('20261231100000', 'gecersiz_amir',                  exists (select 1 from pg_trigger where tgname = 'kullanici_amir_gecersiz')),
+    ('20261231110000', 'kart_tanimlayan',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'kart' and column_name = 'tanimlayan_id'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
