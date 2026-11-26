@@ -77,8 +77,8 @@ create temp table ic_once as select id, cevap_zamani from pdks.amir_sorusu where
 set local role authenticated;
 select test.oturum('ic_ik1@ornek.test');
 select pdks.soru_ik_karari(test.s('IC01'), true, 'Kapı ve servis kaydı yok') \g /dev/null
-select pdks.soru_ik_karari(test.s('IC02'), false, 'Kapı kaydı 08:02', '2026-08-05 08:02+03', null) \g /dev/null
-select pdks.soru_ik_karari(test.s('IC03'), false, 'Kapı kaydı 08:05', '2026-08-05 08:05+03', null) \g /dev/null
+select pdks.soru_ik_karari(test.s('IC02'), false, 'Kapı kaydı 08:02, servis 16:10', '2026-08-05 08:02+03', '2026-08-05 16:10+03') \g /dev/null
+select pdks.soru_ik_karari(test.s('IC03'), false, 'Kapı kaydı 08:05, servis 16:10', '2026-08-05 08:05+03', '2026-08-05 16:10+03') \g /dev/null
 reset role;
 
 -- 1) Bulgudaki durum: İK kararından sonra amirin cevabı ve adı kalır -----------------------------

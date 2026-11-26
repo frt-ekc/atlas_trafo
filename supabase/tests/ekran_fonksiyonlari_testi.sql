@@ -73,9 +73,12 @@ insert into pdks.fazla_mesai_onayi (calisan_id, yil, imza_tarihi, belge_no, gire
 values (test.c('EF01'), extract(year from current_date + 7)::smallint, date_trunc('year', current_date + 7)::date,
         'EF-FMO-1', (select id from pdks.kullanici where eposta = 'ef_ik1@ornek.test'));
 
--- 13 Ekim: Montaj'da EF01 (giriş yok), EF02 (hiç kayıt yok); Bobinaj'da EF03 (çıkış yok)
-insert into pdks.gun_kaydi (calisan_id, is_gunu, vardiya_id, planli_baslangic, planli_bitis, durum)
-select test.c(s), '2026-10-13', 1, '2026-10-13 08:00+03', '2026-10-13 17:00+03', 'soru_bekliyor'
+-- 13 Ekim: Montaj'da EF01 (giriş yok; çıkış PDKS'ten 17:05), EF02 (hiç kayıt yok); Bobinaj'da EF03 (çıkış yok; giriş PDKS'ten 07:58)
+-- (T-41: cevaptan sonra günde iki saat de olmalı; "giriş yok" sorusu çıkışı olan günde açılır)
+insert into pdks.gun_kaydi (calisan_id, is_gunu, vardiya_id, planli_baslangic, planli_bitis, durum, giris_zamani, giris_kaynagi, cikis_zamani, cikis_kaynagi)
+select test.c(s), '2026-10-13', 1, '2026-10-13 08:00+03', '2026-10-13 17:00+03', 'soru_bekliyor',
+       case when s = 'EF03' then '2026-10-13 07:58+03'::timestamptz end, case when s = 'EF03' then 'pdks' end,
+       case when s = 'EF01' then '2026-10-13 17:05+03'::timestamptz end, case when s = 'EF01' then 'pdks' end
 from unnest(array['EF01', 'EF02', 'EF03']) s;
 insert into pdks.amir_sorusu (gun_kaydi_id, soru_turu, aciklama, atanan_id, son_cevap_tarihi)
 select test.gk(s), t, 'Örnek soru', (select id from pdks.kullanici where eposta = e), '2026-10-16'
