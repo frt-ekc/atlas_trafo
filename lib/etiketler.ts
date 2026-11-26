@@ -74,11 +74,12 @@ export const UYARI_TURU: Record<string, string> = {
   puantaj_ayari_degisti: "Puantaj ayarı değişikliği",
   kendi_okutmasi_yuklendi: "Yükleyenin kendi okutması",
   cikis_kilitli_ay: "İşten çıkış kilitli aya düştü",
+  amirsiz_departman: "Departman amiri soru alamıyor",
 };
 
 // Uyarı özetinde türler konuya göre gruplanır. Listede olmayan tür "Diğer" altında görünür.
 export const UYARI_KONULARI: { ad: string; turler: string[] }[] = [
-  { ad: "Soru ve vardiya", turler: ["soru_eskale", "geriye_donuk_vardiya", "izin_gununde_okutma", "cikis_kilitli_ay"] },
+  { ad: "Soru ve vardiya", turler: ["soru_eskale", "geriye_donuk_vardiya", "izin_gununde_okutma", "cikis_kilitli_ay", "amirsiz_departman"] },
   {
     ad: "Kart",
     turler: [

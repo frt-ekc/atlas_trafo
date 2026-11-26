@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 48'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 34'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 49'u düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 33'ü açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 20 | 8 | 6 |
+| Orta | 34 | 21 | 8 | 5 |
 | Düşük | 34 | 6 | 10 | 18 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **48** | **25** | **34** |
+| **Toplam** | **107** | **49** | **25** | **33** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -305,7 +305,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | ✅ Düzeltildi (feature/T67-kilitli-ay-cikis) |
 | T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | Düzelt |
 | T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | Düzelt (zaman kalırsa) |
-| T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | Düzelt |
+| T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | ✅ Düzeltildi (feature/T70-gecersiz-amir) |
 | T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | ✅ Düzeltildi (PR #56) |
 | T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | ✅ Sınırlılık (karar verildi) |
@@ -3048,7 +3048,13 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#49 `14.10 hic_kayit_yok → a1.s11@example.com/aktif=false acik` (×4) · G#50 `S11 Amirli amir: a1.s11/aktif=false/rol=amir` · G#51 `→ b1.s11@example.com/rol=guvenlik acik` (×4) · G#52 B1 cevap: "Bu işlem için yetkiniz yok." · G#53 B1 W2 gün kaydı: 0 · G#132 Kalite amiri `kalite.amiri/ik`.
 - **Sade dille:** Bir departmanın amiri emekli olunca ya da başka bir göreve geçince sistem bunu fark etmiyor. O departmanın çalışanları için "kartı okutmamış, geldi mi?" soruları, artık giriş yapamayan ya da yetkisi olmayan kişiye gidiyor. Sorular en az 3 gün kimse görmeden bekliyor; bu sırada çalışanın günü "soru bekliyor" kalıyor.
 - **Öneri:** `kullanici_guncelle` (pasif ya da rol ≠ amir) ve `isten_cikis_gir`: kullanıcı bir departmanın amiri ya da vekiliyse reddetsin, ya da İK'ya `amirsiz_departman` uyarısı yazsın. Soru atamada amir aktif ve rolü `amir` değilse vekile / üst amire atansın. Açık soruların devri T-43 ile birlikte çözülebilir.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T70-gecersiz-amir). Migration: `20261231100000_gecersiz_amir.sql`, test: `gecersiz_amir_testi.sql` (14 test).
+  - Soru alabilen kişi (`soru_alabilir_mi`): hesap aktif, rol `amir`, çalışanı işten çıkmamış.
+  - Soru açılırken sıra (`departman_soru_hedefi`, `soru_atanacak`): amir (izinde değilse) → vekil → amir (izinde, vekil yok; eskisi gibi) → amirin üst amiri → İK. Eskale: üst amir soru alamıyorsa İK.
+  - Amir ya da vekil soru alamaz hâle gelince (hangi yoldan olursa olsun: hesap kapatma, rol onayı, işten çıkış) tetikleyici `kullanici_amir_gecersiz` açık sorularını yeni hedefe devreder ve her departman için İK'ya `amirsiz_departman` uyarısı yazar ("Departmana yeni amir / vekil amir atanmalıdır. Sorular şimdilik şu kişiye açılıyor: …"). Kurulumda soru alamayan kişide bekleyen açık sorular bir kez devredilir.
+  - İşlem reddedilmez: amir emekli olunca hesap kapatma ve çıkış beklemeden yapılabilir. T-43 sınırlılığı değişmedi (izne çıkan amirin önceden açılmış sorusu onda kalır).
+  - Hız: soru hedefi PL/pgSQL (plan önbellekte); 2280 çağrıda ~85 ms (önce ~65 ms; SQL sürümü ~800 ms'ydi).
+  - Ekran (yerel, İK): Montaj amiri Hasan Yılmaz pasif yapıldı → Uyarılar'da iki uyarı ("Departman amiri soru alamıyor"): Montaj'ın soruları Levent Sarı'ya, Bobinaj'ın (vekili Hasan) soruları amir Serkan Öztürk'e.
 
 ### T-71 · Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor; hesap tam yetkiyle çalışıyor
 - **Adım:** 11 · **Önem:** Yüksek
