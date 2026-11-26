@@ -2,7 +2,7 @@
 -- Geriye dönük vardiya planı onayı ve reddi testleri (20261203010000_plan_onayi.sql)
 --   onay → gün hemen oluşur / düzelir · ret → gün değişmez · ret + işlenmemiş gün → kilit reddeder ·
 --   onay bekleyen + işlenmemiş gün → kilit reddeder (zorla da) · görevler ayrılığı ·
---   kilitli ayda onay → fark satırı (dakika farkı doğru)
+--   kilitli ayda onay reddedilir, plan yalnızca reddedilebilir (T-93; önce fark satırı yazıyordu)
 -- Testin kendi sahte verisi (Ekim 2026) kullanılır; örnek veri yüklü olsun olmasın çalışır.
 -- Her şey tek işlemde çalışır ve sonda geri alınır (ROLLBACK).
 -- Çalıştırma: psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/plan_onayi_testi.sql
@@ -169,7 +169,7 @@ select pdks.vardiya_plani_onayla((test.plan('PO05')).id, true);
 select test.dogrula('doğru planın onayıyla gün oluştu (PO05 tamam)', (test.gk('PO05')).durum = 'tamam');
 
 -- ---------------------------------------------------------------------
--- Onay bekleyen plan zorla geçilebilir; kilitli ayda onay → fark satırı
+-- Onay bekleyen plan zorla geçilebilir; kilitli ayda onay reddedilir, plan yalnızca reddedilir (T-93)
 -- ---------------------------------------------------------------------
 select test.oturum('po_amir@ornek.test');
 select pdks.vardiya_plani_gir(test.c('PO01'), '2026-10-05', test.v('GUNDUZ_8'), 'Aslında 08-16 çalıştı');
@@ -179,21 +179,14 @@ select test.hata('onay bekleyen plan varken zorlamadan kilit reddedilir', 'İK o
 select test.dogrula('onay bekleyen plan zorla geçildi; kilit özeti bunu sayar',
     (select r -> 'zorla_gecilen' ->> 'bekleyen_plan_onayi' = '1' and r ->> 'kodsuz_gun' = '0'
      from (select pdks.ay_kilitle(2026::smallint, 10::smallint, true, 'Test: zorla kilit gerekçesi') as r) x));
-reset role;
-create temp table once as
-select g.calisma_dk, g.erken_cikis_dk, h.calisma_dk as yeni_calisma, h.erken_cikis_dk as yeni_erken
-from pdks.gun_kaydi g
-cross join lateral pdks.vardiya_araligi(test.v('GUNDUZ_8'), g.is_gunu) a
-cross join lateral pdks.gun_hesabi(g.calisan_id, g.is_gunu, a.p_bas, a.p_bit, g.giris_zamani, g.cikis_zamani, test.v('GUNDUZ_8')) h
-where g.id = (test.gk('PO01')).id;
-set local role authenticated;
 select test.oturum('po_ik2@ornek.test');
-select pdks.vardiya_plani_onayla((test.plan('PO01')).id, true);
+select test.hata('kilitli ayda plan onaylanamaz (T-93)', 'Kilitli ayda vardiya değiştirilemez (10.2026)',
+    format('select pdks.vardiya_plani_onayla(%s, true)', (test.plan('PO01')).id));
+select pdks.vardiya_plani_onayla((test.plan('PO01')).id, false);
 reset role;
-select test.dogrula('kilitli ayda onay: gün değişmedi, vardiya düzeltmesi Kasım''a fark satırı',
+select test.dogrula('kilitli ayda bekleyen plan reddedildi: gün değişmedi, vardiya düzeltmesi yok',
     (select vardiya_id = test.v('GUNDUZ') and calisma_dk = 425 and erken_cikis_dk = 55 from test.gk('PO01'))
-    and exists (select 1 from pdks.duzeltme d join pdks.donem p on p.id = d.hedef_donem_id
-                where d.gun_kaydi_id = (test.gk('PO01')).id and d.alan = 'vardiya_id' and d.fark_satiri and p.ay = 11));
+    and not exists (select 1 from pdks.duzeltme d where d.gun_kaydi_id = (test.gk('PO01')).id and d.alan = 'vardiya_id'));
 -- Kasım kilitlenince fark satırı yazılır. Örnek veri yüklüyse onun Kasım planları bu testte işlenmez:
 -- kilit (20261201010000) bunları işlenmemiş gün sayar; test yalnızca kendi verisine bakar.
 delete from pdks.vardiya_plani where tarih between '2026-11-01' and '2026-11-30';
@@ -201,14 +194,9 @@ set local role authenticated;
 select test.oturum('po_ik1@ornek.test');
 select pdks.ay_kilitle(2026::smallint, 11::smallint, true, 'Test: zorla kilit gerekçesi');
 reset role;
-select test.dogrula('fark satırının dakika farkı doğru: NÇ ve erken çıkış, gün iki planla ayrı ayrı hesaplanınca çıkan fark kadar',
-    (select o.yeni_calisma - o.calisma_dk = -5 and o.yeni_erken - o.erken_cikis_dk = -55 from once o)
-    and (select p.calisma_dk = (select yeni_calisma - calisma_dk from once)
-                and p.erken_cikis_dk = (select yeni_erken - erken_cikis_dk from once)
-         from pdks.puantaj_satiri p join pdks.donem d on d.id = p.donem_id
-         where d.yil = 2026 and d.ay = 11 and p.calisan_id = test.c('PO01') and p.satir_turu = 'fark')
-    and exists (select 1 from pdks.v_puantaj_aktarim where donem = '2026-11' and sicil = 'PO01'
-                and satir_turu = 'fark' and kaynak_donem = '2026-10' and kod = 'NÇ' and dakika = -5));
+select test.dogrula('Kasım kilidinde PO01 için Ekim''den fark satırı yok (vardiya değişmedi)',
+    not exists (select 1 from pdks.puantaj_satiri p join pdks.donem d on d.id = p.donem_id
+                where d.yil = 2026 and d.ay = 11 and p.calisan_id = test.c('PO01') and p.satir_turu = 'fark'));
 select test.dogrula('kilitli Ekim''in puantajı değişmedi (PO01 NÇ 425 dk)',
     exists (select 1 from pdks.v_puantaj_aktarim where donem = '2026-10' and sicil = 'PO01'
             and satir_turu = 'normal' and kod = 'NÇ' and dakika = 425));

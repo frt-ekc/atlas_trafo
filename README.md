@@ -163,6 +163,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261231030000_eksik_saat_reddi.sql` | Tek saatli cevap reddedilir: cevaptan sonra günde giriş ve çıkış olmalı (T-41) |
 | `20261231040000_hesapsiz_gun.sql` | Hesabı tamamlanmamış gün her yerde bekleyen sayılır; puantaj satırı ile kodlar aynı (T-91) |
 | `20261231050000_zorla_kilit_izi.sql` | Zorla kilitte gerekçe zorunlu; her kilidin değiştirilemez izi (+1 tablo) (T-92) |
+| `20261231060000_kilitli_vardiya.sql` | Kilitli ayın vardiyası değişmez; bekleyen plan kilitten sonra yalnızca reddedilir (T-93) |
 
 ---
 
@@ -275,6 +276,7 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Tek saatli cevap reddi (T-41): soru türleri, saat doğru / kart unuttu, İK kararı, kilitli ay (15 test) | ✅ |
 | Hesabı tamamlanmamış gün (T-91): canlı puantaj, panel, zorla kilitte satır = kalem (8 test) | ✅ |
 | Zorla kilit izi (T-92): gerekçe zorunlu, iz ve özet, değiştirilemez, amir göremez (18 test) | ✅ |
+| Kilitli ayda vardiya (T-93): plan onayı ve kayıt düzeltmesi reddi, saat düzeltmesi fark, açık ayda havuz (11 test) | ✅ |
 | Vercel'de yayın | ⬜ Yapılacak |
 | Rapor diyagramları (Use Case, DFD, AS-IS, TO-BE) | ⬜ Yapılacak |
 

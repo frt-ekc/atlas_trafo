@@ -75,7 +75,7 @@ delete from supabase_migrations.schema_migrations;
 supabase db push --remote --dry-run
 ```
 
-Liste `supabase/migrations/` altındaki dosyaların hepsini (şu an 62) göstermeli. Sonra:
+Liste `supabase/migrations/` altındaki dosyaların hepsini (şu an 63) göstermeli. Sonra:
 
 ```bash
 supabase db push --remote
