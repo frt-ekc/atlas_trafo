@@ -132,6 +132,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/plansiz_izin_gunu_testi.sql` | Planı olmayan izin günü (T-94): kodlar, Cumartesi ayarı, rapor / arife / bayram, iptal, işe giriş, kilit, RLS altında aynı sonuç, hız yapıları, kilitli ayda ret için 35 test |
 | `supabase/migrations/20261231020000_ik_karari_cevaplayan.sql` | İK kararı amirin cevabını silmez: `amir_sorusu.ik_karar_veren_id` / `ik_karar_zamani`; işten çıkış soruyu kapanış sütunlarıyla kapatır; "yalnızca İK kapatır" ve görevler ayrılığı yeni sütuna bakar; eski kayıtlar taşınır (T-32) |
 | `supabase/tests/ik_karari_cevaplayan_testi.sql` | İK kararı ve cevaplayan (T-32): gelmedi / bilmiyorum / cevapsız soru, karar zamanı, görevler ayrılığı, yalnızca İK kapatır, check, işten çıkış için 17 test |
+| `supabase/migrations/20261231030000_eksik_saat_reddi.sql` | Amirin cevabı ya da İK'nın "geldi" kararı uygulanınca günde giriş ve çıkış kalmayacaksa reddedilir (`cevap_saatleri_denetle`); kilitli ayda fark satırındaki saat de sayılır (T-41) |
+| `supabase/tests/eksik_saat_reddi_testi.sql` | Tek saatli cevap (T-41): giriş yok / kanıt vardiya sonrası / hiç kayıt yok / çıkış yok, saat doğru ve kart unuttu, İK geldi ve devamsız, kilitli ay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
 > **Trigger** = bir tabloya ekleme/değiştirme/silme yapılırken kendiliğinden çalışan kontrol.
@@ -154,6 +156,8 @@ olarak veritabanının içinde çalışır.
    İK rolüyle olur. Amir "gelmedi" derse soru kapanmaz, `ik_karari_bekliyor` durumuna geçer.
    Sistem en fazla `devamsiz_suphesi` der. İK'nın kararı amirin cevabını silmez: kim ne dedi
    (`cevaplayan_id`, `cevap`) ve kim karar verdi (`ik_karar_veren_id`, `ik_karar_zamani`) ayrı tutulur (T-32).
+   Amirin cevabı ya da İK'nın "geldi" kararı günü yarım bırakamaz: uygulanınca günde giriş ve çıkış
+   olmalı, yoksa cevap reddedilir ve soru açık kalır (T-41).
 6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
    Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
    adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).

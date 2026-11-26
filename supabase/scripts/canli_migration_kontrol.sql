@@ -90,7 +90,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261230010000', 'saatlik_izin_iptal',             to_regprocedure('pdks.saatlik_izin_iptal(bigint, text)') is not null),
     ('20261231010000', 'plansiz_izin_gunu',              to_regprocedure('pdks.plansiz_izin_gunleri(date, date)') is not null),
     ('20261231020000', 'ik_karari_cevaplayan',           exists (select 1 from information_schema.columns where table_schema = 'pdks'
-                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karar_veren_id'))
+                                                                 and table_name = 'amir_sorusu' and column_name = 'ik_karar_veren_id')),
+    ('20261231030000', 'eksik_saat_reddi',               to_regprocedure('pdks.cevap_saatleri_denetle(bigint, timestamptz, timestamptz, text)') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

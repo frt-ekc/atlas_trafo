@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 41'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 42'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 42'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 24'ü kararla sınırlılık olarak kabul edildi, 41'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,10 +28,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 14 | 7 | 13 |
+| Orta | 34 | 15 | 7 | 12 |
 | Düşük | 34 | 5 | 10 | 19 |
 | Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **41** | **24** | **42** |
+| **Toplam** | **107** | **42** | **24** | **41** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
@@ -276,7 +276,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | ✅ Düzeltildi (PR #37) |
 | T-39 | Yüksek | 7 | Üst amir de cevaplamazsa soru hiçbir zaman İK'ya gitmiyor | K2 | Yusuf | ✅ Düzeltildi (PR #55) |
 | T-40 | Orta | 7 | İK'nın kayıt düzeltmesi açık soruyu kapatmıyor | K2 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
-| T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | Düzelt |
+| T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | ✅ Düzeltildi (ekran feature/53-t41-t11-ekran; veritabanı feature/T41-eksik-saat-reddi) |
 | T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
 | T-43 | Düşük | 7 | Amir izne çıkınca önceden açılmış soruları vekile geçmiyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
@@ -1926,7 +1926,12 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
   ```
 - **Sade dille:** Amir aceleyle yalnızca bir saati yazarsa soru kapanıyor ama gün hesaplanamıyor. Kimse bunu fark etmiyor, çünkü artık açık soru da yok. Ay sonunda bu gün puantaja kodsuz giriyor.
 - **Öneri:** `soru_cevapla` / `soru_ik_karari` soru türüne göre gerekli saati denetlesin ("Bu soru için giriş saatini de girin."). Ekran da aynı denetimi yapsın (Gökalp). Yeni migration ve test.
-- **Durum:** Kısmen düzeltildi (ekran, `feature/53-t41-t11-ekran`). Veritabanı tarafı açık (Yusuf, K2).
+- **Durum:** ✅ Düzeltildi. Ekran: `feature/53-t41-t11-ekran`. Veritabanı: feature/T41-eksik-saat-reddi, migration `20261231030000_eksik_saat_reddi.sql`, test `eksik_saat_reddi_testi.sql` (15 test).
+  - Karar (1. yol): kural soru türüne değil sonuca bakar. Amirin cevabı ya da İK'nın "geldi" kararı uygulanınca günde hem giriş hem çıkış olmalı; biri eksik kalacaksa reddedilir ("Günde giriş saati yok; giriş saatini de girin."), soru açık kalır. Saati gündeki mevcut değer de tamamlar: "giriş yok" sorusunda çıkış PDKS'ten varsa yalnızca giriş yeter.
+  - Ortak kontrol `pdks.cevap_saatleri_denetle`; `soru_cevapla` ve `soru_ik_karari` saati yazmadan önce çağırır. "Gelmedi" / "bilmiyorum" ve "devamsız" saat istemez. Amirin "saat doğru / kart unuttu" cevabında plan eksik saati dolduramıyorsa mesaj "Saat farklı" seçmesini söyler.
+  - Kilitli ayda saat gün kaydına değil fark satırına yazılır; kontrol son fark satırındaki saati de sayar.
+  - Ekranın tür kuralında kalan boşluk da kapandı: "kanıt vardiya sonrası", "arıza kanıtı yok", "vardiya uyuşmazlığı" türlerinde tek saat ekrandan geçiyordu, artık veritabanı reddeder ve mesaj pencerede görünür. Ekranda "zorunlu" işaretini günün eksik saatine göre koymak isteğe bağlı bir ekran işi (Gökalp).
+  - GY6 / HK6 / HK5 senaryoları: tek saat reddedildi, soru açık kaldı; eksik saat eklenince gün hesaplandı.
 
 ### T-42 · Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor; "saat doğru" cevabı kanıt saatini değil plan saatini yazıyor
 - **Adım:** 7 · **Önem:** Orta (T-23 ile aynı kök)
