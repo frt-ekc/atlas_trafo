@@ -259,6 +259,8 @@ function CevaplaPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <CevapAlanlari
+        soruTuru={soru.soru_turu}
+        gunde={g ? { giris: Boolean(g.giris_zamani), cikis: Boolean(g.cikis_zamani) } : null}
         girisVarsayilan={girisVarsayilan}
         cikisVarsayilan={cikisVarsayilan}
         kayitliGiris={g?.giris_zamani ? saat(g.giris_zamani) : null}
@@ -303,6 +305,8 @@ function IkKararPenceresi({ soru }: { soru: Soru }) {
       gizli={{ soru_id: soru.id }}
     >
       <IkKararAlanlari
+        soruTuru={soru.soru_turu}
+        gunde={g ? { giris: Boolean(g.giris_zamani), cikis: Boolean(g.cikis_zamani) } : null}
         girisVarsayilan={yerelZamanGirdisi(g?.giris_zamani ? null : ((soru.soru_turu !== "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_baslangic))}
         cikisVarsayilan={yerelZamanGirdisi(g?.cikis_zamani ? null : ((soru.soru_turu === "cikis_yok" ? soru.onerilen_zaman : null) ?? g?.planli_bitis))}
         kayitliGiris={g?.giris_zamani ? saat(g.giris_zamani) : null}

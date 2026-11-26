@@ -14,13 +14,15 @@ async function saatHatasi(soruId: number, giris: string | null, cikis: string | 
   const supabase = await sunucuIstemcisi();
   const { data, error } = await supabase
     .from("amir_sorusu")
-    .select("gun:gun_kaydi_id(giris_zamani, cikis_zamani)")
+    .select("soru_turu, gun:gun_kaydi_id(giris_zamani, cikis_zamani)")
     .eq("id", soruId)
     .maybeSingle();
   if (error) return "Soru okunamadı. Lütfen tekrar deneyin.";
   if (!data) return "Soru bulunamadı veya görüntüleme yetkisi yok.";
   const gun = data.gun as unknown as { giris_zamani: string | null; cikis_zamani: string | null } | null;
-  return eksikSaatMesaji({ giris: Boolean(gun?.giris_zamani), cikis: Boolean(gun?.cikis_zamani) }, giris, cikis);
+  // Gün görünmüyorsa (RLS) null: türe göre en az kural, son karar veritabanında
+  const gunde = gun ? { giris: Boolean(gun.giris_zamani), cikis: Boolean(gun.cikis_zamani) } : null;
+  return eksikSaatMesaji(data.soru_turu, gunde, giris, cikis);
 }
 
 // Amir soruyu cevaplar. Veritabanı (soru_cevapla) şunları denetler: soru bu amire atanmış ya da
