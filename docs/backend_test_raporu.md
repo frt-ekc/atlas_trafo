@@ -316,7 +316,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
 | T-80 | Düşük | 11 (Adım 10 betiğinde yeniden doğrulandı) | Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor | K6 | Yusuf + Fırat (CLAUDE.md) | Düzelt (karar verildi) |
-| T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Düzelt (zaman kalırsa) |
+| T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Açık: veritabanı hazır (feature/T81-paylasim-karari), karar penceresi Gökalp'te |
 | T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | ✅ Düzeltildi (feature/T82-kart-tanimlayan) |
 | T-83 | Düşük | 10 | Geçici kart zimmeti yalnızca "şu an" girilebiliyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-84 | Düşük | 10 (Adım 8 şüphesi) | Sistem yolunda ileri tarihli zimmet ve ileri tarihli iade kabul ediliyor | K11 | Yusuf | Düzelt |
@@ -2761,7 +2761,12 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #133 `[S10PA] Kart paylaşımı şüphesi: S10PA … ve S10PB … kartları 10.2026 ayında 5 farklı günde 5 saniye içinde arka arkaya okutuldu. Ceza değildir; İK incelemeli.` · #141–146 5 rol "yetkiniz yok", İK OK · #147 `true goren=ik.uzmani@example.com | uyari sütunları: id,tur,calisan_id,okuyucu_id,mesaj,olusturma_zamani,goruldu,goren_id,gorulme_zamani,tekillik_anahtari | PB: 12.10 tamam …; 16.10 tamam` · #148 `paylas` adlı tek fonksiyon `kart_paylasim_kontrol`.
 - **Sade dille:** Sistem "bu iki kişi birbirinin kartını basıyor olabilir" diye İK'yı uyarıyor, ama İK'nın elinde yalnızca "okudum" düğmesi var. Hangi günler olduğunu bulmak için İK'nın okutmaları tek tek araması gerekir; vardığı kararı da sistemde bir yere yazamaz. Gerçekten paylaşım varsa, gelmeyen kişinin günleri "çalıştı" olarak puantaja gitmeye devam eder.
 - **Öneri:** `kart_paylasim_inceleme` tablosu (çift, ay, günler, karar `var`/`yok`, gerekçe, karar veren) ya da uyarıya karar alanları; mesajda günler ve saatler; "var" kararında ilgili günler için `kayit_duzelt` listesi (otomatik devamsızlık yok, karar İK'da). Kalıcı test: yalnızca İK karar verir; karar gerekçesiz kaydedilmez.
-- **Durum:** Açık
+- **Durum:** Açık. Veritabanı tarafı yapıldı (feature/T81-paylasim-karari; migration `20261231130000_paylasim_karari.sql`, test `paylasim_karari_testi.sql`, 18 test). Ekranda karar penceresi yok; Gökalp ekleyince düzeltildi sayılır.
+  - Karar (Yusuf, B seçeneği): karar uyarının üstünde (ayrı tablo yok). Uyarı mesajı günleri, saati ve okuyucuyu yazar (en çok 10 gün); `uyari.ayrinti`'de diğer çalışan ve gün listesi. Karar verilene kadar yeni günler aynı uyarıya eklenir.
+  - `pdks.kart_paylasim_karar(uyari, paylasim_var, gerekce)`: yalnızca İK, gerekçe ≥ 10 karakter, şüpheli çiftteki iki çalışan da karar veremez, karar bir kez verilir ve değiştirilemez; uyarı görüldü sayılır.
+  - "Paylaşım var" kararı gün kaydına dokunmaz (KVKK m.11): sonuç düzeltilecek günleri listeler, devamsızlık kendiliğinden yazılmaz; İK günleri çalışan kaydından elle düzeltir.
+  - Ekran için (Gökalp): Uyarılar'da kart paylaşımı uyarısına "Karar ver" penceresi (paylaşım var / yanlış alarm + gerekçe), RPC `kart_paylasim_karar`; dönen `gunler` ve `mesaj` gösterilir; karar verilmiş uyarıda karar ve gerekçe görünür (`uyari.karar`, `karar_gerekce`, `karar_veren_id`, `karar_zamani`).
+  - Hız: gece işindeki paylaşım kontrolü değişmedi (örnek veride ~110–130 ms, önce ve sonra).
 
 ### T-82 · İK kendine asıl kart tanımlayabiliyor; kartı kimin tanımladığı hiçbir yerde yazmıyor
 - **Adım:** 10 · **Önem:** Orta
