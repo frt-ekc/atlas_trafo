@@ -153,6 +153,18 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/dosya_tarihi_testi.sql` | Dosya tarihi (T-17, T-18, T-21): yanlış günün dosyası, gece vardiyası ve saat dilimi, çakışan dışa aktarım, ileri tarihli dosya / satır / gece işi, kilitli ay, uzun girdi için 13 test |
 | `supabase/migrations/20261231130000_paylasim_karari.sql` | Kart paylaşımı şüphesinde İK kararı: uyarı günleri / saati / okuyucuyu yazar (`uyari.ayrinti`), `kart_paylasim_karar` (yalnızca İK, gerekçeli, bir kez, değiştirilemez); "var" kararı gün kaydına dokunmaz (T-81) |
 | `supabase/tests/paylasim_karari_testi.sql` | Kart paylaşımı kararı (T-81): mesaj ve ayrıntı, karar bekleyen uyarının güncellenmesi, yetki, görevler ayrılığı, gerekçe, tür, karar sonucu, gün kaydına dokunmama, değiştirilemezlik için 18 test |
+| `supabase/migrations/20261231140000_calisan_kart_kurallari.sql` | Plan, izin ve saatlik izin yalnızca çalışma tarihleri içinde (`calisan_tarih_denetle`); kart ayrılmış çalışana verilmez, geçici kart yalnızca çalışana; kart numarası kimde söylenir; iptal nedeni zorunlu; işe giriş aralığı ve büyük/küçük harfe duyarsız sicil (T-68, T-75, T-86) |
+| `supabase/tests/calisan_kart_kurallari_testi.sql` | Çalışma tarihi, kart, geçici kart, iptal nedeni ve çalışan ekleme kuralları (T-68, T-75, T-86) için 28 test |
+| `supabase/migrations/20261231150000_isg_belge_sirasi.sql` | İSG'de geçerli belge en geç biten belge; bitiş bugün ± 10 yıl; `v_isg_durum.izleniyor` (T-87) |
+| `supabase/tests/isg_belge_sirasi_testi.sql` | İSG belge sırası, tarih aralığı ve izlenen yaka (T-87) için 5 test |
+| `supabase/migrations/20261231160000_itiraz_kurallari.sql` | Çalışma tarihi dışına ve aynı güne ikinci açık itiraz yok; çıkış sonrası itirazlar kapanır; İK kendi itirazını inceleyemez; talep eden kendi FM talebine karar veremez (T-69, T-51, T-15, T-16) |
+| `supabase/tests/itiraz_kurallari_testi.sql` | İtiraz ve FM kararı kuralları (T-15, T-16, T-51, T-69) için 9 test |
+| `supabase/migrations/20261231180000_kalan_kurallar.sql` | `v_izin_amir` açıklaması (T-07); düzeltmeye yalnızca aynı günün, reddedilmemiş itirazı bağlanır (T-34); geçici kart zimmetinde ileri tarihli veriliş / iade ve verilişten önce iade yok (T-84) |
+| `supabase/tests/kalan_kurallar_testi.sql` | Görünüm açıklaması, düzeltme–itiraz bağı ve zimmet zamanları (T-07, T-34, T-84) için 9 test |
+| `supabase/migrations/20261231190000_puantaj_kalanlari.sql` | Çıkışta son okutma tutulur (T-29); yalnızca kodu değişen fark da yazılır (T-95); yılda tek geçerli yazılı onay (T-60); security definer fonksiyonlarda `pg_temp` sonda (T-03); yeni fonksiyon kapalı doğar (T-08) |
+| `supabase/tests/mukerrer_cikis_testi.sql` | Mükerrer çıkış: son okutma, zincir, eski işaretli çift (T-29) için 5 test |
+| `supabase/tests/kod_farki_testi.sql` | Yalnızca kodu değişen fark satırı ve kalemi (T-95) için 4 test |
+| `supabase/tests/yazili_onay_yenileme_testi.sql` | Yazılı onayın aynı yıl yeniden verilmesi (T-60) için 5 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -449,7 +461,7 @@ Günün dakikaları tek fonksiyonda hesaplanır: `pdks.gun_hesabi()`. Gece işi,
 
 | Kural | Nerede |
 |---|---|
-| Tolerans | Geç kalma `gec_kalma_tolerans_dk` (10), erken çıkış `erken_cikis_tolerans_dk` (5). Tolerans içi sayılmaz; aşılınca tam dakika. `tolerans_yuvarlama_dk` > 0 ise yukarı yuvarlanır (ör. 15: 12 dk → 15 dk). Varsayılan 0 (kapalı) |
+| Tolerans | Geç kalma `gec_kalma_tolerans_dk` (10), erken çıkış `erken_cikis_tolerans_dk` (5). Tolerans içi sayılmaz; aşılınca tam dakika. Karşılaştırma dakika üzerindendir, saniyeler atılır: 08:10:59 geç sayılmaz, 08:11:00 → 11 dk (T-27, bilinçli). `tolerans_yuvarlama_dk` > 0 ise yukarı yuvarlanır (ör. 15: 12 dk → 15 dk). Varsayılan 0 (kapalı) |
 | Gece çalışması (m.69) | `gun_kaydi.gece_calisma_dk`: sayılan çalışmanın 20:00–06:00 arasına düşen dakikası. `gece_calisma_sinir_dk` (450) aşılırsa `gece_calisma_siniri_asildi` uyarısı. Ücret ya da zam hesaplanmaz |
 | Saatlik izin (vizite dahil) | `saatlik_izin` (yalnızca İK girer, `saatlik_izin_gir`; silinmez, değişmez; yanlış izin `saatlik_izin_iptal` ile iptal edilir, iptal edilen izin hesaba girmez (T-50)). İzinli süre geç kalma, erken çıkış ya da devamsızlık sayılmaz; çalışma dakikasına da eklenmez, `saatlik_izin_dk` olarak ayrıca tutulur. Hesaplanmış güne girilirse gün yeniden hesaplanır |
 | Resmi tatil | Okutma yoksa gün `tatil` (RT); okutma varsa çalışılmış gün olarak işlenir (FM100) |
@@ -554,6 +566,10 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - Kartı tanımlayan `kart.tanimlayan_id`'de saklanır ve değiştirilemez; kimse kendine kart tanımlayamaz (T-82).
 - Dosya yüklenirken her satırın İstanbul tarihi dosyanın günü ya da ertesi gün olmalıdır (önceki dosyada gelmiş okutmanın tekrarı hariç); dosyanın günü ve satırlar bugünden ileri olamaz, kilitli aya dosya yüklenemez. Gece işi bugünden ileri bir günü işlemez (T-17, T-18).
 - Kart paylaşımı şüphesinde kararı İK verir (`kart_paylasim_karar`: paylaşım var / yanlış alarm, gerekçeli, bir kez); karar gün kaydına dokunmaz, "var" ise düzeltilecek günler listelenir ve İK elle düzeltir (T-81).
+- Plan, izin, saatlik izin ve itiraz yalnızca çalışanın çalışma tarihleri içindeki günler için girilir; asıl kart ayrılmış çalışana, geçici kart bugün çalışmayan kişiye verilmez. İşten çıkış, çıkış sonrası günlerin açık itirazlarını kapatır (T-68, T-69).
+- Bir güne aynı anda tek açık itiraz olur (T-51). İSG'de geçerli belge en geç biten belgedir (T-87).
+- Mükerrer okutmada girişte ilk, çıkışta son okutma tutulur (T-29). Fark satırı yalnızca gün kodu değiştiğinde de yazılır (T-95). Yazılı fazla mesai onayı yılda en çok bir geçerli (geri alınmamış) satırdır (T-60).
+- **Yeni fonksiyon yazarken (T-03, T-08):** security definer fonksiyon `set search_path = pdks, pg_temp` ile yazılır; pdks'te yeni fonksiyon herkese kapalı doğar, ekrana açılacaksa `grant execute … to authenticated` gerekir. `sema_temizligi_testi` ikisini de denetler.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.
