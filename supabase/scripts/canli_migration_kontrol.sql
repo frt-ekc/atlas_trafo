@@ -110,7 +110,8 @@ with beklenen(surum, ad, nesne) as (values
                                                                  and table_name = 'v_isg_durum' and column_name = 'izleniyor')),
     ('20261231160000', 'itiraz_kurallari',               to_regclass('pdks.itiraz_gunde_tek_acik') is not null),
     ('20261231180000', 'kalan_kurallar',                 exists (select 1 from pg_trigger where tgname = 'duzeltme_itiraz_denetle')),
-    ('20261231190000', 'puantaj_kalanlari',              to_regclass('pdks.fazla_mesai_onayi_yil_tek_gecerli') is not null)
+    ('20261231190000', 'puantaj_kalanlari',              to_regclass('pdks.fazla_mesai_onayi_yil_tek_gecerli') is not null),
+    ('20261231200000', 'kilit_on_kontrol',               to_regprocedure('pdks.ay_kilit_on_kontrol(smallint, smallint)') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 27 Kasım itibarıyla 70'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 11'i açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 27 Kasım itibarıyla 72'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 9'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -30,10 +30,10 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Yüksek | 19 | 19 | 0 | 0 |
 | Orta | 34 | 25 | 8 | 1 |
 | Düşük | 34 | 21 | 11 | 2 |
-| Görüş | 19 | 4 | 7 | 8 |
-| **Toplam** | **107** | **70** | **26** | **11** |
+| Görüş | 19 | 6 | 7 | 6 |
+| **Toplam** | **107** | **72** | **26** | **9** |
 
-Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-52 (Görüş) de var: ekran tarafı düzeltildi, kalanı açık.
+Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-85 (Düşük) ve T-96 (Görüş) de var: veritabanı tarafları hazır, ekranları açık.
 
 **Tutarlılık denetimi (22 Kasım):**
 - Her bulgunun önemi başlığında, adım sonundaki "Bulgular önem sırasıyla" listesinde ve metindeki atıflarda aynı (otomatik karşılaştırma: 0 fark).
@@ -287,9 +287,9 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T49-plan-gecmisi) |
 | T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T50-saatlik-izin-iptal) |
 | T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
-| T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | Ekran ✅ PR #80; ay kilidi uyarısı açık |
+| T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | ✅ Düzeltildi (#80; feature/T52-T96-T54-T85) |
 | T-53 | Düşük | 8 | `ariza_kaniti_yok` sorusu hiç üretilmiyor | K12 | — | ✅ Sınırlılık (karar verildi) |
-| T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | Düzelt (zaman kalırsa) |
+| T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | ✅ Düzeltildi (feature/T52-T96-T54-T85) |
 | T-55 | Düşük | 8 | Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor | K12 | — | ✅ Sınırlılık (karar verildi) |
 | T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T56-havuz-yazili-onay) |
 | T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam) |
@@ -320,7 +320,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | ✅ Düzeltildi (feature/T82-kart-tanimlayan) |
 | T-83 | Düşük | 10 | Geçici kart zimmeti yalnızca "şu an" girilebiliyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-84 | Düşük | 10 (Adım 8 şüphesi) | Sistem yolunda ileri tarihli zimmet ve ileri tarihli iade kabul ediliyor | K11 | Yusuf | ✅ Düzeltildi (feature/T07-T84-T34-kalanlar) |
-| T-85 | Düşük | 10 | Kaybolan geçici kart sistemde "kayıp" yapılamıyor | K11 | Yusuf | Düzelt (zaman kalırsa) |
+| T-85 | Düşük | 10 | Kaybolan geçici kart sistemde "kayıp" yapılamıyor | K11 | Yusuf | Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te |
 | T-86 | Düşük | 10 | Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar | K11 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | ✅ Sınırlılık (karar verildi) |
@@ -331,7 +331,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T93-kilitli-vardiya) |
 | T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
 | T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
-| T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Düzelt (zaman kalırsa) |
+| T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te |
 | T-97 | Düşük | 12 | Sistem yolunda kilitli döneme sonradan puantaj satırı eklenebiliyor | K3 | — | ✅ Sınırlılık (karar verildi) |
 | T-98 | Düşük | 12 (ek) | Yönetici panelinde "açık soru" sayısı bakan kişiye göre değişiyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-99 | Orta | 12 (ek; Adım 12 şüphesinden) | Saniyesiz okutma zamanı kabul ediliyor | K8 | Mehmet | ✅ Sınırlılık (karar verildi) |
@@ -364,7 +364,6 @@ Kodla düzeltilmeyecek konular (karar, bulgunun altında) ve karar ya da düzelt
 - **Giriş çıkıştan sonra okutulursa.** Sistem günü "çıkış yok" diye amire sorar. Kapsam dışı. Okutma sırası uyuşmayan gün otomatik düzeltilmez, amire sorulur; amirin cevabı ya da İK düzeltmesi günü tamamlar. (T-30)
 - **Kart numarası biçimi.** Veritabanı kart numarasının biçimini denetlemez. Firma bilgisine bağlıdır. Kart numarası biçimi gerçek kurulumda Atlas Trafo'dan öğrenilerek veritabanı kısıtı olarak eklenir; o zamana kadar biçim ekranda denetlenir. (T-36)
 - **Vekile devir.** Amir izne çıkınca önceden açılmış sorular vekile geçmez. Proje kararı. Açılmış soru atandığı amirde kalır; süresi dolduğunda üst amire, sonra İK'ya iletilir ve İK her açık soruya karar verebilir (T-39). Bu nedenle soru cevapsız kalmaz. (T-43)
-- **Kabul edilmiş itirazın düzeltmesi.** Düzeltmeye bağlanmamış kabul edilmiş itirazlar İtirazlar ekranında İK'ya listelenir (PR #80); ay kilidi bunlar için uyarmaz. Bulgu açıktır. (T-52)
 - **Arızalı okuyucuda soru türü.** Arızalı okuyucu için amire özel bir soru türü üretilmez. Kapsam dışı. Arızalı okuyucudaki eksik okutma olağan "giriş yok" sorusuyla amire iletilir ve sonuç değişmez; arıza bilgisi İK'nın arıza kayıtlarında yer alır. (T-53)
 - **Arıza kayıtlarının tutarlılığı.** Arıza kayıtlarında süre tutarlılığı denetlenmez. Prosedürle karşılanır. Arıza kayıtlarını yalnızca İK girer ve onaylar; başlangıç ve bitiş saatlerinin doğruluğu İK'nın sorumluluğundadır. (T-55)
 - **Fazla mesai kuralları için İK kararları (T-64, T-77, T-78).**
@@ -2265,7 +2264,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `84|IT4|ik.muduru|2. itirazı kabul|OK` · `IT4|9|kabul|ik.muduru` · IT4'ün günü `tamam 08:30–17:00 · geç 30 · 0 düzeltme`.
 - **Sade dille:** İK "haklısın" deyip itirazı kabul ediyor ama ikinci adımı (saati düzeltmeyi) unutuyor. Çalışan haklı çıktığı halde puantajında geç kalma duruyor. Bunu hatırlatan hiçbir şey yok.
 - **Öneri:** Kilit özetine "düzeltmesiz kabul edilmiş itiraz" sayısı; ekranda kabulden sonra doğrudan düzeltme formunu açmak.
-- **Durum:** Açık. Ekran kısmı PR #80 ile düzeltildi: kabulden sonra o günün düzeltme penceresi açılır, düzeltmeye bağlanmamış kabul edilmiş itirazlar İtirazlar ekranında İK'ya listelenir. Kalan: ay kilidi ve kilit özeti bu itirazları saymaz ve uyarmaz; veritabanı kabul edilmiş itiraz için düzeltme yapıldığını denetlemez. Kalan kilit uyarısı T-96 ile birlikte ele alınacak.
+- **Durum:** ✅ Düzeltildi (ekran PR #80; kilit feature/T52-T96-T54-T85). Migration `20261231200000_kilit_on_kontrol.sql`, test `kilit_on_kontrol_testi.sql`.
+  - Ay kilidi özetinde ve izinde "düzeltmesiz kabul edilmiş itiraz" sayısı ve listesi (bilgi; kilidi durdurmaz, düzeltme kilitten sonra fark olarak yapılabilir). Ön kontrol (T-96) de listeler.
 
 ### T-53 · `ariza_kaniti_yok` sorusu hiç üretilmiyor; arızalı okuyucuda amire sıradan "giriş yok" soruluyor
 - **Adım:** 8 · **Önem:** Düşük
@@ -2286,7 +2286,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `IZ7|1 gece işi|izinli · 08:00–17:00 · çalışma ? · … · hesap ✓|-|0 düzeltme` · `IZ7 uyarı: isg_belgesi_yok …`
 - **Sade dille:** İzinli birinin tam gün çalıştığını sistem görüyor ama kimseye söylemiyor. Çalışılan 8 saat puantaja girmiyor; çalışan bunu ancak bordroyu görünce fark eder.
 - **Öneri:** Gece işinde `izin_turu is not null and (giris or cikis)` için `uyari_yaz('izinli_gunde_okutma', …)`.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T52-T96-T54-T85). Migration `20261231200000_kilit_on_kontrol.sql`, test `izinli_gun_okutma_testi.sql` (5 test).
+  - Gün kaydı izinli / raporlu ve okutmalı yazılınca İK'ya `izin_gununde_okutma` uyarısı (gün ve saatler; amire görünmez). Gece işi fonksiyonlarına dokunulmadı (#105 `gece_isi_uyarilar`'ı değiştiriyor): `gun_kaydi`'nda AFTER INSERT tetikleyici.
 
 ### T-55 · Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor
 - **Adım:** 8 · **Önem:** Düşük
@@ -2828,7 +2829,10 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #27 `gecici_kart UPDATE kayıp (güvenlik) | HATA 42501: permission denied for table gecici_kart` · #28 `geçici kartı kayıp / iptal yapan fonksiyon var mı | OK yok`.
 - **Sade dille:** Bir geçici kart kaybolursa sistemde bunu işaretlemenin yolu yok. Kart hâlâ "kullanılabilir" görünür; bulan biri kullanırsa okutmalar son zimmet sahibine ya da "sahipsiz karta" yazılır.
 - **Öneri:** `gecici_kart_durum(p_kart_id, p_durum, p_neden)` (güvenlik / İK, açık zimmeti varken kayıp yapılırsa zimmeti de kapatsın) ve `kayip` karttaki okutmaya uyarı.
-- **Durum:** Açık
+- **Durum:** Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran düğmesi Gökalp'te. Migration `20261231200000_kilit_on_kontrol.sql`, test `gecici_kart_kayip_testi.sql` (11 test).
+  - `pdks.gecici_kart_durum(kart, durum, gerekçe)`: güvenlik / İK; kayıp / iptal / (kayıp kart bulunduysa) aktif; gerekçe zorunlu; kim, ne zaman, neden kartta saklanır (`durum_nedeni`, `durum_degistiren_id`, `durum_zamani`). Kayıp ya da iptalde açık zimmet kapanır. İptal kesindir.
+  - Kayıp bildirilen kart okutulursa İK'ya `gecici_kart_zimmetsiz` uyarısı (okutma_isareti'nde tetikleyici; gece işine dokunulmadı).
+  - Ekran için (Gökalp): Geçici kartlar'da kart satırına "Kayıp bildir / Bulundu / İptal et" penceresi (gerekçe ile).
 
 ### T-86 · Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar; iptal nedeni boş geçilebiliyor
 - **Adım:** 10 · **Önem:** Düşük
@@ -3467,7 +3471,11 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #54 → #60 → #62 → #64 → #67 → #69 → #72; #65 `S12EP1 05.10 vardiya_sonrasi 185 dk`.
 - **Sade dille:** Ay sonunda İK "kilitle"ye bastıkça yeni bir eksik öğreniyor; birini düzeltince bir başkası çıkıyor. 2000 kişilik fabrikada bu, ay sonu kapanışını saatlerce uzatır.
 - **Öneri:** `ay_kilit_on_kontrol(p_yil, p_ay)`: bütün engelleri ve kodsuz kalacak günleri (sicil, gün, neden) tek seferde dönen, yalnızca okuyan bir fonksiyon; ekranda kilit düğmesinin yanında. `ay_kilitle` aynı fonksiyonu kullanabilir.
-- **Durum:** Açık
+- **Durum:** Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te. Migration `20261231200000_kilit_on_kontrol.sql`, test `kilit_on_kontrol_testi.sql` (9 test; T-52 ile).
+  - `pdks.ay_kilit_on_kontrol(yıl, ay)` (yalnızca İK, yalnızca okur): bütün engelleri tek seferde döner. Her engel: kod, tur (zorla_gecilemez / zorla_gecilebilir / bilgi), sayı, mesaj, liste (en çok 50; sicil, ad, gün). Üstte `kilitlenebilir` ve `zorlamadan_kilitlenebilir`.
+  - Engeller: ay bitmedi, işlenmemiş planlı gün, bekleyen plan onayı, onaysız fazla mesai, açık soru, açık itiraz, kodsuz kalacak gün; bilgi: hesaplanmamış gün, kilitle kapanacak FM talebi, düzeltmesiz kabul edilmiş itiraz.
+  - Hız: 2000 kişi × Ekim (44 000 gün) ~1 sn. `ay_kilitle` değişmedi (aynı kuralları okur).
+  - Ekran için (Gökalp): Puantaj'da kilit düğmesinin yanında "Ön kontrol" — engelleri türüne göre gruplayıp listeleri göstermek.
 
 ### T-97 · Sistem yolunda kilitli döneme sonradan puantaj satırı eklenebiliyor
 - **Adım:** 12 · **Önem:** Düşük

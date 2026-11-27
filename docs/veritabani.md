@@ -165,6 +165,10 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/mukerrer_cikis_testi.sql` | Mükerrer çıkış: son okutma, zincir, eski işaretli çift (T-29) için 5 test |
 | `supabase/tests/kod_farki_testi.sql` | Yalnızca kodu değişen fark satırı ve kalemi (T-95) için 4 test |
 | `supabase/tests/yazili_onay_yenileme_testi.sql` | Yazılı onayın aynı yıl yeniden verilmesi (T-60) için 5 test |
+| `supabase/migrations/20261231200000_kilit_on_kontrol.sql` | Ay kilidi ön kontrolü `ay_kilit_on_kontrol` (T-96); kilit özetinde düzeltmesiz kabul edilmiş itiraz (T-52); izinli günde okutma uyarısı (T-54); geçici kart kayıp / iptal / bulundu `gecici_kart_durum` ve kayıp kart okutma uyarısı (T-85) |
+| `supabase/tests/kilit_on_kontrol_testi.sql` | Ön kontrol engelleri ve kilit özeti (T-96, T-52) için 9 test |
+| `supabase/tests/izinli_gun_okutma_testi.sql` | İzinli / raporlu günde okutma uyarısı (T-54) için 5 test |
+| `supabase/tests/gecici_kart_kayip_testi.sql` | Geçici kartın kayıp / bulundu / iptal durumu, zimmet kapanışı, kayıp kart okutma uyarısı (T-85) için 11 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -570,6 +574,8 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - Bir güne aynı anda tek açık itiraz olur (T-51). İSG'de geçerli belge en geç biten belgedir (T-87).
 - Mükerrer okutmada girişte ilk, çıkışta son okutma tutulur (T-29). Fark satırı yalnızca gün kodu değiştiğinde de yazılır (T-95). Yazılı fazla mesai onayı yılda en çok bir geçerli (geri alınmamış) satırdır (T-60).
 - **Yeni fonksiyon yazarken (T-03, T-08):** security definer fonksiyon `set search_path = pdks, pg_temp` ile yazılır; pdks'te yeni fonksiyon herkese kapalı doğar, ekrana açılacaksa `grant execute … to authenticated` gerekir. `sema_temizligi_testi` ikisini de denetler.
+- Ay kilidinden önce `ay_kilit_on_kontrol` bütün engelleri tek seferde verir (yalnızca okur). Kilit özeti düzeltmesiz kabul edilmiş itirazları da söyler (T-96, T-52).
+- İzinli / raporlu günde okutma varsa İK'ya uyarı yazılır (T-54). Geçici kart güvenlik ya da İK tarafından gerekçeyle kayıp / iptal yapılır, kayıp kart bulunursa yeniden aktif olur; kayıp kart okutulursa İK uyarılır (T-85).
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.
