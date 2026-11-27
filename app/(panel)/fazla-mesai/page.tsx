@@ -147,7 +147,16 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
         .range(bas, son),
     ),
     onaylariGorur
-      ? supabase.from("ayar").select("anahtar, deger").in("anahtar", ["fm_yillik_sinir_dk", "fm_yaklasma_uyari_yuzde", "gunluk_azami_calisma_dk"])
+      ? supabase.from("ayar").select("anahtar, deger").in("anahtar", [
+          "fm_yillik_sinir_dk",
+          "fm_yaklasma_uyari_yuzde",
+          "gunluk_azami_calisma_dk",
+          "mola_kisa_sinir_dk",
+          "mola_kisa_dk",
+          "mola_orta_sinir_dk",
+          "mola_orta_dk",
+          "mola_uzun_dk",
+        ])
       : Promise.resolve(null),
     onaylariGorur
       ? tumSatirlar<Onay>((bas, son) =>
@@ -239,10 +248,22 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
             o.imza_tarihi <= h.is_gunu &&
             (!o.gecerlilik_bitisi || h.is_gunu < o.gecerlilik_bitisi),
         );
-  // Günlük 11 saat (T-58), mola dahil: onaylanan kayıtta karar anındaki işaret. Bekleyen kayıtta onay
-  // sonrası süre = bugünkü çalışma + mola + havuz dakikası (veritabanı karar anında çalışma + mola ile ölçer).
+  // Günlük 11 saat (T-58), net çalışma (mola hariç, T-64): onaylanan kayıtta karar anındaki işaret.
+  // Bekleyen kayıtta onay sonrası brüt süre = bugünkü çalışma + mola + havuz dakikası; bundan o brüt
+  // süreye düşen mola çıkarılır (veritabanındaki pdks.mola_suresi ile aynı basamaklar).
   const gunlukSinir = ayar.get("gunluk_azami_calisma_dk") ?? VARSAYILAN_GUNLUK_SINIR_DK;
-  const onayliGunSuresi = (h: HavuzKaydi) => (h.gun?.calisma_dk ?? 0) + (h.gun?.mola_dk ?? 0) + h.dakika;
+  const molaSuresi = (brut: number) =>
+    brut <= 0
+      ? 0
+      : brut <= (ayar.get("mola_kisa_sinir_dk") ?? 240)
+        ? (ayar.get("mola_kisa_dk") ?? 15)
+        : brut <= (ayar.get("mola_orta_sinir_dk") ?? 450)
+          ? (ayar.get("mola_orta_dk") ?? 30)
+          : (ayar.get("mola_uzun_dk") ?? 60);
+  const onayliGunSuresi = (h: HavuzKaydi) => {
+    const brut = (h.gun?.calisma_dk ?? 0) + (h.gun?.mola_dk ?? 0) + h.dakika;
+    return brut - molaSuresi(brut);
+  };
   const gunlukSinirAsar = (h: HavuzKaydi) =>
     h.durum === "onaylandi"
       ? h.gunluk_sinir_asildi
@@ -490,7 +511,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               )}
                               {gunlukSinirAsar(h) && (
                                 <p role="note" className="rounded-md border bg-muted px-3 py-2 text-sm">
-                                  Onaylanırsa bu günün çalışması mola dahil {sureMetni(onayliGunSuresi(h))} olur; günlük sınır {sureMetni(gunlukSinir)} (İş Kanunu m.63). Süre puantaja eklenir, kayıt günlük sınır aşıldı olarak işaretlenir ve İK&apos;ya uyarı iletilir.
+                                  Onaylanırsa bu günün net çalışması (mola hariç) {sureMetni(onayliGunSuresi(h))} olur; günlük sınır {sureMetni(gunlukSinir)} (İş Kanunu m.63). Süre puantaja eklenir, kayıt günlük sınır aşıldı olarak işaretlenir ve İK&apos;ya uyarı iletilir.
                                 </p>
                               )}
                               <KararAlanlari retUyarisi="Ret kararı çalışan aleyhine kaydedilir ve süre puantaja dahil edilmez." />

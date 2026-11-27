@@ -97,8 +97,8 @@ Bölgeler: Yüksek Gerilim Test Laboratuvarı (kapı okuyucusu `YG-KAPI`) ve Boy
 | S25 | Uğur Keskin (5303, Bakım), 12 Kas 10:15 | İSG eğitimi 10 Kas'ta doldu; YG Test Lab kapısından geçti (Bakım'ın yetkisi var) | İSG | Bir kez `isg_belgesi_suresi_dolmus` (dolmadan önce `_doluyor` da); kapı açık, bölge uyarısı yok |
 | S26 | Taner Yazıcı (5302, Bakım) | Sağlık muayenesi 15 Ara'da doluyor | İSG | 15 Kas'tan itibaren `isg_belgesi_suresi_doluyor` |
 | S27 | Selim Ünal (5402, Depo) 19 Kas 14:10; Hakan Ekinci (5202, Boyahane) 09:00 | İkisi de Boyahane kapısından geçti | İSG | Selim'e `yetkisiz_bolge_okutmasi`, Hakan'a yok |
-| S28 | Ece Ateş (S16), Merve Yücel (S17), Erkan Duman (S30) | Onaysız fazla mesai | 10 | İK Fazla mesai ekranında 3 bekleyen havuz kaydı: 150, 100 ve 485 dk (tatil çalışması) |
-| S29 | Mehmet Kaya (1002), 22 Kas Pazar | Yazılı onayı var; Gündüz planıyla çalıştı | 10 | FM100 480 dk, puantaj kodu FM100 |
+| S28 | Ece Ateş (S16), Merve Yücel (S17), Erkan Duman (S30) | Onaysız fazla mesai | 10 | İK Fazla mesai ekranında 4 bekleyen havuz kaydı: 150, 100, 485 dk (S30 tatil çalışması) ve 551 dk (S29 tatil çalışması) |
+| S29 | Mehmet Kaya (1002), 22 Kas Pazar | Yazılı onayı var; Gündüz planıyla çalıştı, fazla mesai planı yok | 10 | FM100 0; 551 dk havuzda `tatil_calismasi`, karar İK'da (yazılı onay yetmez, İK onayı da gerekir, T-78). Onaylanırsa FM100 1 gün / 491 dk |
 | S30 | Erkan Duman (5102), 29 Kas Pazar | Yazılı onayı yok; 08–16 planıyla çalıştı | 10 | FM100 0; süre havuzda `tatil_calismasi`, karar İK'da. Onaylanırsa FM100 1 gün / 480 dk; reddedilirse gün HT, çalışılan gün sayılmaz (T-102) |
 | S31 | Onur Baysal (6002), İrem Toprak (6202) | Esnek mesai | — | Ay sonu fark: Onur −152 dk, İrem +29 dk |
 | S32 | İrem Toprak (6202), 18 Kas | Esnek; PDKS girişi yok, kapı girişi 09:12 | 1 | Giriş 09:17 (kanıt + yürüme payı), amire soru yok |

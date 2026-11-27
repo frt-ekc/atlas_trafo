@@ -76,13 +76,13 @@ Kart unutma Kasım'daki kayıtlarla anlatılır; 7 Aralık dosyalarında geçici
    - Mustafa: çalışma 480 dk.
 
 ### 6. Fazla mesai, esnek mesai, puantaj (İK)
-**Fazla mesai ekranı, onaysız havuzda 3 kayıt İK kararı bekliyor:**
-- Ece Ateş: 150 dk. Onaylanırsa gün mola dahil 11 sa 30 dk olur ("Günlük 11 sa aşılıyor" etiketi, T-58). Onay engellenmez: süre puantaja girer, kayıt "Günlük sınır aşıldı" olarak işaretlenir, İK'ya uyarı düşer.
+**Fazla mesai ekranı, onaysız havuzda 4 kayıt İK kararı bekliyor:**
+- Ece Ateş: 150 dk. Onaylanırsa gün net 10 sa 30 dk olur (mola hariç); günlük 11 sa sınırının altında, etiket yok (T-64).
 - Merve Yücel: 100 dk, yazılı onayı yok ("Yazılı onay yok" etiketi).
 - Erkan Duman: 485 dk, 29 Kasım Pazar, yazılı onayı yok ("Yazılı onay yok" etiketi).
 
 **Puantaj (Kasım):**
-- Mehmet Kaya 22 Kasım Pazar: FM100 480 dk.
+- Mehmet Kaya 22 Kasım Pazar: havuzda 551 dk İK onayı bekliyor (yazılı onayı var ama tatil çalışması İK onayı da ister, T-78). Onaylanırsa FM100 491 dk.
 - Esnek mesai farkı: Onur Baysal −152 dk, İrem Toprak +29 dk. İrem'in 18 Kasım girişi kapı kaydından 09:17 olarak yazıldı; amire soru gitmedi.
 - **Excel indir:** açık ay; FM50 / FM100 / gece / mola sütunları.
 

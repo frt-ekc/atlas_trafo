@@ -59,10 +59,10 @@ grant usage on schema test to authenticated;
 grant execute on all functions in schema test to authenticated;
 
 -- Test verisi (yalnızca sahte) ---------------------------------------------
---   YF01: hafta içi havuz (14 Ekim, 120 dk), sonra planlar     YF02: Pazar 18 Ekim çalışması (FM100 480), sonra plan
+--   YF01: hafta içi havuz (14 Ekim, 120 dk), sonra planlar     YF02: Pazar 18 Ekim çalışması (İK havuzdan onaylar, FM100 480; T-78), sonra plan
 --   YF03: Pazar 18 Ekim planlı 60 dk + çalışma (iki kez sayılmamalı)
 --   YF04: yazılı onay yok, Pazar; havuz kilitten sonra onaylanır     YF05: sınır doluyken havuz
---   YF06: tatil çalışması tek başına sınırı aşar (sınır 400)     YF07: reddedilen / bekleyen kayıt sayılmaz
+--   YF06: tatil çalışması (İK havuzdan onaylar) tek başına sınırı aşar (sınır 400)     YF07: reddedilen / bekleyen kayıt sayılmaz
 insert into pdks.departman (ad) values ('YF Üretim'), ('YF İdari');
 insert into pdks.calisan (sicil_no, ad, soyad, departman_id, ise_giris_tarihi)
 select s, 'Ad' || s, 'Örnek', (select id from pdks.departman where ad = case when s like 'YFI%' then 'YF İdari' else 'YF Üretim' end), '2025-01-01'
@@ -103,6 +103,17 @@ select test.talep('YF03', '2026-10-18', 60);
 select test.onayla('YF03', '2026-10-18');
 select pdks.gece_isi_calistir('2026-10-14');
 select pdks.gece_isi_calistir('2026-10-18');
+-- T-78: yazılı onaylı Pazar çalışması da İK onayıyla (havuz) FM100 olur; YF03'ün onaylı planı günü önceden onaylar
+select test.dogrula('T-78: planı olmayan yazılı onaylı Pazar çalışması havuzda (YF02, YF06: 540 dk); planlı Pazar havuza düşmez (YF03)',
+    (select tur = 'tatil_calismasi' and dakika = 540 from test.hv('YF02', '2026-10-18'))
+    and (select tur = 'tatil_calismasi' and dakika = 540 from test.hv('YF06', '2026-10-18'))
+    and (test.hv('YF03', '2026-10-18')).id is null
+    and (select fm100_dk = 0 from test.gk('YF06', '2026-10-18')) and test.toplam('YF06') = 0);
+set local role authenticated;
+select test.oturum('yf_ik1@ornek.test');
+select pdks.fazla_mesai_inceleme_karar((test.hv('YF02', '2026-10-18')).id, true);
+select pdks.fazla_mesai_inceleme_karar((test.hv('YF06', '2026-10-18')).id, true);
+reset role;
 select test.dogrula('yazılı onaylı tatil çalışması sınırı (400) aşınca İK''ya uyarı (YF06: 480)', test.asim('YF06') = 1);
 select test.dogrula('sınırı aşmayana uyarı yok (YF01)', test.asim('YF01') = 0);
 update pdks.ayar set deger = 600 where anahtar = 'fm_yillik_sinir_dk';

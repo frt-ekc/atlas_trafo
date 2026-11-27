@@ -79,9 +79,9 @@ select test.hata_bekle('yazılı onayı olmayan çalışana fazla mesai isteneme
 select test.hata_bekle('gece vardiyasına fazla mesai planlanamaz (m.69)',
     $$insert into pdks.fazla_mesai_plani (calisan_id, is_gunu, planli_dk, gerekce, talep_eden_id)
       values (test.c('FM01'), '2026-12-04', 60, 'Sipariş yetişmeli', test.k('fm_amir@ornek.test'))$$);
-select test.hata_bekle('günlük 11 saat aşılamaz (540 + 150 > 660)',
+select test.hata_bekle('günlük 11 saat net çalışma aşılamaz (540 + 181 − 60 mola > 660, T-64)',
     $$insert into pdks.fazla_mesai_plani (calisan_id, is_gunu, planli_dk, gerekce, talep_eden_id)
-      values (test.c('FM01'), '2026-12-01', 150, 'Sipariş yetişmeli', test.k('fm_amir@ornek.test'))$$);
+      values (test.c('FM01'), '2026-12-01', 181, 'Sipariş yetişmeli', test.k('fm_amir@ornek.test'))$$);
 select test.hata_bekle('vardiya planı olmayan güne fazla mesai istenemez',
     $$insert into pdks.fazla_mesai_plani (calisan_id, is_gunu, planli_dk, gerekce, talep_eden_id)
       values (test.c('FM01'), '2026-12-20', 60, 'Sipariş yetişmeli', test.k('fm_amir@ornek.test'))$$);

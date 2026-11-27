@@ -104,7 +104,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231110000', 'kart_tanimlayan',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'kart' and column_name = 'tanimlayan_id')),
     ('20261231120000', 'dosya_tarihi',                   pg_get_functiondef('pdks.dosya_yukle(text, text, date, jsonb, text)'::regprocedure) like '%ertesi gün değil%'),
-    ('20261231130000', 'paylasim_karari',                to_regprocedure('pdks.kart_paylasim_karar(bigint, boolean, text)') is not null)
+    ('20261231130000', 'paylasim_karari',                to_regprocedure('pdks.kart_paylasim_karar(bigint, boolean, text)') is not null),
+    ('20261231170000', 'fazla_mesai_kararlari',          exists (select 1 from pg_trigger where tgname = 'gun_kaydi_esik_alti'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
