@@ -53,3 +53,38 @@ export async function uyarilarGoruldu(_onceki: IslemSonucu, form: FormData): Pro
   }
   return { durum: "tamam", mesaj: `${basarili} uyarı görüldü olarak işaretlendi.` };
 }
+
+// T-81: Kart paylaşımı şüphesinde İK kararı (kart_paylasim_karar). Yalnızca İK; gerekçe en az 10 karakter;
+// karar bir kez verilir ve değiştirilemez; şüpheli çiftteki iki çalışan da kendi şüphesine karar veremez.
+// "Paylaşım var" kararı gün kayıtlarına dokunmaz (çalışan aleyhine düzeltme İK'nın elle yapacağı iştir,
+// KVKK m.11); bu yüzden düzeltilmesi gereken günler sonuç mesajında listelenir.
+type PaylasimSonucu = { karar: "paylasim_var" | "yanlis_alarm"; gunler: { tarih: string }[]; mesaj: string };
+
+export async function kartPaylasimKarar(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
+  const uyariId = sayiAl(form, "uyari_id");
+  const karar = form.get("paylasim");
+  const gerekce = typeof form.get("gerekce") === "string" ? String(form.get("gerekce")).trim() : "";
+  if (!uyariId) return { durum: "hata", mesaj: "Uyarı seçilmelidir." };
+  if (karar !== "var" && karar !== "yok") return { durum: "hata", mesaj: "Karar (paylaşım var / yanlış alarm) seçilmelidir." };
+  if (gerekce.length < 10) return { durum: "hata", mesaj: "Karar gerekçesi yazılmalı (en az 10 karakter)." };
+
+  const sonuc = await rpcCagir<PaylasimSonucu>("kart_paylasim_karar", {
+    p_uyari_id: uyariId,
+    p_paylasim_var: karar === "var",
+    p_gerekce: gerekce,
+  });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
+
+  revalidatePath("/uyarilar");
+  revalidatePath("/");
+  const veri = sonuc.veri;
+  if (veri?.karar === "paylasim_var") {
+    const gunler = (veri.gunler ?? []).map((g) => `${g.tarih.slice(8, 10)}.${g.tarih.slice(5, 7)}`);
+    return {
+      durum: "tamam",
+      uyari: true,
+      mesaj: `${veri.mesaj}${gunler.length ? ` Şüpheli günler: ${gunler.join(", ")}.` : ""}`,
+    };
+  }
+  return { durum: "tamam", mesaj: veri?.mesaj ?? "Karar kaydedildi." };
+}

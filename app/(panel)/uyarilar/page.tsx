@@ -3,6 +3,8 @@ import { TarihSecici } from "@/components/panel/tarih-secici";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HizliIslem } from "@/components/panel/hizli-islem";
+import { IslemPenceresi } from "@/components/panel/islem-penceresi";
+import { Textarea } from "@/components/ui/textarea";
 import { Secim } from "@/components/panel/secim";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { DurumRozeti } from "@/components/liste/durum-rozeti";
@@ -16,10 +18,14 @@ import { UYARI_KONULARI, UYARI_TURU } from "@/lib/etiketler";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { uyariGoruldu, uyarilarGoruldu } from "./actions";
+import { kartPaylasimKarar, uyariGoruldu, uyarilarGoruldu } from "./actions";
 import { TOPLU_SINIR } from "./toplu-sinir";
 
 export const metadata = { title: "Uyarılar" };
+
+type TemelUyari = Omit<Uyari, "ayrinti" | "karar" | "karar_gerekce" | "karar_zamani" | "karar_veren">;
+type PaylasimEki = Pick<Uyari, "id" | "ayrinti" | "karar" | "karar_gerekce" | "karar_zamani" | "karar_veren">;
+const EKSIZ = { ayrinti: null, karar: null, karar_gerekce: null, karar_zamani: null, karar_veren: null } as const;
 
 type Uyari = {
   id: number;
@@ -31,14 +37,23 @@ type Uyari = {
   calisan: { id: number; sicil_no: string; ad: string; soyad: string } | null;
   okuyucu: { kod: string } | null;
   goren: { ad_soyad: string } | null;
+  // T-81: kart paylaşımı şüphesinde ayrıntı (diğer çalışan, günler) ve İK kararı
+  ayrinti: { diger_calisan_id?: number; gunler?: { tarih: string; saat: string; okuyucu: string }[] } | null;
+  karar: "paylasim_var" | "yanlis_alarm" | null;
+  karar_gerekce: string | null;
+  karar_zamani: string | null;
+  karar_veren: { ad_soyad: string } | null;
 };
 
 // İK'nın incelemesi gereken şüpheler üstte, belirgin gösterilir; kalanı bilgi amaçlıdır.
 // Gruplama yalnızca ekrandadır (uyarı türüne göre); veritabanında böyle bir alan yoktur.
-// Kart paylaşımı şüphesi, kural kanıtla güçlendirilene kadar yanlış alarm ürettiği için "Bilgi" grubundadır.
+// Kart paylaşımı şüphesi (T-81) kararı verilene kadar İK incelemesinde; karar verilince bilgi grubuna geçer.
 const KARAR_GEREKLI = new Set(["ariza_suphesi", "gecici_kart_cakisma"]);
-// Kart paylaşımında sistemin ayrı bir karar adımı yok (T-81): İK inceler, paylaşım varsa günü elle düzeltir.
 const PAYLASIM = "kart_paylasim_suphesi";
+// kararDestekli: veritabanında karar sütunları ve fonksiyonu var mı (#101). Yoksa paylaşım eski hâliyle bilgi grubunda.
+const incelemeBekliyor = (u: { tur: string; karar: string | null }, kararDestekli: boolean) =>
+  KARAR_GEREKLI.has(u.tur) || (kararDestekli && u.tur === PAYLASIM && !u.karar);
+const PAYLASIM_KARARI = { paylasim_var: "Paylaşım var", yanlis_alarm: "Yanlış alarm" } as const;
 
 const TARIH = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -61,7 +76,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
 
   const supabase = await sunucuIstemcisi();
   const [tumUyarilar, yeniSayisi, gorulenSayisi] = await Promise.all([
-    tumSatirlar<Uyari>((ilk, son) => {
+    tumSatirlar<TemelUyari>((ilk, son) => {
       let q = supabase
         .from("uyari")
         .select(
@@ -82,20 +97,46 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
     supabase.from("uyari").select("id", { count: "exact", head: true }).eq("goruldu", true),
   ]);
 
+  // T-81: kart paylaşımı şüphesinin ayrıntısı ve kararı ayrı sorguyla okunur. Bu sütunlar #101'in
+  // migration'ıyla gelir; veritabanında henüz yoksa sorgu hata verir, sayfa eskisi gibi çalışır,
+  // yalnızca karar penceresi gösterilmez (kararDestekli = false).
+  const paylasimIdleri = tumUyarilar.filter((u) => u.tur === PAYLASIM).map((u) => u.id);
+  const ekler = new Map<number, PaylasimEki>();
+  let kararDestekli = paylasimIdleri.length === 0;
+  if (paylasimIdleri.length) {
+    const { data, error } = await supabase
+      .from("uyari")
+      .select("id, ayrinti, karar, karar_gerekce, karar_zamani, karar_veren:kullanici!karar_veren_id(ad_soyad)")
+      .in("id", paylasimIdleri);
+    if (!error) {
+      kararDestekli = true;
+      for (const e of (data ?? []) as unknown as PaylasimEki[]) ekler.set(e.id, e);
+    }
+  }
+  const zenginUyarilar: Uyari[] = tumUyarilar.map((u) => ({ ...u, ...EKSIZ, ...(ekler.get(u.id) ?? {}) }));
+
   // Ad / sicil araması ekranda yapılır: ilgili kişinin adı, sicili, okuyucu kodu ve mesaj metni
   // (kart paylaşımında ikinci kişi yalnızca mesajda geçer).
   const uyarilar = kelimeler.length
-    ? tumUyarilar.filter((u) => {
+    ? zenginUyarilar.filter((u) => {
         const metin = [u.calisan?.ad, u.calisan?.soyad, u.calisan?.sicil_no, u.okuyucu?.kod, u.mesaj]
           .filter(Boolean)
           .join(" ")
           .toLocaleLowerCase("tr");
         return kelimeler.every((k) => metin.includes(k));
       })
-    : tumUyarilar;
+    : zenginUyarilar;
 
-  const kararGerekli = uyarilar.filter((u) => KARAR_GEREKLI.has(u.tur));
-  const bilgi = uyarilar.filter((u) => !KARAR_GEREKLI.has(u.tur));
+  const kararGerekli = uyarilar.filter((u) => incelemeBekliyor(u, kararDestekli));
+  const bilgi = uyarilar.filter((u) => !incelemeBekliyor(u, kararDestekli));
+
+  // Kart paylaşımında şüpheli çiftin diğer çalışanı (yalnızca ayrıntıda numarası var)
+  const digerIdler = [...new Set(uyarilar.map((u) => u.ayrinti?.diger_calisan_id).filter((x): x is number => typeof x === "number"))];
+  const digerler = new Map<number, { id: number; sicil_no: string; ad: string; soyad: string }>();
+  if (digerIdler.length) {
+    const { data } = await supabase.from("calisan").select("id, sicil_no, ad, soyad").in("id", digerIdler);
+    for (const c of (data ?? []) as { id: number; sicil_no: string; ad: string; soyad: string }[]) digerler.set(c.id, c);
+  }
 
   // Sekme ve süzgeç bağlantıları için adres
   const adres = (degisen: Record<string, string>) => {
@@ -123,7 +164,13 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
   const secilebilir = ik && !gorulenler;
 
   const kart = (u: Uyari) => {
-    const karar = KARAR_GEREKLI.has(u.tur);
+    const karar = incelemeBekliyor(u, kararDestekli);
+    // Karar adımı yalnızca veritabanı destekliyorsa; değilse paylaşım uyarısı diğerleri gibi davranır
+    const paylasim = u.tur === PAYLASIM && kararDestekli;
+    const diger = u.ayrinti?.diger_calisan_id != null ? digerler.get(u.ayrinti.diger_calisan_id) : undefined;
+    // Görevler ayrılığı: şüpheli çiftteki çalışanlardan biri İK'nın kendisiyse karar veremez
+    const kendiKaydi =
+      kullanici.calisanId != null && (u.calisan?.id === kullanici.calisanId || u.ayrinti?.diger_calisan_id === kullanici.calisanId);
     const turAdi = UYARI_TURU[u.tur] ?? u.tur;
     const kisiAdi = u.calisan ? `${u.calisan.ad} ${u.calisan.soyad}` : u.okuyucu ? `Okuyucu ${u.okuyucu.kod}` : "";
     return (
@@ -134,7 +181,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         soluk={u.goruldu}
         baslik={turAdi}
         zaman={<Zaman deger={u.olusturma_zamani} etiket="Kayıt" />}
-        secim={secilebilir ? <SecimKutusu id={u.id} etiket={`Seç: ${turAdi}${kisiAdi ? `, ${kisiAdi}` : ""}`} /> : undefined}
+        secim={secilebilir && !(paylasim && !u.karar) ? <SecimKutusu id={u.id} etiket={`Seç: ${turAdi}${kisiAdi ? `, ${kisiAdi}` : ""}`} /> : undefined}
         kisi={
           u.calisan ? (
             calisanSayfasi ? (
@@ -155,7 +202,13 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
           ) : undefined
         }
         alt={
-          u.goruldu ? (
+          paylasim && u.karar ? (
+            <span className="flex flex-wrap items-center gap-2">
+              <DurumRozeti ton={u.karar === "paylasim_var" ? "kotu" : "notr"}>{PAYLASIM_KARARI[u.karar]}</DurumRozeti>
+              {u.karar_veren?.ad_soyad ?? "İK"} · <Zaman deger={u.karar_zamani} />
+              {u.karar_gerekce && <span className="w-full text-muted-foreground">Gerekçe: {u.karar_gerekce}</span>}
+            </span>
+          ) : u.goruldu ? (
             <span className="flex flex-wrap items-center gap-2">
               <DurumRozeti ton="notr">Görüldü</DurumRozeti>
               {u.goren?.ad_soyad ?? "—"} · <Zaman deger={u.gorulme_zamani} />
@@ -174,12 +227,23 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
                 Çalışan kaydını aç
               </Link>
             )}
-            {ik && !u.goruldu && <HizliIslem dugme="Görüldü olarak işaretle" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />}
+            {ik && paylasim && !u.karar && kendiKaydi && (
+              <span className="text-xs text-muted-foreground">Kendi kaydınız · başka bir İK kullanıcısı karar verir</span>
+            )}
+            {ik && paylasim && !u.karar && !kendiKaydi && <PaylasimKararPenceresi uyari={u} diger={diger} />}
+            {/* Paylaşım şüphesinde "Görüldü" yok: sonuç bekleniyormuş gibi görünmesin, karar penceresi kullanılır */}
+            {ik && !paylasim && !u.goruldu && <HizliIslem dugme="Görüldü olarak işaretle" islem={uyariGoruldu} gizli={{ uyari_id: u.id }} />}
           </>
         }
       >
         {u.mesaj}
-        {u.tur === PAYLASIM && (
+        {paylasim && !u.karar && (
+          <span className="mt-1 block text-xs text-muted-foreground">
+            İK paylaşımın olup olmadığına gerekçesiyle karar verir. Karar gün kayıtlarını değiştirmez; gelmediği anlaşılan
+            günler çalışan kaydından elle düzeltilir.
+          </span>
+        )}
+        {u.tur === PAYLASIM && !kararDestekli && (
           <span className="mt-1 block text-xs text-muted-foreground">
             Sistem yalnızca uyarır. Paylaşım varsa karar, İK&apos;nın çalışan kaydında günü elle düzeltmesiyle verilir;
             &ldquo;Görüldü&rdquo; yalnızca uyarının okunduğunu gösterir.
@@ -199,7 +263,7 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
               <DurumRozeti ton="dikkat">{kararGerekli.length}</DurumRozeti>
             </h2>
             <p className="text-sm text-muted-foreground">
-              Okuyucu arızası ve geçici kart çakışması kayıtları.
+              Okuyucu arızası, geçici kart çakışması ve karar bekleyen kart paylaşımı şüphesi kayıtları.
             </p>
           </div>
           {kararGerekli.map(kart)}
@@ -322,5 +386,71 @@ export default async function UyarilarSayfasi({ searchParams }: PageProps<"/uyar
         liste
       )}
     </div>
+  );
+}
+
+// T-81: Kart paylaşımı şüphesinde İK kararı. Şüpheli günler, saat ve okuyucu pencerede gösterilir;
+// karar ve gerekçe kart_paylasim_karar ile bir kez kaydedilir.
+function PaylasimKararPenceresi({ uyari, diger }: { uyari: Uyari; diger?: { sicil_no: string; ad: string; soyad: string } }) {
+  const gunler = uyari.ayrinti?.gunler ?? [];
+  const kisi = (c?: { sicil_no: string; ad: string; soyad: string } | null) => (c ? `${c.ad} ${c.soyad} (${c.sicil_no})` : "—");
+  return (
+    <IslemPenceresi
+      dugme="Karar ver"
+      dugmeTuru="default"
+      baslik="Kart paylaşımı şüphesi"
+      aciklama={`${kisi(uyari.calisan)} ve ${kisi(diger)}. Kartlar aynı okuyucuda birkaç saniye arayla okutuldu.`}
+      onay="Kararı kaydet"
+      islem={kartPaylasimKarar}
+      gizli={{ uyari_id: uyari.id }}
+    >
+      {gunler.length > 0 && (
+        <div className="max-h-40 overflow-auto rounded-lg border">
+          <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 bg-muted text-muted-foreground">
+              <tr>
+                <th className="px-2.5 py-1.5 font-medium">Gün</th>
+                <th className="px-2.5 py-1.5 font-medium">Saat</th>
+                <th className="px-2.5 py-1.5 font-medium">Okuyucu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gunler.map((g) => (
+                <tr key={`${g.tarih}-${g.saat}`} className="border-t">
+                  <td className="px-2.5 py-1 tabular-nums">{`${g.tarih.slice(8, 10)}.${g.tarih.slice(5, 7)}.${g.tarih.slice(0, 4)}`}</td>
+                  <td className="px-2.5 py-1 tabular-nums">{g.saat}</td>
+                  <td className="px-2.5 py-1 font-mono">{g.okuyucu}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">Karar</legend>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="radio" name="paylasim" value="yok" required /> Yanlış alarm (kartlar ayrı kişilerce okutuldu)
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="radio" name="paylasim" value="var" required /> Paylaşım var
+        </label>
+      </fieldset>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`gerekce-${uyari.id}`} className="text-sm font-medium">Gerekçe</label>
+        <Textarea
+          id={`gerekce-${uyari.id}`}
+          name="gerekce"
+          rows={2}
+          required
+          minLength={10}
+          maxLength={1000}
+          placeholder="ör. Kamera kaydında ikisi de girişte görülüyor"
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Karar bir kez verilir ve değiştirilemez. &ldquo;Paylaşım var&rdquo; gün kayıtlarını değiştirmez; gelmediği anlaşılan günler
+        çalışan kaydından elle düzeltilir (çalışan aleyhine karar, KVKK m.11).
+      </p>
+    </IslemPenceresi>
   );
 }
