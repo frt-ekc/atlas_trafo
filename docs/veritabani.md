@@ -161,6 +161,10 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/itiraz_kurallari_testi.sql` | İtiraz ve FM kararı kuralları (T-15, T-16, T-51, T-69) için 9 test |
 | `supabase/migrations/20261231180000_kalan_kurallar.sql` | `v_izin_amir` açıklaması (T-07); düzeltmeye yalnızca aynı günün, reddedilmemiş itirazı bağlanır (T-34); geçici kart zimmetinde ileri tarihli veriliş / iade ve verilişten önce iade yok (T-84) |
 | `supabase/tests/kalan_kurallar_testi.sql` | Görünüm açıklaması, düzeltme–itiraz bağı ve zimmet zamanları (T-07, T-34, T-84) için 9 test |
+| `supabase/migrations/20261231190000_puantaj_kalanlari.sql` | Çıkışta son okutma tutulur (T-29); yalnızca kodu değişen fark da yazılır (T-95); yılda tek geçerli yazılı onay (T-60); security definer fonksiyonlarda `pg_temp` sonda (T-03); yeni fonksiyon kapalı doğar (T-08) |
+| `supabase/tests/mukerrer_cikis_testi.sql` | Mükerrer çıkış: son okutma, zincir, eski işaretli çift (T-29) için 5 test |
+| `supabase/tests/kod_farki_testi.sql` | Yalnızca kodu değişen fark satırı ve kalemi (T-95) için 4 test |
+| `supabase/tests/yazili_onay_yenileme_testi.sql` | Yazılı onayın aynı yıl yeniden verilmesi (T-60) için 5 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -564,6 +568,8 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - Kart paylaşımı şüphesinde kararı İK verir (`kart_paylasim_karar`: paylaşım var / yanlış alarm, gerekçeli, bir kez); karar gün kaydına dokunmaz, "var" ise düzeltilecek günler listelenir ve İK elle düzeltir (T-81).
 - Plan, izin, saatlik izin ve itiraz yalnızca çalışanın çalışma tarihleri içindeki günler için girilir; asıl kart ayrılmış çalışana, geçici kart bugün çalışmayan kişiye verilmez. İşten çıkış, çıkış sonrası günlerin açık itirazlarını kapatır (T-68, T-69).
 - Bir güne aynı anda tek açık itiraz olur (T-51). İSG'de geçerli belge en geç biten belgedir (T-87).
+- Mükerrer okutmada girişte ilk, çıkışta son okutma tutulur (T-29). Fark satırı yalnızca gün kodu değiştiğinde de yazılır (T-95). Yazılı fazla mesai onayı yılda en çok bir geçerli (geri alınmamış) satırdır (T-60).
+- **Yeni fonksiyon yazarken (T-03, T-08):** security definer fonksiyon `set search_path = pdks, pg_temp` ile yazılır; pdks'te yeni fonksiyon herkese kapalı doğar, ekrana açılacaksa `grant execute … to authenticated` gerekir. `sema_temizligi_testi` ikisini de denetler.
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.

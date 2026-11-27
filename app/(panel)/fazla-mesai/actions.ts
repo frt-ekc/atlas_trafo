@@ -116,9 +116,14 @@ export async function yaziliOnayGeriAl(_onceki: IslemSonucu, form: FormData): Pr
     .select("id, geri_alma_bildirim_tarihi")
     .eq("calisan_id", bulunan.calisan.id)
     .eq("yil", yil)
+    // T-60: aynı yıl geri alınmış eski onay da olabilir; geri alınacak olan geçerli (geri alınmamış) onaydır
+    .is("geri_alma_bildirim_tarihi", null)
     .maybeSingle();
-  if (!onay) return { durum: "hata", mesaj: `${bulunan.calisan.adSoyad} için ${yil} yılına ait yazılı onay bulunmuyor.` };
-  if (onay.geri_alma_bildirim_tarihi) return { durum: "hata", mesaj: "Bu onay daha önce geri alınmıştır." };
+  if (!onay)
+    return {
+      durum: "hata",
+      mesaj: `${bulunan.calisan.adSoyad} için ${yil} yılına ait geri alınmamış bir yazılı onay bulunmuyor (onay hiç girilmemiş ya da daha önce geri alınmış).`,
+    };
 
   const sonuc = await rpcCagir("fazla_mesai_onayi_geri_al", { p_onay_id: onay.id, p_bildirim_tarihi: bildirim });
   if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
