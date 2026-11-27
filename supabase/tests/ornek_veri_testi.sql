@@ -226,15 +226,15 @@ select test.dogrula('S26 Taner: sağlık muayenesi "süresi doluyor" uyarısı',
 select test.dogrula('S27 Boyahane kapısı: Selim''e yetkisiz bölge uyarısı, Hakan''a yok',
     test.uyari('yetkisiz_bolge_okutmasi', '5402') = 1 and test.uyari('yetkisiz_bolge_okutmasi', '5202') = 0
     and (select count(*) from pdks.uyari where tur = 'yetkisiz_bolge_okutmasi') = 1);
-select test.dogrula('S28 onaysız fazla mesai havuzu: Ece 150, Merve 100 dk (ve S30 Erkan) İK kararı bekliyor',
+select test.dogrula('S28 onaysız fazla mesai havuzu: Ece 150, Merve 100 dk (ve S29 Mehmet, S30 Erkan) İK kararı bekliyor',
     (select array_agg(c.sicil_no || ':' || f.tur || ':' || f.dakika order by c.sicil_no)
      from pdks.fazla_mesai_inceleme f join pdks.calisan c on c.id = f.calisan_id
      where f.durum = 'inceleme_bekliyor')
-        = array['3004:vardiya_sonrasi:150', '3005:vardiya_sonrasi:100', '5102:tatil_calismasi:485']);
-select test.dogrula('S29 Mehmet 22 Kasım Pazar: FM100 480 dk, puantaj kodu FM100',
-    (select fm100_dk = 480 and durum = 'tamam' from test.gk('1002', '2026-11-22'))
-    and exists (select 1 from pdks.gun_kodlari_hesapla(2026, 11) k
-                where k.calisan_id = test.c('1002') and k.tarih = '2026-11-22' and k.kod = 'FM100' and k.dakika = 480));
+        = array['1002:tatil_calismasi:551', '3004:vardiya_sonrasi:150', '3005:vardiya_sonrasi:100', '5102:tatil_calismasi:485']);
+select test.dogrula('S29 Mehmet 22 Kasım Pazar, yazılı onay var: İK onayına kadar FM100 0, süre havuzda (T-78)',
+    (select fm100_dk = 0 and durum = 'tamam' from test.gk('1002', '2026-11-22'))
+    and exists (select 1 from pdks.fazla_mesai_inceleme where calisan_id = test.c('1002') and is_gunu = '2026-11-22'
+                and tur = 'tatil_calismasi' and dakika = 551 and durum = 'inceleme_bekliyor'));
 select test.dogrula('S30 Erkan 29 Kasım Pazar, yazılı onay yok: FM100 0, süre havuzda (tatil çalışması)',
     (select fm100_dk = 0 from test.gk('5102', '2026-11-29'))
     and exists (select 1 from pdks.fazla_mesai_inceleme where calisan_id = test.c('5102')

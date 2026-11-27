@@ -164,6 +164,7 @@ Next.js uygulaması eklendiğinde planlanan yapı:
 | `20261231040000_hesapsiz_gun.sql` | Hesabı tamamlanmamış gün her yerde bekleyen sayılır; puantaj satırı ile kodlar aynı (T-91) |
 | `20261231050000_zorla_kilit_izi.sql` | Zorla kilitte gerekçe zorunlu; her kilidin değiştirilemez izi (+1 tablo) (T-92) |
 | `20261231060000_kilitli_vardiya.sql` | Kilitli ayın vardiyası değişmez; bekleyen plan kilitten sonra yalnızca reddedilir (T-93) |
+| `20261231170000_fazla_mesai_kararlari.sql` | 11 saat net çalışmaya uygulanır (T-64); eşik altı süre gün kaydında ve puantajda (T-77); tatil çalışması İK onayı ister (T-78) |
 
 ---
 
@@ -266,7 +267,8 @@ Vercel'de ilk üç değişken **Project Settings → Environment Variables** bö
 | Rol onayı (T-72, T-33): öneri, karar, görevler ayrılığı, kullanıcı geçmişi (38 test) | ✅ |
 | Plansız gün (T-79): uyarı, havuz, komşu vardiya, onay / ret, FM50 / FM100, geriye dönük plan, ay kilidi (40 test) | ✅ |
 | Geçmiş güne izin (T-46, T-40): düzeltme, soru kapanışı, okutmalı gün, iptal, devamsız denetimi, kilitli ay (29 test) | ✅ |
-| Havuz onayında günlük 11 saat (T-58): işaret, uyarı, 660 / 661 dk sınırı plan yoluyla aynı ölçüde (13 test) | ✅ |
+| Havuz onayında günlük 11 saat (T-58): işaret, uyarı, net 660 / 661 dk sınırı plan yoluyla aynı ölçüde (13 test) | ✅ |
+| Fazla mesai kararları (T-64, T-77, T-78): net 11 saat, eşik altı süre, tatil çalışmasında İK onayı (17 test) | ✅ |
 | Sonradan plan onayı (T-61): hemen hesap, havuzun kapanması, iki kez sayılmama, kilitli ay (13 test) | ✅ |
 | Geçmiş güne plan talebi (T-76): ret, bugün / yarın serbest, zamanında talebin sonradan onayı (7 test) | ✅ |
 | Plan geçmişi (T-49): ret sonrası önceki plan ve gün işleme, silinmezlik, görünürlük (18 test) | ✅ |

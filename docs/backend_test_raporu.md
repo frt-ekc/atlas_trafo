@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 53'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 29'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 27 Kasım itibarıyla 56'sı düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 26'sı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,12 +28,12 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 24 | 8 | 2 |
+| Orta | 34 | 25 | 8 | 1 |
 | Düşük | 34 | 7 | 10 | 17 |
-| Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **53** | **25** | **29** |
+| Görüş | 19 | 4 | 7 | 8 |
+| **Toplam** | **107** | **56** | **25** | **26** |
 
-Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
+Her bulgunun altındaki "Durum" satırından betikle sayıldı (27 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
 
 **Tutarlılık denetimi (22 Kasım):**
 - Her bulgunun önemi başlığında, adım sonundaki "Bulgular önem sırasıyla" listesinde ve metindeki atıflarda aynı (otomatik karşılaştırma: 0 fark).
@@ -83,7 +83,7 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
   - Bekleyen FM talebi kilitte engel ya da uyarı olur (T-63, K3 ile).
   - Reddedilen tatil çalışmasının kodu netleşir: öneri HT (T-102, İK kararı).
   - Geri alınan yazılı onay aynı yıl yenilenebilir (T-60).
-- **Karar / sınırlılık:** T-64 (11 saate mola dahil), T-77 (15 dk eşiği; mevzuat kontrol edilecek), T-78 (Pazar planı İK onayı istemiyor). Üçü İK ile konuşulup belgeye yazılır.
+- **Karar (Mehmet, 27 Kasım; ✅ feature/T64-T77-T78-fazla-mesai-kararlari):** T-64: 11 saat net çalışmadır, mola sayılmaz. T-77: eşik altı süre atılmaz, `gun_kaydi.esik_alti_dk` ve puantajda ay toplamı olarak tutulur; fazla mesaiye eklenmez, yuvarlama bordro / ERP'dedir. T-78: tatil günü çalışması yazılı onayla birlikte İK onayı da ister (önceden onaylı plan ya da havuz kararı).
 
 #### K5 · İzin ve plan kuralları — T-46, T-47, T-48, T-49, T-50, T-94, T-54 · en yüksek: Yüksek
 - **Kök:** `izin_gir` yalnızca satır ekliyor; günle, başka izinle, kilitli ayla ve plansız günle ilişkisini denetlemiyor.
@@ -223,9 +223,7 @@ Her grup için **tek düzeltme önerisi**. Grup içinde Yüksek olanlar 25 Kası
 | 31 | K15 | T-11 / T-07 / T-05, T-22, T-103 (T-38 ✅ PR #37) | Düşük | Gökalp / Yusuf / Mehmet | ekran 1 saat; belge 2 saat |
 
 **3. Karar bekleyenler (İK ile, Fırat):**
-- T-64: 11 saate mola dahil mi.
-- T-77: 15 dk eşiği; mevzuat kontrol edilecek.
-- T-78: Pazar planı İK onayı istesin mi.
+- T-64, T-77, T-78: ✅ karar verildi ve düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari; bkz. K4).
 - T-102: reddedilen tatil çalışmasının kodu.
 
 Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
@@ -299,7 +297,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T61-plan-onayi-hesap) |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T63-kilitte-fm-talebi) |
-| T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
+| T-64 | Görüş | 9 | Günlük 11 saat sınırı molayı da çalışma sayıyor | K4 | Mehmet | ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari) |
 | T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
 | T-66 | Orta | 11 | Yanlış girilen işten çıkış geri alınamıyor | K7 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | ✅ Düzeltildi (feature/T67-kilitli-ay-cikis) |
@@ -312,8 +310,8 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | ✅ Düzeltildi (feature/T74-ayar-sinirlari) |
 | T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | Düzelt (zaman kalırsa) |
 | T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T76-gecmis-plan-talebi) |
-| T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
-| T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
+| T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari) |
+| T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari) |
 | T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
 | T-80 | Düşük | 11 (Adım 10 betiğinde yeniden doğrulandı) | Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor | K6 | Yusuf + Fırat (CLAUDE.md) | Düzelt (karar verildi) |
 | T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Açık: veritabanı hazır (feature/T81-paylasim-karari), karar penceresi Gökalp'te |
@@ -367,10 +365,6 @@ Kodla düzeltilmeyecek konular (karar, bulgunun altında) ve karar ya da düzelt
 - **Kabul edilmiş itirazın düzeltmesi.** Düzeltmeye bağlanmamış kabul edilmiş itirazlar İtirazlar ekranında İK'ya listelenir (PR #80); ay kilidi bunlar için uyarmaz. Bulgu açıktır. (T-52)
 - **Arızalı okuyucuda soru türü.** Arızalı okuyucu için amire özel bir soru türü üretilmez. Kapsam dışı. Arızalı okuyucudaki eksik okutma olağan "giriş yok" sorusuyla amire iletilir ve sonuç değişmez; arıza bilgisi İK'nın arıza kayıtlarında yer alır. (T-53)
 - **Arıza kayıtlarının tutarlılığı.** Arıza kayıtlarında süre tutarlılığı denetlenmez. Prosedürle karşılanır. Arıza kayıtlarını yalnızca İK girer ve onaylar; başlangıç ve bitiş saatlerinin doğruluğu İK'nın sorumluluğundadır. (T-55)
-- **Fazla mesai kuralları için İK kararları (T-64, T-77, T-78).**
-  - Günlük 11 saat sınırına mola dahil sayılır (yasadan katı).
-  - 15 dakikanın altındaki plansız kalış fazla mesai incelemesine düşmez; Fazla Çalışma Yönetmeliği'ndeki yuvarlama kuralı ile mevzuat kontrol edilecek.
-  - Pazar günü için girilen vardiya planı İK onayı istemez.
 - **Gece işinden izinli geçmiş günü olan izin (T-46).** Böyle bir izin iptal edilemez. Gün ilk kez izinli olarak işlendiği için dönülecek önceki hali yoktur; o günler önce kayıt düzeltmeyle düzeltilir, sonra izin iptal edilir. İşlenmiş güne sonradan girilen iznin iptali günü kendiliğinden eski haline döndürür.
 - **Yanlış girilen işten çıkış.** Sistemde geri alma yoktur. Prosedürle karşılanır. Yanlış girilen işten çıkış, İK'nın yazılı talebi üzerine veritabanı yöneticisi tarafından kayıt altına alınarak geri alınır; ekrandan geri alma kapsam dışıdır. İşlem adımları gerçek kurulumda işletim prosedürüne yazılacaktır. (T-66)
 - **Üst amir zinciri.** Üst amir döngüsü ve amir olmayan üst amir denetlenmez. Prosedürle karşılanır. Üst amir ilişkisini yalnızca sistem yöneticisi tanımlar ve değişiklik `kullanici_gecmisi`'nde izlenir (T-33). Soru iki kademeden sonra İK'ya iletildiği için döngü soruyu askıda bırakmaz. (T-73)
@@ -2570,7 +2564,8 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Kanıt:** `19|D1|…|talep 2026-10-12 120 dk|OK 11` · `20|D1|…|talep 2026-10-13 121 dk|HATA … 661 dakika olur; sınır 660`
 - **Sade dille:** Sistem 1 saatlik yemek molasını da çalışma saatine sayıyor. Bu yüzden normalde 3 saat yazılabilecek fazla mesaiye en fazla 2 saat izin veriyor. Yasal bir sorun değil, ama üretim planlamasını gereksiz yere kısıtlar.
 - **Öneri:** İK ile karar: `vardiya_suresi_dk − mola_suresi(...)` + plan ≤ 660, ya da bugünkü katı kural belgeye yazılsın.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari). Migration: `20261231170000_fazla_mesai_kararlari.sql`, test: `fazla_mesai_kararlari_testi.sql` (17 test).
+- **Karar (Mehmet, 27.11.2026):** Sınır net çalışmaya uygulanır: brüt süreden `mola_suresi` düşülür. Plan talebi, havuz onayı (T-58) ve gece işinin günlük sınır uyarısı aynı ölçüyü kullanır; GÜNDÜZ'e 180 dk plan kabul, 181 dk ret. Fazla mesai ekranındaki "Günlük 11 sa aşılıyor" etiketi de net süreyle hesaplanır.
 - **Not:** Mevzuat incelendi; kodla düzeltilecek. İş K. m.68: ara dinlenmeler çalışma süresinden sayılmaz; 11 saat sınırı net çalışmaya uygulanacaktır.
 
 ### T-76 · Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor
@@ -2595,7 +2590,8 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Kanıt:** `a9_fm_sonuc.txt`: `H5|2026-10-14|1 gece işi|tamam · 08:00–17:10 · çalışma 480 · mola 60 · FM 0 (FM50 0, FM100 0) · hesap ✓ | plan: - | havuz: -` · görünüm: `H5|… elle: plan 0, gün FM toplamı 0 …, onaylı havuz 0`.
 - **Sade dille:** Her gün vardiyadan sonra 10–14 dakika kalan biri ayda 4–5 saat çalışır; sistem bunun hiçbirini göstermiyor. Yönetmelik yarım saatin altını yarım saat saymayı istiyorsa, sistem çalışan aleyhine hesap yapıyor demektir.
 - **Öneri:** Önce mevzuat ve İK görüşü. Sonra ya eşik altı süre ayrı bir alanda tutulsun (ör. `gun_kaydi.esik_alti_dk`) ve ay toplamında görünsün, ya da yönetmelik öyle diyorsa yarım saate yuvarlanıp havuza düşsün. Karar `docs/veritabani.md`'ye yazılsın.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari). Migration: `20261231170000_fazla_mesai_kararlari.sql`, test: `fazla_mesai_kararlari_testi.sql` (17 test).
+- **Karar (Mehmet, 27.11.2026):** Eşik (`fm_plansiz_esik_dk`) yalnızca havuza düşme eşiğidir. Altındaki onaysız süre `gun_kaydi.esik_alti_dk`'ya yazılır (yalnızca tetikleyici yazar), `v_puantaj_canli`'da ve kilitli puantajın normal satırında (`puantaj_satiri.esik_alti_dk`) ay toplamı olarak görünür. Fazla mesaiye eklenmez; yuvarlama ve ücrete etkisi bordro / ERP'dedir. Kilitli aya sonradan gelen düzeltmenin eşik altı farkı fark satırına yazılmaz (bilgi alanı).
 - **Not:** Mevzuat incelendi; kodla düzeltilecek. Fazla Çalışma Yönetmeliği m.5: bütün dakikalar yazılacaktır; yuvarlamanın ERP'ye bırakılması proje tercihidir (sistem ücret hesaplamaz).
 
 ### T-78 · Pazar vardiyası amirin tek kararıyla FM100 oluyor; İK onayı yok
@@ -2606,7 +2602,8 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Kanıt:** `a9_fm_sonuc.txt`: `P1|2026-10-18|1 gece işi|tamam · 08:00–17:00 · çalışma 480 · mola 60 · FM 480 (FM50 0, FM100 480) · hesap ✓ | plan: - | havuz: -`.
 - **Sade dille:** Amir bir çalışanı Pazar'a yazdığında, İK'nın haberi olmadan o çalışana 8 saat %100 zamlı fazla mesai yazılıyor. Hata değil, belgede böyle karar verilmiş; ama İK'nın bilmesi gereken bir boşluk.
 - **Öneri:** İK ile karar: hafta tatili / resmî tatil günlerine girilen vardiya planı İK onayı istesin (`geriye_donuk` gibi `tatil_plani` işareti), ya da bu bilinçli kabul belgeye "İK onayı gerekmez" diye açıkça yazılsın.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T64-T77-T78-fazla-mesai-kararlari). Migration: `20261231170000_fazla_mesai_kararlari.sql`, test: `fazla_mesai_kararlari_testi.sql` (17 test).
+- **Karar (Mehmet, 27.11.2026):** Hafta tatili ve tam gün resmî tatil çalışması yazılı onayla birlikte İK onayı da ister. İK o gün için fazla mesai planını onaylamışsa günü önceden onaylamış olur (vardiya + plan FM100, planı aşan kısım havuza). Plan yoksa çalışmanın tamamı havuza `tatil_calismasi` olarak düşer; İK onaylayınca FM100 olur ve yıllık sınıra sayılır, reddederse gün HT / RT kodlanır (T-102). Arife öğleden sonrası (T-28) değişmedi.
 - **Not:** Mevzuat incelendi; kodla düzeltilecek. Pazar çalışması yazılı onaya bağlanacaktır (yazılı onay: İş K. m.41 ve Fazla Çalışma Yönetmeliği; hafta tatili: İş K. m.46); İK onayı firma tercihidir.
 
 ### Bulgular önem sırasıyla

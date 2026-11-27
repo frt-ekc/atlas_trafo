@@ -200,12 +200,23 @@ select test.dogrula('onaylı plan 60 dk FM50 oldu, planı aşan 30 dk havuza dü
     (select fm50_dk = 60 and fazla_mesai_dk = 60 and calisma_dk = 540 from test.gk('PK03', '2026-10-06'))
     and (select dakika = 30 from test.hv('PK03', '2026-10-06')));
 select test.dogrula('eşik altındaki (1–2 dk) geç çıkış havuza düşmez',
-    (select (test.hv('PK01', '2026-10-05')).id is null) and (select (test.hv('PK04', '2026-10-04')).id is null));
+    (select (test.hv('PK01', '2026-10-05')).id is null) and (select (test.hv('PK04', '2026-10-03')).id is null));
+select test.dogrula('T-77: eşik altı süre kaybolmaz, gün kaydında durur (PK01 1 dk, PK04 Cumartesi 2 dk)',
+    (select esik_alti_dk = 1 and fazla_mesai_dk = 0 from test.gk('PK01', '2026-10-05'))
+    and (select esik_alti_dk = 2 and fazla_mesai_dk = 0 from test.gk('PK04', '2026-10-03')));
+select test.dogrula('T-78: yazılı onaylı Pazar çalışması da havuzda İK kararı bekliyor (PK04 542 dk)',
+    (select fm100_dk = 0 and calisma_dk = 0 and esik_alti_dk = 0 from test.gk('PK04', '2026-10-04'))
+    and (select tur = 'tatil_calismasi' and dakika = 542 and durum = 'inceleme_bekliyor'
+         from test.hv('PK04', '2026-10-04')));
+select test.hata('T-77: eşik altı süre elle değiştirilemez', 'esik_alti_dk = 1',
+    format($q$do $d$ begin update pdks.gun_kaydi set esik_alti_dk = 99 where id = %s;
+              if (select esik_alti_dk from pdks.gun_kaydi where id = %s) <> 99 then raise exception 'esik_alti_dk = 1'; end if;
+              end $d$$q$, (test.gk('PK01', '2026-10-05')).id, (test.gk('PK01', '2026-10-05')).id));
 
 set local role authenticated;
 select test.oturum('pk_amir@ornek.test');
 select test.dogrula('amir kendi departmanının havuz kayıtlarını görür (İK''nınkini görmez)',
-    (select count(*) from pdks.fazla_mesai_inceleme) = 3);
+    (select count(*) from pdks.fazla_mesai_inceleme) = 5);
 select test.hata('amir havuza karar veremez', 'yetkiniz yok',
     format('select pdks.fazla_mesai_inceleme_karar(%s, true)', (test.hv('PK02', '2026-10-05')).id));
 select test.oturum('pk_ik2@ornek.test');
@@ -222,6 +233,12 @@ select test.oturum('pk_ik1@ornek.test');
 select pdks.fazla_mesai_inceleme_karar((test.hv('PK02', '2026-10-05')).id, true);
 reset role;
 update pdks.ayar set deger = 16200 where anahtar = 'fm_yillik_sinir_dk';
+-- T-78: yazılı onaylı tatil çalışmaları İK onayıyla FM100 olur
+set local role authenticated;
+select test.oturum('pk_ik1@ornek.test');
+select pdks.fazla_mesai_inceleme_karar((test.hv('PK04', '2026-10-04')).id, true);
+select pdks.fazla_mesai_inceleme_karar((test.hv('PK06', '2026-10-29')).id, true);
+reset role;
 
 select test.dogrula('İK onayı puantaja girdi: FM50 90 dk, çalışma 570 dk (630 − 60 dk mola)',
     (select fm50_dk = 90 and fazla_mesai_dk = 90 and calisma_dk = 570 from test.gk('PK02', '2026-10-05'))
@@ -242,20 +259,20 @@ select test.hata('havuz onayı olmadan fazla mesai yazılamaz', 'izin verilen',
 -- 4) FM50 / FM100 --------------------------------------------------------------
 select test.dogrula('Cumartesi normal iş günü: NÇ, fazla mesai yok',
     (select fm100_dk = 0 and fm50_dk = 0 and calisma_dk = 480 from test.gk('PK04', '2026-10-03')));
-select test.dogrula('Pazar çalışması (yazılı onay var): tüm net çalışma FM100',
-    (select fm100_dk = 480 and fm50_dk = 0 and fazla_mesai_dk = 480 and calisma_dk = 480 from test.gk('PK04', '2026-10-04')));
+select test.dogrula('Pazar çalışması (yazılı onay var, İK onayladı): onaylanan 542 dk brüt, net 482 dk FM100 (T-78)',
+    (select fm100_dk = 482 and fm50_dk = 0 and fazla_mesai_dk = 482 and calisma_dk = 482 from test.gk('PK04', '2026-10-04')));
 select test.dogrula('Pazar çalışması (yazılı onay yok): puantaja girmedi, havuzda',
     (select fm100_dk = 0 and calisma_dk = 0 from test.gk('PK05', '2026-10-04'))
     and (select tur = 'tatil_calismasi' and dakika = 542 and durum = 'inceleme_bekliyor' from test.hv('PK05', '2026-10-04')));
-select test.dogrula('resmi tatilde çalışılan gün "tatil" değil, FM100',
-    (select durum = 'tamam' and fm100_dk = 480 from test.gk('PK06', '2026-10-29')));
+select test.dogrula('resmi tatilde çalışılan gün "tatil" değil, İK onayıyla FM100',
+    (select durum = 'tamam' and fm100_dk = 482 from test.gk('PK06', '2026-10-29')));
 select test.dogrula('arife: 13:00 sonrası vardiya içi çalışma FM100 (T-28)',
     (select fm100_dk = 240 and calisma_dk = 480 from test.gk('PK06', '2026-10-28')));
 select test.dogrula('resmi tatilde okutması olmayan gün "tatil"',
     (select durum = 'tatil' and hesap_tamam from test.gk('PK07', '2026-10-29')));
 update pdks.ayar set deger = 1 where anahtar = 'cumartesi_hafta_sonu';
-select test.dogrula('cumartesi_hafta_sonu = 1 ise Cumartesi çalışması FM100',
-    (select fm100_dk = 480 from pdks.gun_hesabi(test.c('PK04'), '2026-10-03', test.ts('2026-10-03 08:00'),
+select test.dogrula('cumartesi_hafta_sonu = 1 ise Cumartesi tatil sayılır: İK onayına kadar havuzda (T-78)',
+    (select fm100_dk = 0 and onaysiz_fm_dk = 542 from pdks.gun_hesabi(test.c('PK04'), '2026-10-03', test.ts('2026-10-03 08:00'),
         test.ts('2026-10-03 17:00'), test.ts('2026-10-03 07:55'), test.ts('2026-10-03 17:02'))));
 update pdks.ayar set deger = 0 where anahtar = 'cumartesi_hafta_sonu';
 
@@ -318,7 +335,7 @@ create function test.kod(p_sicil text, p_gun date) returns text language sql as 
 select test.dogrula('normal gün NÇ; onaylı plan dışı çalışma FM50',
     test.kod('PK01', '2026-10-05') = 'NÇ:1:480' and test.kod('PK02', '2026-10-05') = 'FM50:0:90 NÇ:1:480');
 select test.dogrula('Pazar ve resmi tatil çalışması FM100; çalışılmayan resmi tatil RT',
-    test.kod('PK04', '2026-10-04') = 'FM100:1:480' and test.kod('PK06', '2026-10-29') = 'FM100:1:480'
+    test.kod('PK04', '2026-10-04') = 'FM100:1:482' and test.kod('PK06', '2026-10-29') = 'FM100:1:482'
     and test.kod('PK07', '2026-10-29') = 'RT:1:0');
 select test.dogrula('izin kodları: Yİ, MZR, ÜCSZ, Dİ, RPR',
     test.kod('PK07', '2026-10-12') = 'Yİ:1:0' and test.kod('PK07', '2026-10-13') = 'MZR:1:0'
@@ -353,7 +370,8 @@ select test.dogrula('PK01 Ekim kalemleri: NÇ 5 gün / 2288 dk, HT 25 gün, RT 1
     and (select gun = 1 from test.kalem('PK01', 2026, 10, 'normal', 'RT')));
 select test.dogrula('puantaj satırında FM50 / FM100 / gece / saatlik izin sütunları',
     (select fm50_dk = 90 and fm100_dk = 0 and fazla_mesai_dk = 90 from test.ps('PK02', 2026, 10, 'normal'))
-    and (select fm100_dk = 480 and fm50_dk = 0 from test.ps('PK04', 2026, 10, 'normal'))
+    and (select fm100_dk = 482 and fm50_dk = 0 from test.ps('PK04', 2026, 10, 'normal'))
+    and (select esik_alti_dk = 2 from test.ps('PK04', 2026, 10, 'normal'))   -- T-77: Cumartesi'nin 2 dk'sı
     and (select gece_calisma_dk = 540 from test.ps('PK08', 2026, 10, 'normal'))
     and (select saatlik_izin_dk = 120 from test.ps('PK01', 2026, 10, 'normal')));
 select test.dogrula('her normal satırda NÇ + FM50 + FM100 kalemleri çalışma dakikasına eşit',

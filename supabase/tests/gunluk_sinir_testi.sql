@@ -3,7 +3,7 @@
 --   İş Kanunu m.63: günlük çalışma 11 saati aşamaz. Plan talebi bunu reddeder.
 --   Havuzdaki fiilen yapılmış çalışma reddedilmez (T-56, T-57 ile aynı karar):
 --   puantaja girer, gunluk_sinir_asildi işaretlenir, İK'ya uyarı yazılır.
---   Ölçü plan yoluyla aynıdır: mola dahil (brüt) süre; onaydan sonra çalışma + mola.
+--   Ölçü plan yoluyla aynıdır: net çalışma (mola hariç, T-64; 20261231170000_fazla_mesai_kararlari.sql).
 -- Testin kendi sahte verisi (Ekim / Kasım 2026) kullanılır; örnek veri yüklü olsun
 -- olmasın çalışır. Her şey tek işlemde çalışır ve sonda geri alınır (ROLLBACK).
 -- Çalıştırma: psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/gunluk_sinir_testi.sql
@@ -56,10 +56,10 @@ grant usage on schema test to authenticated;
 grant execute on all functions in schema test to authenticated;
 
 -- Test verisi (yalnızca sahte) ---------------------------------------------
---   GUNDUZ vardiyası 08:00–17:00 = 540 dk brüt (60 dk mola dahil); sınır 660 dk (11 saat)
+--   GUNDUZ vardiyası 08:00–17:00 = 540 dk brüt (60 dk mola dahil); sınır net 660 dk (11 saat, mola hariç)
 --   GS01: 08:00–20:59 → havuz 239, brüt 779 (raporun D2 örneği)
---   GS02: 08:00–19:00 → havuz 120, brüt 660 (tam sınırda)
---   GS03: 08:00–19:01 → havuz 121, brüt 661 (sınırı 1 dk aşar; plan yolunda da 661 reddedilir)
+--   GS02: 08:00–20:00 → havuz 180, brüt 720, net 660 (tam sınırda; T-64)
+--   GS03: 08:00–20:01 → havuz 181, brüt 721, net 661 (sınırı 1 dk aşar; plan yolunda da 661 reddedilir)
 --   GS04: 08:00–20:59 → havuz 239; İK reddeder
 --   GS05: Pazar 18 Ekim 08:00–20:30, yazılı onayı yok → tatil çalışması 750 dk
 insert into pdks.departman (ad) values ('GS Üretim'), ('GS İdari');
@@ -93,17 +93,17 @@ select (select id from pdks.aktarim where dosya_ozeti = 'gs-pdks-' || (z::timest
        (select id from pdks.okuyucu where kod = 'GS-PDKS'), 'GS-' || s, test.ts(z), y
 from (values
     ('GS01', '2026-10-14 08:00', 'giris'), ('GS01', '2026-10-14 20:59', 'cikis'),
-    ('GS02', '2026-10-14 08:00', 'giris'), ('GS02', '2026-10-14 19:00', 'cikis'),
-    ('GS03', '2026-10-14 08:00', 'giris'), ('GS03', '2026-10-14 19:01', 'cikis'),
+    ('GS02', '2026-10-14 08:00', 'giris'), ('GS02', '2026-10-14 20:00', 'cikis'),
+    ('GS03', '2026-10-14 08:00', 'giris'), ('GS03', '2026-10-14 20:01', 'cikis'),
     ('GS04', '2026-10-14 08:00', 'giris'), ('GS04', '2026-10-14 20:59', 'cikis'),
     ('GS05', '2026-10-18 08:00', 'giris'), ('GS05', '2026-10-18 20:30', 'cikis')) v(s, z, y);
 
 select pdks.gece_isi_calistir('2026-10-14');
 select pdks.gece_isi_calistir('2026-10-18');
 
-select test.dogrula('hazırlık: beş kayıt havuzda bekliyor (239 / 120 / 121 / 239 / 750 dk)',
-    (test.hv('GS01', '2026-10-14')).dakika = 239 and (test.hv('GS02', '2026-10-14')).dakika = 120
-    and (test.hv('GS03', '2026-10-14')).dakika = 121 and (test.hv('GS04', '2026-10-14')).dakika = 239
+select test.dogrula('hazırlık: beş kayıt havuzda bekliyor (239 / 180 / 181 / 239 / 750 dk)',
+    (test.hv('GS01', '2026-10-14')).dakika = 239 and (test.hv('GS02', '2026-10-14')).dakika = 180
+    and (test.hv('GS03', '2026-10-14')).dakika = 181 and (test.hv('GS04', '2026-10-14')).dakika = 239
     and (test.hv('GS05', '2026-10-18')).dakika = 750 and (test.hv('GS05', '2026-10-18')).tur = 'tatil_calismasi'
     and (select count(*) = 5 from pdks.fazla_mesai_inceleme where durum = 'inceleme_bekliyor'
          and calisan_id in (select id from pdks.calisan where sicil_no like 'GS0%')));
@@ -120,11 +120,11 @@ select test.dogrula('çalışılan süre reddedilmez: GS01 puantaja girdi (çal�
     and (select calisma_dk = 719 and fm50_dk = 239 from test.gk('GS01', '2026-10-14')));
 select test.dogrula('T-58: 11 saati aşan gün "günlük sınır aşıldı" olarak işaretlendi',
     (test.hv('GS01', '2026-10-14')).gunluk_sinir_asildi);
-select test.dogrula('T-58: onay anında İK''ya bir uyarı yazıldı (brüt 12 sa 59 dk, sınır 11 sa)',
+select test.dogrula('T-58: onay anında İK''ya bir uyarı yazıldı (net 11 sa 59 dk, sınır 11 sa)',
     test.asim('GS01') = 1
     and exists (select 1 from pdks.uyari where tur = 'fm_gunluk_sinir_asildi'
                 and tekillik_anahtari = 'havuz:' || (test.hv('GS01', '2026-10-14')).id
-                and mesaj like '%12 sa 59 dk%' and mesaj like '%11 sa%'));
+                and mesaj like '%11 sa 59 dk%' and mesaj like '%mola hariç%' and mesaj like '%11 sa%'));
 
 -- 2) Sınır: 660 dk kabul, 661 dk işaretli (plan yoluyla aynı ölçü) --------------------
 set local role authenticated;
@@ -132,16 +132,16 @@ select test.oturum('gs_ik@ornek.test');
 select pdks.fazla_mesai_inceleme_karar((test.hv('GS02', '2026-10-14')).id, true);
 select pdks.fazla_mesai_inceleme_karar((test.hv('GS03', '2026-10-14')).id, true);
 reset role;
-select test.dogrula('tam 11 saat (brüt 660 dk) sınırı aşmaz: işaret yok, uyarı yok',
+select test.dogrula('tam 11 saat (net 660 dk, brüt 720) sınırı aşmaz: işaret yok, uyarı yok',
     not (test.hv('GS02', '2026-10-14')).gunluk_sinir_asildi and test.asim('GS02') = 0
-    and (select calisma_dk + mola_dk = 660 from test.gk('GS02', '2026-10-14')));
-select test.dogrula('11 saat 1 dk (brüt 661 dk) aşar: işaret ve uyarı var',
+    and (select calisma_dk = 660 and mola_dk = 60 from test.gk('GS02', '2026-10-14')));
+select test.dogrula('11 saat 1 dk (net 661 dk) aşar: işaret ve uyarı var',
     (test.hv('GS03', '2026-10-14')).gunluk_sinir_asildi and test.asim('GS03') = 1);
-select test.dogrula('aynı ölçü plan yolunda: 120 dk plan kabul (540 + 120 = 660)',
+select test.dogrula('aynı ölçü plan yolunda: 180 dk plan kabul (540 + 180 − 60 mola = 660)',
     (select true from (select pdks.fm_plan_denetle(test.c('GS02'), '2026-11-18',
-        (select id from pdks.vardiya_tanim where kod = 'GUNDUZ')::smallint, 120, null)) x));
-select test.hata('aynı ölçü plan yolunda: 121 dk plan reddedilir (540 + 121 = 661)', 'sınır 11 sa',
-    format('select pdks.fm_plan_denetle(%s, %L, %s::smallint, 121, null)',
+        (select id from pdks.vardiya_tanim where kod = 'GUNDUZ')::smallint, 180, null)) x));
+select test.hata('aynı ölçü plan yolunda: 181 dk plan reddedilir (540 + 181 − 60 = 661)', 'sınır 11 sa',
+    format('select pdks.fm_plan_denetle(%s, %L, %s::smallint, 181, null)',
            test.c('GS03'), '2026-11-18', (select id from pdks.vardiya_tanim where kod = 'GUNDUZ')));
 
 -- 3) Ret: işaret ve uyarı yok ------------------------------------------------------

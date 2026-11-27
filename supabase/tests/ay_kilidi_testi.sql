@@ -300,7 +300,8 @@ select pdks.soru_ik_karari((test.soru('1003', '2026-11-04')).id, false, 'Kapı k
 select pdks.soru_ik_karari((test.soru('1005', '2026-11-05')).id, false, 'Vardiya sonuna kadar çalıştı', null, '2026-11-05 17:00+03');
 select pdks.soru_ik_karari((test.soru('2009', '2026-11-25')).id, true, 'Haber vermeden gelmedi');
 select pdks.soru_ik_karari((test.soru('1001', '2026-11-26')).id, false, 'Üretim müdürü teyit etti', '2026-11-26 08:00+03'); -- S22 (İK'ya eskale)
-select pdks.fazla_mesai_inceleme_karar(f.id, f.calisan_id = test.c('3004'), 'Yazılı onay ya da plan yok')
+-- Ece'nin (3004) kalışı ve Mehmet'in (1002, S29) yazılı onaylı Pazar çalışması onaylanır (T-78); diğerleri reddedilir
+select pdks.fazla_mesai_inceleme_karar(f.id, f.calisan_id in (test.c('3004'), test.c('1002')), 'Yazılı onay ya da plan yok')
 from pdks.fazla_mesai_inceleme f where f.durum = 'inceleme_bekliyor' order by f.id;
 select test.hata('uçtan uca: Okan''ın (S13) onay bekleyen planının günü işlenmedi; kilit zorla da reddeder',
     '11/2026 döneminde işlenmemiş 1 planlı gün bulunuyor (1 çalışan, ilk gün 13.11.2026); 1 günün geriye dönük planı İK onayı bekliyor',
