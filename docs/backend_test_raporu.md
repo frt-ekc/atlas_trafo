@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 26 Kasım itibarıyla 53'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 25'i kararla sınırlılık olarak kabul edildi, 29'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 27 Kasım itibarıyla 72'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 9'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -28,12 +28,12 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 |---|---:|---:|---:|---:|
 | Kritik | 1 | 1 | 0 | 0 |
 | Yüksek | 19 | 19 | 0 | 0 |
-| Orta | 34 | 24 | 8 | 2 |
-| Düşük | 34 | 7 | 10 | 17 |
-| Görüş | 19 | 2 | 7 | 10 |
-| **Toplam** | **107** | **53** | **25** | **29** |
+| Orta | 34 | 25 | 8 | 1 |
+| Düşük | 34 | 21 | 11 | 2 |
+| Görüş | 19 | 6 | 7 | 6 |
+| **Toplam** | **107** | **72** | **26** | **9** |
 
-Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-34 (Düşük) ve T-52 (Görüş) de var: ekran tarafları düzeltildi, kalanı açık.
+Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-85 (Düşük) ve T-96 (Görüş) de var: veritabanı tarafları hazır, ekranları açık.
 
 **Tutarlılık denetimi (22 Kasım):**
 - Her bulgunun önemi başlığında, adım sonundaki "Bulgular önem sırasıyla" listesinde ve metindeki atıflarda aynı (otomatik karşılaştırma: 0 fark).
@@ -238,20 +238,20 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 |---|---|---|---|---|---|---|
 | T-01 | Orta | 1 | `gun_kaydi`'nda durum ve dakika alanları doğrudan, izsiz değiştirilebiliyor | K14 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-02 | Görüş | 1 | 55 yabancı anahtar sütununda index yok | K14 | Yusuf | Düzelt (zaman kalırsa) |
-| T-03 | Görüş | 1 | 45 `security definer` fonksiyonun `search_path`'inde `pg_temp` yok | K14 | Yusuf | Düzelt (zaman kalırsa) |
+| T-03 | Görüş | 1 | 45 `security definer` fonksiyonun `search_path`'inde `pg_temp` yok | K14 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
 | T-04 | Görüş | 1 | Testler UTC davranışını sınamıyor | K1 | Yusuf | ✅ Düzeltildi (PR #46) |
 | T-05 | Düşük | 1 | README'de işe giriş / işten çıkış test sayısı yanlış | K15 | Mehmet | ✅ Düzeltildi (belge, feature/T103-belge-duzeltmeleri) |
 | T-06 | Görüş | 1 | `kullanici.auth_kullanici_id`'nin `auth.users`'a yabancı anahtarı yok | K14 | Mehmet | ✅ Sınırlılık (karar verildi) |
-| T-07 | Düşük | 1 | `v_izin_amir`'in açıklaması yok | K15 | Yusuf | Düzelt |
-| T-08 | Görüş | 2 | `pdks`'te yeni oluşturulan fonksiyon herkese açık doğuyor | K14 | Yusuf | Düzelt (zaman kalırsa) |
+| T-07 | Düşük | 1 | `v_izin_amir`'in açıklaması yok | K15 | Yusuf | ✅ Düzeltildi (feature/T07-T84-T34-kalanlar) |
+| T-08 | Görüş | 2 | `pdks`'te yeni oluşturulan fonksiyon herkese açık doğuyor | K14 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
 | T-09 | Görüş | 2 | `ayar_al`, hesabı bağlı olmayan her oturuma açık | K6 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-10 | Görüş | 2 | Puantajı etkileyen ayarları yalnızca admin, tek başına değiştirebiliyor | K6 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-11 | Düşük | 2 | Ekrandaki "`v_fazla_mesai_yillik` çalışmıyor" notu eskimiş | K15 | Gökalp | ✅ Düzeltildi (ekran notu, feature/53-t41-t11-ekran) |
 | T-12 | Yüksek | 3 | Amir izin türünü (rapor = sağlık bilgisi) üç yoldan görebiliyor | K9 | Yusuf + Mehmet | ✅ Düzeltildi (seçenek a, feature/T12-rapor-gizliligi) + belge |
 | T-13 | Yüksek | 3 | İK, dosya yükleyerek kendi çalışılmış gününü üretebiliyor ve yükleyen kaydedilmiyor | K8 | Yusuf + Mehmet | ✅ Düzeltildi (feature/T13-yukleyen) + sınırlılık metni |
 | T-14 | Orta | 3 | Vekil amir her zaman yetkili | K9 | — | ✅ Sınırlılık (karar verildi) |
-| T-15 | Düşük | 3 | İK kendi itirazını "incelemeye alabiliyor" | K9 | Yusuf | Düzelt |
-| T-16 | Düşük | 3 | "Talep eden onaylayamaz" kuralı ham İngilizce hata mesajıyla dönüyor | K13 | Yusuf | Düzelt (zaman kalırsa) |
+| T-15 | Düşük | 3 | İK kendi itirazını "incelemeye alabiliyor" | K9 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
+| T-16 | Düşük | 3 | "Talep eden onaylayamaz" kuralı ham İngilizce hata mesajıyla dönüyor | K13 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-17 | Orta | 4 | Satır tarihleri dosyanın günüyle karşılaştırılmıyor | K8 | Yusuf | ✅ Düzeltildi (feature/T17-T18-dosya-tarihi) |
 | T-18 | Orta | 4 | İleri tarihli bir dosya, gece işinin gelecekteki bir gün için çalışmasına ve açık soruların… | K8 | Yusuf | ✅ Düzeltildi (feature/T17-T18-dosya-tarihi) |
 | T-19 | Görüş | 4 | İşlenmiş bir güne sonradan gelen dosya sessizce yok sayılıyor | K2 | — | ✅ Sınırlılık (karar verildi) |
@@ -262,14 +262,14 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-24 | Orta | 5 | Gece işi 2000 çalışanda ekrandan çalışmıyor (8 saniye zaman aşımı) | K8 | — | ✅ Sınırlılık (karar verildi) |
 | T-25 | Düşük | 5 | Bir çalışanda çıkan hata o günün bütün çalışanlarını işlenmemiş bırakıyor | K8 | — | ✅ Sınırlılık (karar verildi) |
 | T-26 | Görüş | 5 | Kilitli aydaki işlenmemiş planlı gün için gece işi "hatalı" bitiyor | K3 | — | ✅ Sınırlılık (karar verildi) |
-| T-27 | Düşük | 6 | Tolerans saniyeleri atarak karşılaştırılıyor | K10 | Yusuf | Düzelt |
+| T-27 | Düşük | 6 | Tolerans saniyeleri atarak karşılaştırılıyor | K10 | Yusuf | ✅ Sınırlılık (belgelendi) |
 | T-28 | Yüksek | 6 | Yarım gün arife tam iş günü sayılıyor: öğleden sonra çıkana erken çıkış, çalışana FM100 yok | K10 | Yusuf | ✅ Düzeltildi (feature/T28-arife) |
-| T-29 | Düşük | 6 | Mükerrer çıkışta ilk okutma tutuluyor, son okutma atılıyor | K10 | Yusuf | Düzelt (zaman kalırsa) |
+| T-29 | Düşük | 6 | Mükerrer çıkışta ilk okutma tutuluyor, son okutma atılıyor | K10 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
 | T-30 | Görüş | 6 | Giriş çıkıştan sonra gelirse amire "çıkış yok" soruluyor | K10 | — | ✅ Sınırlılık (karar verildi) |
 | T-31 | Kritik | Endpoint | `dosya_yukle` ekrandan (HTTP) hiç çalışmıyor: "UPDATE requires a WHERE clause" | K8 | Yusuf | Düzeltildi (PR #35) |
 | T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | ✅ Düzeltildi (feature/T32-ik-karari-cevaplayan) |
 | T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
-| T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | Ekran ✅ PR #40; veritabanı: Düzelt |
+| T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | ✅ Düzeltildi (feature/T07-T84-T34-kalanlar) |
 | T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | Düzelt (zaman kalırsa) |
 | T-36 | Düşük | Endpoint | `kart_tanimla` kart numarasının biçimini denetlemiyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | ✅ Düzeltildi (PR #40) |
@@ -286,16 +286,16 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-48 | Orta | 8 | Kilitli aya izin girilebiliyor | K5 | Yusuf | ✅ Düzeltildi (T-46 ile, PR #71) |
 | T-49 | Orta | 8 | Geriye dönük plan geçerli planın üstüne yazılıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T49-plan-gecmisi) |
 | T-50 | Orta | 8 | Yanlış girilen saatlik izin geri alınamıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T50-saatlik-izin-iptal) |
-| T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | Düzelt |
-| T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | Ekran ✅ PR #80; ay kilidi uyarısı açık |
+| T-51 | Düşük | 8 | Aynı güne birden çok açık itiraz girilebiliyor | K12 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
+| T-52 | Görüş | 8 | Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor | K12 | — | ✅ Düzeltildi (#80; feature/T52-T96-T54-T85) |
 | T-53 | Düşük | 8 | `ariza_kaniti_yok` sorusu hiç üretilmiyor | K12 | — | ✅ Sınırlılık (karar verildi) |
-| T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | Düzelt (zaman kalırsa) |
+| T-54 | Görüş | 8 | İzinli günde okutma varsa gün sessizce "izinli" oluyor | K5 | Yusuf | ✅ Düzeltildi (feature/T52-T96-T54-T85) |
 | T-55 | Düşük | 8 | Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor | K12 | — | ✅ Sınırlılık (karar verildi) |
 | T-56 | Yüksek | 9 | İK, yazılı onayı olmayan çalışanın onaysız fazla mesaisini puantaja alabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T56-havuz-yazili-onay) |
 | T-57 | Yüksek | 9 | Yıllık 270 saat sınırı yalnızca planları sayıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam) |
 | T-58 | Orta | 9 | Havuz onayında günlük 11 saat sınırı denetlenmiyor | K4 | Yusuf | ✅ Düzeltildi (feature/T58-gunluk-sinir) |
 | T-59 | Orta | 9 | Yazılı onayın geri alınması bazı durumlarda hiç kaydedilemiyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
-| T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | Düzelt (zaman kalırsa) |
+| T-60 | Düşük | 9 | Onayını geri alan çalışan aynı yıl yeniden yazılı onay veremiyor | K4 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
 | T-61 | Orta | 9 | İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T61-plan-onayi-hesap) |
 | T-62 | Orta | 9 | `v_fazla_mesai_yillik` yalnızca planlı fazla mesaiyi gösteriyor | K4 | Yusuf | ✅ Düzeltildi (feature/T57-yillik-toplam, T-57 ile) |
 | T-63 | Düşük | 9 | Kilitli ayda karar bekleyen fazla mesai talebi askıda kalıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T63-kilitte-fm-talebi) |
@@ -303,26 +303,26 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-65 | Yüksek | 11 | Çıkış tarihinden sonraki okutma, gün henüz işlenmemişse ya da plansızsa fark edilmiyor | K7 | Yusuf | ✅ Düzeltildi (feature/T65-cikis-okutma) |
 | T-66 | Orta | 11 | Yanlış girilen işten çıkış geri alınamıyor | K7 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-67 | Orta | 11 | Çıkış kilitli aya düşerse kilitli ayın vardiya planları siliniyor | K7 | Yusuf | ✅ Düzeltildi (feature/T67-kilitli-ay-cikis) |
-| T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | Düzelt |
-| T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | Düzelt (zaman kalırsa) |
+| T-68 | Düşük | 11 | Çıkıştan sonra ve girişten önce plan, izin, kart ve geçici kart kabul ediliyor | K7 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
+| T-69 | Düşük | 11 | Çıkıştan sonraki güne ait itiraz açık kalıyor | K7 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-70 | Orta | 11 | Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam… | K7 | Yusuf | ✅ Düzeltildi (feature/T70-gecersiz-amir) |
 | T-71 | Yüksek | 11 | Çıkmış çalışanın hesabı admin tarafından yeniden açılabiliyor | K6 | Yusuf | ✅ Düzeltildi (PR #56) |
 | T-72 | Yüksek | 11 | Admin, başka bir çalışana bağlı bir İK (ya da admin) hesabı açarak görevler ayrılığını ve "a… | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-73 | Düşük | 11 | Üst amir zincirinde döngü ve amir olmayan üst amir kabul ediliyor | K6 | Mehmet | ✅ Sınırlılık (karar verildi) |
 | T-74 | Yüksek | 11 | Ayarlar için yalnızca "0'dan küçük olamaz" kontrolü var | K6 | Yusuf | ✅ Düzeltildi (feature/T74-ayar-sinirlari) |
-| T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | Düzelt (zaman kalırsa) |
+| T-75 | Düşük | 11 | `calisan_ekle` ve `kart_tanimla`: tarih aralığı ve büyük/küçük harf kontrolü yok, kart hatal… | K7 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-76 | Orta | 9 | Geçmiş, çalışılmış bir güne "planlı" fazla mesai talebi girilip onaylanabiliyor | K4 | Yusuf | ✅ Düzeltildi (feature/T76-gecmis-plan-talebi) |
 | T-77 | Orta | 9 | 15 dakikanın altındaki plansız çalışma hiçbir yere yazılmıyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-78 | Görüş | 9 | Pazar vardiyası amirin tek kararıyla FM100 oluyor | K4 | Mehmet | Sınırlılık (karar İK / mevzuat) |
 | T-79 | Yüksek | 11 (Adım 10 betiğinde yeniden doğrulandı) | Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor | K4 | Yusuf | ✅ Düzeltildi (feature/T79-plansiz-gun) |
 | T-80 | Düşük | 11 (Adım 10 betiğinde yeniden doğrulandı) | Admin `calisan` tablosunun bütün satırlarını ve sütunlarını görüyor | K6 | Yusuf + Fırat (CLAUDE.md) | Düzelt (karar verildi) |
-| T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | Açık: veritabanı hazır (feature/T81-paylasim-karari), karar penceresi Gökalp'te |
+| T-81 | Orta | 10 | Kart paylaşımı şüphesinde karar verilemiyor | K11 | Yusuf + Gökalp | ✅ Düzeltildi (#101, #103) |
 | T-82 | Orta | 10 | İK kendine asıl kart tanımlayabiliyor | K6 | Yusuf | ✅ Düzeltildi (feature/T82-kart-tanimlayan) |
 | T-83 | Düşük | 10 | Geçici kart zimmeti yalnızca "şu an" girilebiliyor | K11 | — | ✅ Sınırlılık (karar verildi) |
-| T-84 | Düşük | 10 (Adım 8 şüphesi) | Sistem yolunda ileri tarihli zimmet ve ileri tarihli iade kabul ediliyor | K11 | Yusuf | Düzelt |
-| T-85 | Düşük | 10 | Kaybolan geçici kart sistemde "kayıp" yapılamıyor | K11 | Yusuf | Düzelt (zaman kalırsa) |
-| T-86 | Düşük | 10 | Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar | K11 | Yusuf | Düzelt |
-| T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | Düzelt |
+| T-84 | Düşük | 10 (Adım 8 şüphesi) | Sistem yolunda ileri tarihli zimmet ve ileri tarihli iade kabul ediliyor | K11 | Yusuf | ✅ Düzeltildi (feature/T07-T84-T34-kalanlar) |
+| T-85 | Düşük | 10 | Kaybolan geçici kart sistemde "kayıp" yapılamıyor | K11 | Yusuf | Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te |
+| T-86 | Düşük | 10 | Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar | K11 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
+| T-87 | Düşük | 10 | İSG belgesinde "son girilen kayıt" geçerli sayılıyor | K11 | Yusuf | ✅ Düzeltildi (feature/T68-calisma-tarihleri) |
 | T-88 | Görüş | 10 | İSG uyarısı okutmanın nerede yapıldığına bakmıyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-89 | Yüksek | 12 | İleri bir ay kilitlenebiliyor | K3 | Yusuf | ✅ Düzeltildi — ekran PR #39, veritabanı PR #49 |
 | T-90 | Yüksek | 12 | Askıdaki gün puantaja kodsuz giriyor ve hiçbir yerde görünmüyor | K3 | Yusuf | ✅ Düzeltildi (PR #54) |
@@ -330,8 +330,8 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-92 | Orta | 12 | Zorla kilidin izi yok: hangi engellerin geçildiği ve neden geçildiği saklanmıyor | K3 | Yusuf + Gökalp | ✅ Düzeltildi (veritabanı feature/T92-zorla-kilit-izi; ekran Gökalp) |
 | T-93 | Orta | 12 | Kilitli ayda geriye dönük plan onayı fark satırına yalnızca kaybı yazıyor | K3 | Yusuf | ✅ Düzeltildi (feature/T93-kilitli-vardiya) |
 | T-94 | Orta | 12 | Planı olmayan güne düşen izin puantajda "HT" (hafta tatili) kodlanıyor | K5 | Yusuf | ✅ Düzeltildi (feature/T94-plansiz-izin-gunu) |
-| T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | Düzelt (zaman kalırsa) |
-| T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Düzelt (zaman kalırsa) |
+| T-95 | Düşük | 12 | Yalnızca gün kodunu değiştiren fark kayboluyor | K3 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
+| T-96 | Görüş | 12 | Kilit engelleri tek tek bildiriliyor | K3 | Gökalp + Yusuf | Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te |
 | T-97 | Düşük | 12 | Sistem yolunda kilitli döneme sonradan puantaj satırı eklenebiliyor | K3 | — | ✅ Sınırlılık (karar verildi) |
 | T-98 | Düşük | 12 (ek) | Yönetici panelinde "açık soru" sayısı bakan kişiye göre değişiyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-99 | Orta | 12 (ek; Adım 12 şüphesinden) | Saniyesiz okutma zamanı kabul ediliyor | K8 | Mehmet | ✅ Sınırlılık (karar verildi) |
@@ -364,7 +364,6 @@ Kodla düzeltilmeyecek konular (karar, bulgunun altında) ve karar ya da düzelt
 - **Giriş çıkıştan sonra okutulursa.** Sistem günü "çıkış yok" diye amire sorar. Kapsam dışı. Okutma sırası uyuşmayan gün otomatik düzeltilmez, amire sorulur; amirin cevabı ya da İK düzeltmesi günü tamamlar. (T-30)
 - **Kart numarası biçimi.** Veritabanı kart numarasının biçimini denetlemez. Firma bilgisine bağlıdır. Kart numarası biçimi gerçek kurulumda Atlas Trafo'dan öğrenilerek veritabanı kısıtı olarak eklenir; o zamana kadar biçim ekranda denetlenir. (T-36)
 - **Vekile devir.** Amir izne çıkınca önceden açılmış sorular vekile geçmez. Proje kararı. Açılmış soru atandığı amirde kalır; süresi dolduğunda üst amire, sonra İK'ya iletilir ve İK her açık soruya karar verebilir (T-39). Bu nedenle soru cevapsız kalmaz. (T-43)
-- **Kabul edilmiş itirazın düzeltmesi.** Düzeltmeye bağlanmamış kabul edilmiş itirazlar İtirazlar ekranında İK'ya listelenir (PR #80); ay kilidi bunlar için uyarmaz. Bulgu açıktır. (T-52)
 - **Arızalı okuyucuda soru türü.** Arızalı okuyucu için amire özel bir soru türü üretilmez. Kapsam dışı. Arızalı okuyucudaki eksik okutma olağan "giriş yok" sorusuyla amire iletilir ve sonuç değişmez; arıza bilgisi İK'nın arıza kayıtlarında yer alır. (T-53)
 - **Arıza kayıtlarının tutarlılığı.** Arıza kayıtlarında süre tutarlılığı denetlenmez. Prosedürle karşılanır. Arıza kayıtlarını yalnızca İK girer ve onaylar; başlangıç ve bitiş saatlerinin doğruluğu İK'nın sorumluluğundadır. (T-55)
 - **Fazla mesai kuralları için İK kararları (T-64, T-77, T-78).**
@@ -377,6 +376,7 @@ Kodla düzeltilmeyecek konular (karar, bulgunun altında) ve karar ya da düzelt
 - **Geçici kart saati.** Geçici kart zimmeti kaydın girildiği andan başlar; geriye dönük girilemez. Proje kararı. Geçici kart zimmeti, kart teslim edilirken güvenlik tarafından girilir; geriye dönük zimmet bilinçli olarak kapalıdır. Unutulan zimmette eksik okutma amir cevabı ya da İK düzeltmesiyle tamamlanır. (T-83)
 - **İSG uyarısı.** Eğitimi ya da muayenesi dolmuş çalışanın okutması bir kez uyarı üretir; nerede okuttuğu ayrıca işaretlenmez. Proje kararı. İSG uyarısı bilgilendirme amaçlıdır; riskli bölgeye yetkisiz giriş ayrı bir uyarıyla bildirilir ve kapı hiçbir durumda kilitlenmez. Bölgeye özel belge şartı gerçek kurulumda İSG uzmanıyla değerlendirilir. (T-88)
 - **Kilitli döneme sistem yoluyla satır.** Veritabanı sahibi kilitli aya ek satır yazabilir. Kapsam dışı. Uygulama rollerinin puantaj tablosuna yazma yetkisi yoktur; kilitli aya satır yalnızca veritabanı sahibinin erişimiyle eklenebilir. Gerçek kurulumda bu erişim tek sorumluyla sınırlandırılır. (T-97)
+- **Gecikme toleransı dakika tamamlanınca uygulanır (T-27).** 08:00 vardiyasında 10 dakika tolerans 08:10:59'a kadar geçerlidir; 08:11:00'de geç kalma 11 dakika yazılır. Bilinçli tercih. Saniyeler atılarak karşılaştırılır; erken çıkışta da aynı (5 dk tolerans 5 dk 59 sn'ye kadar). Puantaj dakika birimiyle çalışır.
 - **Panelde açık soru sayısı.** Amir panelinde yalnızca kendisine atanmış açık sorular sayılır. Bilinçli tercih. Panelde amir yetkisi dahilindeki açık soruları, İK ve yönetici departmanın bütün açık sorularını görür; soruların takibi İK'nın sorumluluğundadır. (T-98)
 - **PDKS saat biçimi.** Saniyesiz okutma kabul edilir; kart paylaşımı denetimi saniyeye dayandığı için yanlış şüphe üretebilir. Firma bilgisine bağlı varsayım. PDKS çıktısının saniyeli olduğu kabul edilmiştir; gerçek kurulumda biçim teyit edilir, saniyesiz ise kart paylaşımı denetimi kullanılmaz. (T-99)
 - **"Raporlu" durumu amire API'den açık (T-12; karar verildi).** Amir ekibinin raporlu olduğunu bilir, nedenini bilmez (gün planlaması için). Gün kaydının durumu ve canlı puantajdaki raporlu gün sayısı amire API'den açıktır; ekranda "İzinli" görünür. Durum ve izin düzeltmelerinin gerekçesi artık gizlidir (`v_duzeltme_amir`). Saat düzeltmesinin gerekçesi amire açıktır; İK oraya sağlık bilgisi yazmamalıdır.
@@ -470,7 +470,8 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
   Bu 45 fonksiyonun gövdesinde şemasız yazılmış bir tablo ya da view adı aranıp **bulunamadı**: her `from`, `join`, `update`, `into`, `delete from` `pdks.` önekiyle yazılmış. Fonksiyon çağrıları için risk yok, çünkü PostgreSQL fonksiyon ararken geçici şemaya bakmıyor. **Şu an istismar edilebilir bir yol kanıtlanamadı.**
 - **Sade dille:** Kapı şu an kilitli, ama kilidin bir mandalı eksik. Gelecekte biri bir fonksiyona şemasız bir tablo adı yazarsa, giriş yapmış bir kullanıcı aynı adla geçici bir tablo açıp fonksiyonu kendi tablosunu okumaya kandırabilir. Fonksiyon sahibin yetkisiyle çalıştığı için bu bir yetki açığı olurdu.
 - **Öneri:** Fonksiyonlar başka bir nedenle yeniden yazıldıkça `set search_path = pdks, pg_temp` yapılsın; ya da tek bir migration'da hepsine `alter function … set search_path = pdks, pg_temp` uygulansın. `sema_temizligi_testi`'ne bir kontrol eklensin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T29-T95-T60). Migration `20261231190000_puantaj_kalanlari.sql`; kontrol `sema_temizligi_testi`'nde.
+  - pdks'teki bütün security definer fonksiyonlara `search_path = …, pg_temp` (var olan şemalar korunarak). Bundan sonra security definer fonksiyon `set search_path = pdks, pg_temp` ile yazılmalı; test denetler.
 
 ### T-04 · Testler UTC davranışını sınamıyor
 - **Adım:** 1 · **Önem:** Görüş
@@ -515,7 +516,7 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
 - **Kanıt:** `select obj_description('pdks.v_izin_amir'::regclass)` → boş.
 - **Sade dille:** Bu view kuralları bilerek esnetiyor (amirin göremediği tabloyu süzerek gösteriyor). Bunu bilmeyen biri ileride "güvenlik hatası" sanıp bozabilir.
 - **Öneri:** `comment on view pdks.v_izin_amir is '…'`.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T07-T84-T34-kalanlar). Migration `20261231180000_kalan_kurallar.sql`, test `kalan_kurallar_testi.sql` (9 test; T-07, T-34, T-84 birlikte). `v_izin_amir`'e açıklama: izin türü gizli, amir izin tablosunu okuyamaz, görünüm yalnızca kendi bölümünün geçerli izinlerini verir.
 
 ### Denediklerim
 - Örnek veriyle ve verisiz kurulum; 21 test dosyası, iki tur, ayrıca UTC. Sonuçlar dosya dosya `scratch/a1_*_1.txt`, `_2.txt`, `_utc.txt`.
@@ -673,7 +674,8 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
 - **Öneri:**
   1. Bir migration'da `alter default privileges for role postgres in schema pdks revoke execute on functions from public;` yazılsın.
   2. PUBLIC kontrolü `sema_temizligi_testi`'ne ya da `giris_ve_yetki_testi`'ne taşınsın.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T29-T95-T60). Migration `20261231190000_puantaj_kalanlari.sql`; kontrol `sema_temizligi_testi`'nde (PUBLIC kontrolü de oraya kondu).
+  - `alter default privileges for role postgres revoke execute on functions from public`: yeni fonksiyon kapalı doğar. Şema bazında varsayılan yetki PUBLIC'in yerleşik yetkisini kaldıramadığı için rol düzeyinde; postgres'in fonksiyonları yalnızca pdks'te, public / storage'daki Supabase yetkileri ayrıca tanımlı.
 
 ### T-09 · `ayar_al`, hesabı bağlı olmayan her oturuma açık
 - **Adım:** 2 · **Önem:** Görüş
@@ -1038,7 +1040,8 @@ Raporda **bilinen sınırlılık** olarak yazılmalı: "Demo ve ders projesi kap
 - **Kanıt:** `gorev|İK kendi itirazını incelemeye alamaz|reddedilmeli|çalıştı|`
 - **Sade dille:** Kendi itirazına karar veremiyor, ama itirazı "inceleniyor" diye işaretleyip başka İK'ya "ben bakıyorum" izlenimi verebiliyor. Zararı küçük, kural yine de tutarsız.
 - **Öneri:** `itiraz_incelemeye_al`'a `kullanici_calisani(v_ben) = calisan_id` kontrolü; ya da itiraza `inceleyen_id` sütunu eklenip tetikleyiciye dahil edilsin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri, veritabanı; ekran Gökalp #99). Migration `20261231160000_itiraz_kurallari.sql`, test `itiraz_kurallari_testi.sql` (9 test; T-15, T-16, T-51, T-69 birlikte).
+  - `itiraz_incelemeye_al`: "Görevler ayrılığı: kendi gününüze ait itirazı inceleyemezsiniz."
 
 ### T-16 · "Talep eden onaylayamaz" kuralı ham İngilizce hata mesajıyla dönüyor
 - **Adım:** 3 · **Önem:** Düşük
@@ -1048,7 +1051,8 @@ Raporda **bilinen sınırlılık** olarak yazılmalı: "Demo ve ders projesi kap
 - **Kanıt:** `gorev|talep eden İK kendi talebini onaylayamaz|reddedilmeli|reddedildi|new row for relation "fazla_mesai_plani" violates check constraint …`
 - **Sade dille:** İK kendi istediği fazla mesaiyi onaylamaya çalışınca sistem doğru olarak durduruyor, ama ekranda İngilizce, teknik bir hata görüyor.
 - **Öneri:** `fazla_mesai_karar`'a, kısıta varmadan önce Türkçe bir kontrol eklensin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri). Migration `20261231160000_itiraz_kurallari.sql`, test `itiraz_kurallari_testi.sql` (9 test; T-15, T-16, T-51, T-69 birlikte).
+  - `fazla_mesai_karar`: kısıta varmadan "Görevler ayrılığı: kendi girdiğiniz fazla mesai talebine karar veremezsiniz; kararı başka bir İK kullanıcısı verir." Ekran tarafı (düğme gizleme, tarih sınırı) Gökalp'te; mesajlar veritabanından gelir.
 
 ### Denediklerim
 - RLS: 44 nesne × 8 oturum, sayılar beklenenle (`scratch/a3_rls_sonuc.txt`).
@@ -1516,7 +1520,7 @@ Not: 14:00–22:00 için beklenen gece dakikasını 90 yazmıştım; doğrusu 10
 - **Kanıt:** `a6_hesap`: `giriş 08:10:01 | beklenen 10,… | gerçekleşen 0,… | ❌`, `giriş 08:10:59 | 0 | ❌`, `giriş 08:11:00 | 11 | ✅`.
 - **Sade dille:** Sistem geç kalmayı saniyesiz ölçüyor. 08:10'u 59 saniye geçen kişi hâlâ "zamanında" sayılıyor. Çalışan lehine bir sapma; ama kural kâğıtta yazandan bir dakika gevşek.
 - **Öneri:** Kararı İK versin. Ya tolerans karşılaştırması saniyeyle yapılsın (`aralik` süresini saniye olarak karşılaştırıp sonra dakikaya çevirmek), ya da mevcut davranış belgeye yazılsın. İkinci yol kod değişikliği gerektirmez.
-- **Durum:** Açık
+- **Durum:** ✅ Sınırlılık olarak kabul edildi (karar: Yusuf, 27 Kasım; bkz. Bilinen sınırlılıklar). Mevcut davranış belgelendi: tolerans dakika tamamlanınca uygulanır (08:00 vardiyasında 08:10:59 geç sayılmaz, 08:11:00 → 11 dk). Kod değişmedi; puantaj rakamları demo öncesi değişmesin diye.
 
 ### T-28 · Yarım gün arife tam iş günü sayılıyor: öğleden sonra çıkana erken çıkış, çalışana FM100 yok
 - **Adım:** 6 · **Önem:** Yüksek (22 Kasım'da Orta'dan yükseltildi: arife öğleden sonrası yasal tatil, bugünkü hesap kanuna aykırı ve çalışan aleyhine)
@@ -1548,7 +1552,9 @@ Not: 14:00–22:00 için beklenen gece dakikasını 90 yazmıştım; doğrusu 10
 - **Sade dille:** Kartını çıkışta iki kez okutan kişinin ilk okutması "çıkış saati" sayılıyor. Kayıp en fazla 3 dakika, ama tolerans sınırında sonuç değiştirebilir. Elle hesap (denenmedi): 16:53 ve 16:56'da çıkış okutan kişi 16:53'le 7 dk erken çıkış alır; 16:56 tutulsaydı 4 dk, yani 0.
 - **Ek:** Karşılaştırma bir önceki okutmayla yapılıyor (`lag`), son tutulan okutmayla değil. 2'şer dakika arayla zincirleme okutmalarda yalnızca ilki kalır; bu da çıkışta kaybı 3 dakikanın üstüne çıkarabilir.
 - **Öneri:** Çıkış yönünde sıralamayı tersine çevirmek (`order by okutma_zamani desc`, yani `lead` mantığı) yeter; giriş aynı kalır.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T29-T95-T60). Migration `20261231190000_puantaj_kalanlari.sql`, test `mukerrer_cikis_testi.sql` (5 test).
+  - Girişte ilk okutma, çıkışta SON okutma tutulur (zincirleme okutmada zincirin sonu). 16:53 / 16:56 çıkışında çıkış 16:56, erken çıkış tolerans içinde 0.
+  - Okutma işaretleri silinemediği için, eski kuralla işaretlenmiş bir çıkış çiftine dokunulmaz (iki çıkış birden düşmesin; gece işi penceresi örtüşür). Hız değişmedi (gün başına ~6–10 ms).
 
 ### T-30 · Giriş çıkıştan sonra gelirse amire "çıkış yok" soruluyor
 - **Adım:** 6 · **Önem:** Görüş
@@ -1693,7 +1699,8 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** `e3_ek b) duzeltme satırı: gün çalışanı=1004 · itirazın çalışanı=1006 · itirazın günü=2026-11-06`.
 - **Sade dille:** Düzeltme kaydında "bu düzeltme şu itiraz üzerine yapıldı" yazıyor, ama o itiraz başka birinin başka bir gününe ait olabilir. Denetimde iz yanıltıcı olur.
 - **Öneri:** `duzeltme_hazirla`'ya `itiraz.gun_kaydi_id = new.gun_kaydi_id` denetimi (yeni migration ve test). Ekran için Gökalp: G3.
-- **Durum:** Ekran tarafı düzeltildi (PR #40: reddedilmiş itiraz düzeltme penceresinde listelenmez). Veritabanı tarafı açık (`kayit_duzelt` hâlâ kabul ediyor), Yusuf.
+- **Durum:** ✅ Düzeltildi (ekran PR #40; veritabanı feature/T07-T84-T34-kalanlar). Migration `20261231180000_kalan_kurallar.sql`, test `kalan_kurallar_testi.sql` (9 test; T-07, T-34, T-84 birlikte).
+  - Yeni tetikleyici `duzeltme_itiraz_denetle`: bağlanan itiraz aynı gün kaydına ait olmalı ve reddedilmiş olmamalı ("Bağlanan itiraz (no …) bu güne ait değil …", "… reddedilmiş …").
 
 ### T-35 · İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik
 - **Adım:** Endpoint · **Önem:** Görüş
@@ -2246,7 +2253,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `IT3|5|acik|-`, `IT3|6|acik|-`, `IT3|7|acik|-`
 - **Sade dille:** Çalışan aynı şikâyeti hem amirine hem İK'ya söylerse iki ayrı itiraz kaydı oluşuyor. İK ikisini ayrı ayrı karara bağlamak zorunda; birini kabul edip diğerini reddederse kayıt çelişkili olur. Ay kilidinde de "3 açık itiraz" diye sayılır.
 - **Öneri:** `create unique index … on pdks.itiraz (gun_kaydi_id) where durum in ('acik','inceleniyor')` ve `itiraz_gir`'de Türkçe mesaj ("Bu güne ait açık itiraz var: no …").
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri, veritabanı; ekran Gökalp #99). Migration `20261231160000_itiraz_kurallari.sql`, test `itiraz_kurallari_testi.sql` (9 test; T-15, T-16, T-51, T-69 birlikte).
+  - `itiraz_gir`: "Bu güne ait açık bir itiraz var (no …); yeni itiraz için önce onun kararı verilmeli." Kısmi tekil index `itiraz_gunde_tek_acik`. Karara bağlanan itirazdan sonra yeni itiraz girilebilir.
 
 ### T-52 · Kabul edilip düzeltmesi yapılmayan itiraz hiçbir yerde görünmüyor
 - **Adım:** 8 · **Önem:** Görüş
@@ -2256,7 +2264,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `84|IT4|ik.muduru|2. itirazı kabul|OK` · `IT4|9|kabul|ik.muduru` · IT4'ün günü `tamam 08:30–17:00 · geç 30 · 0 düzeltme`.
 - **Sade dille:** İK "haklısın" deyip itirazı kabul ediyor ama ikinci adımı (saati düzeltmeyi) unutuyor. Çalışan haklı çıktığı halde puantajında geç kalma duruyor. Bunu hatırlatan hiçbir şey yok.
 - **Öneri:** Kilit özetine "düzeltmesiz kabul edilmiş itiraz" sayısı; ekranda kabulden sonra doğrudan düzeltme formunu açmak.
-- **Durum:** Açık. Ekran kısmı PR #80 ile düzeltildi: kabulden sonra o günün düzeltme penceresi açılır, düzeltmeye bağlanmamış kabul edilmiş itirazlar İtirazlar ekranında İK'ya listelenir. Kalan: ay kilidi ve kilit özeti bu itirazları saymaz ve uyarmaz; veritabanı kabul edilmiş itiraz için düzeltme yapıldığını denetlemez. Kalan kilit uyarısı T-96 ile birlikte ele alınacak.
+- **Durum:** ✅ Düzeltildi (ekran PR #80; kilit feature/T52-T96-T54-T85). Migration `20261231200000_kilit_on_kontrol.sql`, test `kilit_on_kontrol_testi.sql`.
+  - Ay kilidi özetinde ve izinde "düzeltmesiz kabul edilmiş itiraz" sayısı ve listesi (bilgi; kilidi durdurmaz, düzeltme kilitten sonra fark olarak yapılabilir). Ön kontrol (T-96) de listeler.
 
 ### T-53 · `ariza_kaniti_yok` sorusu hiç üretilmiyor; arızalı okuyucuda amire sıradan "giriş yok" soruluyor
 - **Adım:** 8 · **Önem:** Düşük
@@ -2277,7 +2286,8 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `IZ7|1 gece işi|izinli · 08:00–17:00 · çalışma ? · … · hesap ✓|-|0 düzeltme` · `IZ7 uyarı: isg_belgesi_yok …`
 - **Sade dille:** İzinli birinin tam gün çalıştığını sistem görüyor ama kimseye söylemiyor. Çalışılan 8 saat puantaja girmiyor; çalışan bunu ancak bordroyu görünce fark eder.
 - **Öneri:** Gece işinde `izin_turu is not null and (giris or cikis)` için `uyari_yaz('izinli_gunde_okutma', …)`.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T52-T96-T54-T85). Migration `20261231200000_kilit_on_kontrol.sql`, test `izinli_gun_okutma_testi.sql` (5 test).
+  - Gün kaydı izinli / raporlu ve okutmalı yazılınca İK'ya `izin_gununde_okutma` uyarısı (gün ve saatler; amire görünmez). Gece işi fonksiyonlarına dokunulmadı (#105 `gece_isi_uyarilar`'ı değiştiriyor): `gun_kaydi`'nda AFTER INSERT tetikleyici.
 
 ### T-55 · Arıza kayıtlarında süre ve karar tutarlılığı denetlenmiyor
 - **Adım:** 8 · **Önem:** Düşük
@@ -2500,7 +2510,9 @@ Yeniden görülen eski bulgular: T-16 (ham İngilizce kısıt mesajı: boş itir
 - **Kanıt:** `91|W1|ik.uzmani|aynı yıl için yeni yazılı onay|HATA 23505: duplicate key value violates unique constraint "fazla_mesai_onayi_calisan_id_yil_key"`
 - **Sade dille:** Kasım'da "artık kalmayacağım" diyen bir işçi, Aralık'ta sipariş yoğunluğunda "tamam, kalırım" diye yeniden imza verirse sistem bunu kaydedemiyor. O işçiye yıl sonuna kadar fazla mesai yazılamaz. Hata mesajı da İngilizce ve teknik.
 - **Öneri:** Tekil kısıt yerine `exclude` (çalışan, geçerlilik aralığı) ya da "yılda en fazla bir *geçerli* onay" kuralı; `fm_onay_gecerli_mi` zaten aralığa bakıyor.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T29-T95-T60). Migration `20261231190000_puantaj_kalanlari.sql`, test `yazili_onay_yenileme_testi.sql` (5 test).
+  - "Çalışan + yıl" tekilliği yerine "yılda en çok bir geçerli (geri alınmamış) onay" (kısmi tekil index `fazla_mesai_onayi_yil_tek_gecerli`). Geçerli onay varken yenisi Türkçe mesajla reddedilir.
+  - Ekran: "Onayı geri al" yalnızca geri alınmamış onayı seçer (`fazla-mesai/actions.ts`). Yerelde İK olarak denendi: 1001'in onayı geri alındı, aynı yıl yeni onay girildi.
 
 ### T-61 · İşlenmiş güne sonradan onaylanan fazla mesai planı günü yeniden hesaplamıyor
 - **Adım:** 9 · **Önem:** Orta
@@ -2761,12 +2773,11 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #133 `[S10PA] Kart paylaşımı şüphesi: S10PA … ve S10PB … kartları 10.2026 ayında 5 farklı günde 5 saniye içinde arka arkaya okutuldu. Ceza değildir; İK incelemeli.` · #141–146 5 rol "yetkiniz yok", İK OK · #147 `true goren=ik.uzmani@example.com | uyari sütunları: id,tur,calisan_id,okuyucu_id,mesaj,olusturma_zamani,goruldu,goren_id,gorulme_zamani,tekillik_anahtari | PB: 12.10 tamam …; 16.10 tamam` · #148 `paylas` adlı tek fonksiyon `kart_paylasim_kontrol`.
 - **Sade dille:** Sistem "bu iki kişi birbirinin kartını basıyor olabilir" diye İK'yı uyarıyor, ama İK'nın elinde yalnızca "okudum" düğmesi var. Hangi günler olduğunu bulmak için İK'nın okutmaları tek tek araması gerekir; vardığı kararı da sistemde bir yere yazamaz. Gerçekten paylaşım varsa, gelmeyen kişinin günleri "çalıştı" olarak puantaja gitmeye devam eder.
 - **Öneri:** `kart_paylasim_inceleme` tablosu (çift, ay, günler, karar `var`/`yok`, gerekçe, karar veren) ya da uyarıya karar alanları; mesajda günler ve saatler; "var" kararında ilgili günler için `kayit_duzelt` listesi (otomatik devamsızlık yok, karar İK'da). Kalıcı test: yalnızca İK karar verir; karar gerekçesiz kaydedilmez.
-- **Durum:** Açık. Veritabanı tarafı yapıldı (feature/T81-paylasim-karari; migration `20261231130000_paylasim_karari.sql`, test `paylasim_karari_testi.sql`, 18 test). Ekranda karar penceresi yok; Gökalp ekleyince düzeltildi sayılır.
+- **Durum:** ✅ Düzeltildi (veritabanı PR #101, ekran PR #103). Migration `20261231130000_paylasim_karari.sql`, test `paylasim_karari_testi.sql` (18 test).
   - Karar (Yusuf, B seçeneği): karar uyarının üstünde (ayrı tablo yok). Uyarı mesajı günleri, saati ve okuyucuyu yazar (en çok 10 gün); `uyari.ayrinti`'de diğer çalışan ve gün listesi. Karar verilene kadar yeni günler aynı uyarıya eklenir.
   - `pdks.kart_paylasim_karar(uyari, paylasim_var, gerekce)`: yalnızca İK, gerekçe ≥ 10 karakter, şüpheli çiftteki iki çalışan da karar veremez, karar bir kez verilir ve değiştirilemez; uyarı görüldü sayılır.
   - "Paylaşım var" kararı gün kaydına dokunmaz (KVKK m.11): sonuç düzeltilecek günleri listeler, devamsızlık kendiliğinden yazılmaz; İK günleri çalışan kaydından elle düzeltir.
-  - Ekran için (Gökalp): Uyarılar'da kart paylaşımı uyarısına "Karar ver" penceresi (paylaşım var / yanlış alarm + gerekçe), RPC `kart_paylasim_karar`; dönen `gunler` ve `mesaj` gösterilir; karar verilmiş uyarıda karar ve gerekçe görünür (`uyari.karar`, `karar_gerekce`, `karar_veren_id`, `karar_zamani`).
-  - Hız: gece işindeki paylaşım kontrolü değişmedi (örnek veride ~110–130 ms, önce ve sonra).
+  - Ekran (Gökalp, #103): Uyarılar'da "Karar ver" penceresi; verilen karar ve gerekçe uyarıda görünür.
 
 ### T-82 · İK kendine asıl kart tanımlayabiliyor; kartı kimin tanımladığı hiçbir yerde yazmıyor
 - **Adım:** 10 · **Önem:** Orta
@@ -2807,7 +2818,8 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #155 `doğrudan INSERT: GK-T1 → F, verilis 31.12.2026 | OK eklendi` · #156–157 çakışma mesajları · #158 `HATA 22000: range lower bound …` · #159 `iade ileri tarihte (2027) | OK güncellendi` · #161 `GK-T1 31.12.2026 08:00→05.01.2027 08:00` · #162 `GK-T1 bugün okutulsa kime yazılır | kimse`.
 - **Sade dille:** Biri veritabanına doğrudan yanlış yılla bir zimmet yazarsa, o geçici kart o tarihe kadar kimseye verilemez; güvenlik ekranda "kart 31 Aralık'ta verilmiş" gibi anlamsız bir hata görür. Ekrandan bu hata yapılamıyor; yalnızca örnek veri ya da bakım betikleri için risk.
 - **Öneri:** Tetikleyiciye: `new.verilis_zamani <= now() + interval '5 minutes'`, `new.iade_zamani is null or (new.iade_zamani >= new.verilis_zamani and new.iade_zamani <= now() + interval '5 minutes')`, Türkçe mesajla. Kalıcı test: ileri tarihli veriliş ve iade reddedilir.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T07-T84-T34-kalanlar). Migration `20261231180000_kalan_kurallar.sql`, test `kalan_kurallar_testi.sql` (9 test; T-07, T-34, T-84 birlikte).
+  - Yeni tetikleyici `gecici_kart_zimmet_a_zaman` (çakışma kontrolünden önce çalışır): veriliş en çok 5 dk ileri; iade verilişten önce olamaz ve en çok 5 dk ileri olabilir. Türkçe mesaj; ham aralık hatası ve yanıltıcı "çakışıyor" mesajı yok.
 
 ### T-85 · Kaybolan geçici kart sistemde "kayıp" yapılamıyor
 - **Adım:** 10 · **Önem:** Düşük
@@ -2817,7 +2829,10 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #27 `gecici_kart UPDATE kayıp (güvenlik) | HATA 42501: permission denied for table gecici_kart` · #28 `geçici kartı kayıp / iptal yapan fonksiyon var mı | OK yok`.
 - **Sade dille:** Bir geçici kart kaybolursa sistemde bunu işaretlemenin yolu yok. Kart hâlâ "kullanılabilir" görünür; bulan biri kullanırsa okutmalar son zimmet sahibine ya da "sahipsiz karta" yazılır.
 - **Öneri:** `gecici_kart_durum(p_kart_id, p_durum, p_neden)` (güvenlik / İK, açık zimmeti varken kayıp yapılırsa zimmeti de kapatsın) ve `kayip` karttaki okutmaya uyarı.
-- **Durum:** Açık
+- **Durum:** Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran düğmesi Gökalp'te. Migration `20261231200000_kilit_on_kontrol.sql`, test `gecici_kart_kayip_testi.sql` (11 test).
+  - `pdks.gecici_kart_durum(kart, durum, gerekçe)`: güvenlik / İK; kayıp / iptal / (kayıp kart bulunduysa) aktif; gerekçe zorunlu; kim, ne zaman, neden kartta saklanır (`durum_nedeni`, `durum_degistiren_id`, `durum_zamani`). Kayıp ya da iptalde açık zimmet kapanır. İptal kesindir.
+  - Kayıp bildirilen kart okutulursa İK'ya `gecici_kart_zimmetsiz` uyarısı (okutma_isareti'nde tetikleyici; gece işine dokunulmadı).
+  - Ekran için (Gökalp): Geçici kartlar'da kart satırına "Kayıp bildir / Bulundu / İptal et" penceresi (gerekçe ile).
 
 ### T-86 · Kart ve geçici kart işlemlerinde ham ya da yanıltıcı mesajlar; iptal nedeni boş geçilebiliyor
 - **Adım:** 10 · **Önem:** Düşük
@@ -2830,7 +2845,9 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #17, #19–20, #8, #9.
 - **Sade dille:** Güvenlik görevlisi yanlış bir şey yaptığında ekranda İngilizce bir veritabanı hatası ya da başka bir kartı anlatan bir mesaj görüyor. Kartın neden iptal edildiği de boş bırakılabiliyor; sonra "kayıp mıydı, yenilendi mi?" sorusunun cevabı olmuyor.
 - **Öneri:** Tetikleyicide çakışma "aynı çalışan" ise ayrı mesaj; `gecici_kart_ver`'de kart ve çalışan var mı kontrolü; `kart_iptal_et`'te neden zorunlu ve geçerli değerlerin listesiyle Türkçe hata (T-16, T-36, T-75 ile birlikte).
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri, T-68 ile). Migration `20261231140000_calisan_kart_kurallari.sql`, test `calisan_kart_kurallari_testi.sql` (28 test; T-68, T-75, T-86 birlikte).
+  - `kart_iptal_et`: neden zorunlu ve listeden ("İptal nedeni seçilmeli: kayıp, yenilendi, işten çıkış ya da diğer.").
+  - `gecici_kart_ver`: olmayan kart / çalışan Türkçe; çalışanda açık geçici kart varsa "Bu çalışanda zaten açık bir geçici kart var (GK-04, … verildi); önce iade alın." Ekran tarafı (düğme gizleme, tarih sınırı) Gökalp'te; mesajlar veritabanından gelir.
 
 ### T-87 · İSG belgesinde "son girilen kayıt" geçerli sayılıyor; yanlışlıkla girilen eski tarihli belge geçerli belgeyi geçersiz kılıyor, tarih aralığı yok
 - **Adım:** 10 · **Önem:** Düşük
@@ -2843,7 +2860,9 @@ Yeniden görülen eski bulgular: T-16 (talep eden = onaylayan, 0 dk ve mükerrer
 - **Kanıt:** #119 `I3 eğitim, eski tarihli ikinci kayıt (01.01.2026) OK` · #120 `v_isg_durum I3 eğitim | dolmus bitiş=2026-01-01` · #102–103 `OK` · #116 I4 uyarı `-` · #121 `isg_egitimi=yok, saglik_muayenesi=yok`.
 - **Sade dille:** İSG uzmanı eski bir sertifikayı sisteme sonradan girerse, çalışanın yeni ve geçerli sertifikası yok sayılıyor ve çalışan "eğitimi dolmuş" listesine düşüyor. Tersine, bitiş tarihine yanlışlıkla 2999 yazılırsa o çalışan hiçbir zaman uyarı listesine girmiyor.
 - **Öneri:** `order by b.gecerlilik_bitis desc, b.id desc`; `isg_belge_gir`'de bitiş "bugün − 10 yıl … bugün + 10 yıl" aralığında olsun ve yeni kayıt mevcut geçerli belgeden önce bitiyorsa Türkçe uyarı versin. `v_isg_durum`'a `izleniyor` (mavi yaka) sütunu.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri). Migration `20261231150000_isg_belge_sirasi.sql`, test `isg_belge_sirasi_testi.sql` (5 test).
+  - Geçerli belge en geç biten belgedir (`isg_kontrol`, `v_isg_durum`); eski tarihli belge girilebilir ama geçerli belgeyi gölgelemez.
+  - `isg_belge_gir`: bitiş bugün ± 10 yıl. `v_isg_durum`'a `izleniyor` (mavi yaka) sütunu. Ekran tarafı (düğme gizleme, tarih sınırı) Gökalp'te; mesajlar veritabanından gelir.
 
 ### T-88 · İSG uyarısı okutmanın nerede yapıldığına bakmıyor; yüksek gerilim laboratuvarına giriş ile sıradan PDKS okutması aynı uyarıyı veriyor
 - **Adım:** 10 · **Önem:** Görüş
@@ -3039,7 +3058,10 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#78 `vardiya_plani_gir X1 … OK 1698` · G#79 `izin_gir X1 … OK 8` · G#81 `kart_tanimla X1 yeni kart … OK 96` · E#53 `gecici_kart_ver X6 GK-01 (çıkmış çalışan) OK` · G#18–20 E2 üçü de OK.
 - **Sade dille:** İşten ayrılmış birine sistem yeni kart verdiriyor. Kartı kapıda çalışıyorsa ayrılmış kişi fabrikaya girebilir. Puantaj bozulmuyor, ama ekranda "ayrılmış kişinin Aralık'ta izni var" gibi anlamsız kayıtlar görünüyor.
 - **Öneri:** Dört fonksiyona ortak bir kontrol: tarih `ise_giris_tarihi` ile `isten_cikis_tarihi` arasında olmalı; kart ve geçici kart için çalışan aktif olmalı.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri). Migration `20261231140000_calisan_kart_kurallari.sql`, test `calisan_kart_kurallari_testi.sql` (28 test; T-68, T-75, T-86 birlikte).
+  - Plan (`vardiya_plani_gir`), izin (`izin_gir`) ve saatlik izin (`saatlik_izin_gir`) yalnızca işe giriş ile son çalışma günü arasında (`calisan_tarih_denetle`): "Tarih çalışanın çalışma tarihleri dışında: 21.11.2026 (işe giriş 01.01.2025, son çalışma günü 15.11.2026)."
+  - Asıl kart ayrılmış çalışana tanımlanmaz; işe başlamadan önce hazırlanabilir. Geçici kart yalnızca bugün çalışan kişiye (işe başlamış, ayrılmamış) verilir. Ekran tarafı (düğme gizleme, tarih sınırı) Gökalp'te; mesajlar veritabanından gelir.
+  - `plansiz_izin_gunu_testi`'ndeki girişten önce başlayan izin (PI04) artık `izin_gir`'den geçemediği için eski kayıt gibi doğrudan yazılıyor.
 
 ### T-69 · Çıkıştan sonraki güne ait itiraz açık kalıyor; `vardiya_yok` güne yeni itiraz girilip kabul edilebiliyor
 - **Adım:** 11 · **Önem:** Düşük
@@ -3049,7 +3071,9 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#65 `itiraz: 12.10/acik, 16.10/acik` (çıkıştan sonra) · G#66 `itiraz_karar X6 16.10 … OK` · G#69 `itiraz_gir X6 16.10 (vardiya_yok gün, ikinci itiraz) OK 3` · G#70 `itiraz: 12.10/red, 16.10/acik, 16.10/kabul`.
 - **Sade dille:** Çalışan ayrıldıktan sonra, ayrılık tarihinden sonraki bir gün için yapılmış itiraz kimsenin listesinden düşmüyor. İK "kabul" dese bile o gün zaten puantajda yok; kabulün bir anlamı kalmıyor (bkz. T-52).
 - **Öneri:** `isten_cikis_gir`: çıkıştan sonraki günlerin `acik`/`inceleme` itirazlarını gerekçeyle kapatsın ve özete `kapatilan_itiraz` eklesin. `itiraz_gir`: `vardiya_yok` güne ve çalışma tarihi dışına itirazı reddetsin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri). Migration `20261231160000_itiraz_kurallari.sql`, test `itiraz_kurallari_testi.sql` (9 test; T-15, T-16, T-51, T-69 birlikte).
+  - `isten_cikis_gir` çıkıştan sonraki günlerin açık itirazlarını "red" olarak gerekçeyle kapatır ("İşten çıkış (15.11.2026): gün çalışma tarihleri dışında kaldı …"); sonuçta `kapatilan_itiraz` (çıkış bildiriminde de yazar).
+  - `itiraz_gir` çalışma tarihi dışındaki güne itirazı reddeder. "Vardiya yok" günün kendisi reddedilmez: planı olmayan günde reddedilen çalışmaya itiraz edilebilmeli (rapor önerisinden bilinçli sapma).
 
 ### T-70 · Departman amirinin hesabı pasif olunca ya da rolü değişince yeni sorular ona açılmaya devam ediyor
 - **Adım:** 11 · **Önem:** Orta
@@ -3143,7 +3167,9 @@ Yeniden görülen eski bulgular: T-68 (çıkmış çalışana kart ve geçici ka
 - **Kanıt:** G#21–22 `OK 95`, `OK 96` · G#25 `aynı sicil küçük harf "s11e1" OK 97` · G#28, #82 `duplicate key …` · G#30 `foreign key …`.
 - **Sade dille:** İK bir yazım hatasıyla aynı kişiyi iki kez ekleyebilir ya da 2099 yılında işe başlayan bir çalışan yaratabilir. Kart zaten başkasındaysa ekranda İngilizce bir veritabanı hatası çıkar; İK kartın kimde olduğunu anlayamaz.
 - **Öneri:** `lower(sicil_no)` üzerinde tekil index ya da kontrol; tarih aralığı kontrolü; `kart_tanimla`'da çalışan var mı ve kart kimde kontrolü (T-36 ile birlikte). İptal kart numarasının yeniden kullanımı için karar (bugünkü `kart_no` tekilliği tarihçeyi koruyor, bu bilinçli olabilir).
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T68-calisma-tarihleri, T-68 ile). Migration `20261231140000_calisan_kart_kurallari.sql`, test `calisan_kart_kurallari_testi.sql` (28 test; T-68, T-75, T-86 birlikte).
+  - İşe giriş tarihi bugün − 50 yıl ile bugün + 1 yıl arasında; sicil büyük/küçük harfe duyarsız tekil (`calisan_ekle` + index `calisan_sicil_buyuk_harf_tekil`).
+  - `kart_tanimla`: çalışan yoksa "Çalışan bulunamadı."; numara başkasındaysa "CA-K1 numaralı kart … (CA01) adına kayıtlı."; iptal edilmişse kimde olduğu ve iptal tarihiyle "yeniden verilemez" (bugünkü tekillik bilinçli: tarihçe korunur). Numara büyük harfe çevrilir, boşluk alınır (dosyadaki okutmayla eşleşsin).
 
 ### T-79 · Planı olmayan günde (ör. Cumartesi) yapılan çalışma hiçbir yere yazılmıyor
 - **Adım:** 11 (Adım 10 betiğinde yeniden doğrulandı) · **Önem:** Yüksek
@@ -3434,7 +3460,8 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #41 `{"silinen_plan": 3, …, "vardiya_yok_yapilan_gun": 3}` · #78 `16.09 durum→vardiya_yok hedef=2026/10 (×3) | Ekim L2 satırı: yok` · #15 Eylül kodsuzlar arasında L2 16–18.09.
 - **Sade dille:** Ay kapandıktan sonra "bu kişi zaten 15'inde ayrılmıştı" diye düzeltilen 3 gün, bordroya hiç ulaşmıyor. Ödeme açısından fark yok (çalışılmamış günler), ama ERP'deki puantajda o 3 gün sonsuza kadar boş kalıyor.
 - **Öneri:** `having` koşuluna kod farkı eklensin (`or exists (select 1 from kod_farklari …)`). Kalıcı test: kilitli günde `soru_bekliyor` → `vardiya_yok` sonraki ayda HT fark kalemi üretir.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T29-T95-T60). Migration `20261231190000_puantaj_kalanlari.sql`, test `kod_farki_testi.sql` (4 test).
+  - `puantaj_yaz`: yalnızca gün kodu değişse de (kodsuz → HT) fark satırı ve kalemi yazılır. T-67 örneği: kilitli Eylül'de kodsuz kalan 16–18 Eylül, çıkıştan sonra Ekim'e "HT 3 gün" fark kalemi olarak gider; ERP aktarımında görünür.
 
 ### T-96 · Kilit engelleri tek tek bildiriliyor; bir engeli çözmek yeni engel doğurabiliyor, ön kontrol yok
 - **Adım:** 12 · **Önem:** Görüş
@@ -3444,7 +3471,11 @@ Kanıtlardaki `#n` = `a12_puantaj_sonuc.txt`'deki çağrı numarası; `İ#n` = `
 - **Kanıt:** #54 → #60 → #62 → #64 → #67 → #69 → #72; #65 `S12EP1 05.10 vardiya_sonrasi 185 dk`.
 - **Sade dille:** Ay sonunda İK "kilitle"ye bastıkça yeni bir eksik öğreniyor; birini düzeltince bir başkası çıkıyor. 2000 kişilik fabrikada bu, ay sonu kapanışını saatlerce uzatır.
 - **Öneri:** `ay_kilit_on_kontrol(p_yil, p_ay)`: bütün engelleri ve kodsuz kalacak günleri (sicil, gün, neden) tek seferde dönen, yalnızca okuyan bir fonksiyon; ekranda kilit düğmesinin yanında. `ay_kilitle` aynı fonksiyonu kullanabilir.
-- **Durum:** Açık
+- **Durum:** Açık: veritabanı hazır (feature/T52-T96-T54-T85), ekran Gökalp'te. Migration `20261231200000_kilit_on_kontrol.sql`, test `kilit_on_kontrol_testi.sql` (9 test; T-52 ile).
+  - `pdks.ay_kilit_on_kontrol(yıl, ay)` (yalnızca İK, yalnızca okur): bütün engelleri tek seferde döner. Her engel: kod, tur (zorla_gecilemez / zorla_gecilebilir / bilgi), sayı, mesaj, liste (en çok 50; sicil, ad, gün). Üstte `kilitlenebilir` ve `zorlamadan_kilitlenebilir`.
+  - Engeller: ay bitmedi, işlenmemiş planlı gün, bekleyen plan onayı, onaysız fazla mesai, açık soru, açık itiraz, kodsuz kalacak gün; bilgi: hesaplanmamış gün, kilitle kapanacak FM talebi, düzeltmesiz kabul edilmiş itiraz.
+  - Hız: 2000 kişi × Ekim (44 000 gün) ~1 sn. `ay_kilitle` değişmedi (aynı kuralları okur).
+  - Ekran için (Gökalp): Puantaj'da kilit düğmesinin yanında "Ön kontrol" — engelleri türüne göre gruplayıp listeleri göstermek.
 
 ### T-97 · Sistem yolunda kilitli döneme sonradan puantaj satırı eklenebiliyor
 - **Adım:** 12 · **Önem:** Düşük
