@@ -61,8 +61,11 @@ select test.oturum('pi_ik1@ornek.test');
 select pdks.izin_gir(test.c('PI01'), 'yillik',  '2026-10-15', '2026-10-19', null);
 select pdks.izin_gir(test.c('PI02'), 'rapor',   '2026-10-27', '2026-10-30', null);
 select pdks.izin_gir(test.c('PI03'), 'mazeret', '2026-10-14', '2026-10-14', null);
-select pdks.izin_gir(test.c('PI04'), 'yillik',  '2026-10-19', '2026-10-22', null);
 reset role;
+-- PI04: işe girişten (21 Ekim) önce başlayan izin. T-68'den beri izin_gir bunu reddediyor; burada eski
+-- bir kayıt gibi doğrudan yazılır ki puantajın giriş öncesi günleri saymadığı yine sınansın.
+insert into pdks.izin (calisan_id, tur, baslangic, bitis, giren_id)
+values (test.c('PI04'), 'yillik', '2026-10-19', '2026-10-22', test.k('pi_ik1@ornek.test'));
 
 insert into pdks.aktarim (kaynak, dosya_adi, dosya_ozeti, veri_tarihi)
 select 'pdks', 'pi_' || g::date || '.csv', 'pi-pdks-' || g::date, g::date
