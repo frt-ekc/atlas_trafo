@@ -108,7 +108,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231140000', 'calisan_kart_kurallari',         to_regprocedure('pdks.calisan_tarih_denetle(bigint, date, date)') is not null),
     ('20261231150000', 'isg_belge_sirasi',               exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'v_isg_durum' and column_name = 'izleniyor')),
-    ('20261231160000', 'itiraz_kurallari',               to_regclass('pdks.itiraz_gunde_tek_acik') is not null)
+    ('20261231160000', 'itiraz_kurallari',               to_regclass('pdks.itiraz_gunde_tek_acik') is not null),
+    ('20261231180000', 'kalan_kurallar',                 exists (select 1 from pg_trigger where tgname = 'duzeltme_itiraz_denetle'))
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

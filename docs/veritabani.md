@@ -159,6 +159,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/isg_belge_sirasi_testi.sql` | İSG belge sırası, tarih aralığı ve izlenen yaka (T-87) için 5 test |
 | `supabase/migrations/20261231160000_itiraz_kurallari.sql` | Çalışma tarihi dışına ve aynı güne ikinci açık itiraz yok; çıkış sonrası itirazlar kapanır; İK kendi itirazını inceleyemez; talep eden kendi FM talebine karar veremez (T-69, T-51, T-15, T-16) |
 | `supabase/tests/itiraz_kurallari_testi.sql` | İtiraz ve FM kararı kuralları (T-15, T-16, T-51, T-69) için 9 test |
+| `supabase/migrations/20261231180000_kalan_kurallar.sql` | `v_izin_amir` açıklaması (T-07); düzeltmeye yalnızca aynı günün, reddedilmemiş itirazı bağlanır (T-34); geçici kart zimmetinde ileri tarihli veriliş / iade ve verilişten önce iade yok (T-84) |
+| `supabase/tests/kalan_kurallar_testi.sql` | Görünüm açıklaması, düzeltme–itiraz bağı ve zimmet zamanları (T-07, T-34, T-84) için 9 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -455,7 +457,7 @@ Günün dakikaları tek fonksiyonda hesaplanır: `pdks.gun_hesabi()`. Gece işi,
 
 | Kural | Nerede |
 |---|---|
-| Tolerans | Geç kalma `gec_kalma_tolerans_dk` (10), erken çıkış `erken_cikis_tolerans_dk` (5). Tolerans içi sayılmaz; aşılınca tam dakika. `tolerans_yuvarlama_dk` > 0 ise yukarı yuvarlanır (ör. 15: 12 dk → 15 dk). Varsayılan 0 (kapalı) |
+| Tolerans | Geç kalma `gec_kalma_tolerans_dk` (10), erken çıkış `erken_cikis_tolerans_dk` (5). Tolerans içi sayılmaz; aşılınca tam dakika. Karşılaştırma dakika üzerindendir, saniyeler atılır: 08:10:59 geç sayılmaz, 08:11:00 → 11 dk (T-27, bilinçli). `tolerans_yuvarlama_dk` > 0 ise yukarı yuvarlanır (ör. 15: 12 dk → 15 dk). Varsayılan 0 (kapalı) |
 | Gece çalışması (m.69) | `gun_kaydi.gece_calisma_dk`: sayılan çalışmanın 20:00–06:00 arasına düşen dakikası. `gece_calisma_sinir_dk` (450) aşılırsa `gece_calisma_siniri_asildi` uyarısı. Ücret ya da zam hesaplanmaz |
 | Saatlik izin (vizite dahil) | `saatlik_izin` (yalnızca İK girer, `saatlik_izin_gir`; silinmez, değişmez; yanlış izin `saatlik_izin_iptal` ile iptal edilir, iptal edilen izin hesaba girmez (T-50)). İzinli süre geç kalma, erken çıkış ya da devamsızlık sayılmaz; çalışma dakikasına da eklenmez, `saatlik_izin_dk` olarak ayrıca tutulur. Hesaplanmış güne girilirse gün yeniden hesaplanır |
 | Resmi tatil | Okutma yoksa gün `tatil` (RT); okutma varsa çalışılmış gün olarak işlenir (FM100) |
