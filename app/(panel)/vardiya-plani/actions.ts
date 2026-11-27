@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { bugun } from "@/lib/hafta";
-import { metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
+import { calismaDonemiDisi, metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
 
 // Amir (ya da İK) bir günün vardiyasını girer ya da değiştirir. Veritabanı (vardiya_plani_gir) denetler:
 // çalışan amirin bölümünde mi, ay kilitli mi. Geçmiş güne giriş "geriye dönük" sayılır ve İK onayına düşer.
@@ -15,6 +15,8 @@ export async function vardiyaPlaniGir(_onceki: IslemSonucu, form: FormData): Pro
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
+  const donemDisi = calismaDonemiDisi(bulunan.calisan, gun);
+  if (donemDisi) return { durum: "hata", mesaj: donemDisi };
 
   const sonuc = await rpcCagir<number>("vardiya_plani_gir", {
     p_calisan_id: bulunan.calisan.id,

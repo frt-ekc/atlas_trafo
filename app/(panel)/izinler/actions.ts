@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
-import { metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
+import { calismaDonemiDisi, metinAl, rpcCagir, sayiAl, sicildenCalisan, tarihAl } from "@/lib/supabase/rpc";
 
 const IZIN_TURLERI = ["yillik", "rapor", "mazeret", "ucretsiz", "diger"];
 const SAATLIK_TURLER = ["vizite", "mazeret", "diger"];
@@ -25,6 +25,8 @@ export async function izinGir(_onceki: IslemSonucu, form: FormData): Promise<Isl
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
+  const donemDisi = calismaDonemiDisi(bulunan.calisan, baslangic, bitis);
+  if (donemDisi) return { durum: "hata", mesaj: donemDisi };
 
   const sonuc = await rpcCagir<number>("izin_gir", {
     p_calisan_id: bulunan.calisan.id,
@@ -67,6 +69,8 @@ export async function saatlikIzinGir(_onceki: IslemSonucu, form: FormData): Prom
 
   const bulunan = await sicildenCalisan(form);
   if (!bulunan.tamam) return { durum: "hata", mesaj: bulunan.mesaj };
+  const donemDisi = calismaDonemiDisi(bulunan.calisan, tarih);
+  if (donemDisi) return { durum: "hata", mesaj: donemDisi };
 
   const sonuc = await rpcCagir<number>("saatlik_izin_gir", {
     p_calisan_id: bulunan.calisan.id,

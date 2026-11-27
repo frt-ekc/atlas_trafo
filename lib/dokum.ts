@@ -57,6 +57,7 @@ export type Dokum = {
     id: number; sicil: string; adSoyad: string; bolum: string; iseGiris: string; aktif: boolean; kart: string | null;
     iseGirisTarihi: string; // "2026-12-01" (karşılaştırma için)
     cikis: string | null; // "25.11.2026"
+    cikisTarihi: string | null; // "2026-11-25" (karşılaştırma için)
   };
   ay: string;
   ayMetni: string;
@@ -246,6 +247,7 @@ export async function aylikDokum(supabase: Istemci, calisanId: number, ay: strin
       iseGiris: tarih(c.ise_giris_tarihi),
       iseGirisTarihi: c.ise_giris_tarihi,
       cikis: c.isten_cikis_tarihi ? tarih(c.isten_cikis_tarihi) : null,
+      cikisTarihi: c.isten_cikis_tarihi, // "2026-12-15" (karşılaştırma için)
       aktif: c.aktif,
       kart: (kartSonucu?.data as { kart_no: string } | null)?.kart_no ?? null,
     },

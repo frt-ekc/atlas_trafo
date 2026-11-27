@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
+import { bugun } from "@/lib/hafta";
 import { metinAl, rpcCagir, sayiAl, tarihAl } from "@/lib/supabase/rpc";
+import { gunMetni, iseGirisAraligi } from "@/lib/tarih-sinirlari";
 
 // İK yeni çalışanı tanımlar (calisan_ekle). İşe giriş ileri tarihli olabilir; o güne kadarki
 // planlar gece işinde işlenmez. Kart ayrıca çalışanın sayfasından tanımlanır.
@@ -16,6 +18,11 @@ export async function calisanEkle(_onceki: IslemSonucu, form: FormData): Promise
   if (!ad || !soyad) return { durum: "hata", mesaj: "Ad ve soyad girilmelidir." };
   if (!departmanId) return { durum: "hata", mesaj: "Departman seçilmelidir." };
   if (!iseGiris) return { durum: "hata", mesaj: "İşe giriş tarihi girilmelidir." };
+  // T-75: yanlışlıkla girilen 2099 gibi tarihler
+  const aralik = iseGirisAraligi(bugun());
+  if (iseGiris < aralik.min || iseGiris > aralik.max) {
+    return { durum: "hata", mesaj: `İşe giriş tarihi ${gunMetni(aralik.min)} ile ${gunMetni(aralik.max)} arasında olmalıdır.` };
+  }
 
   const sonuc = await rpcCagir<number>("calisan_ekle", {
     p_sicil_no: sicil,

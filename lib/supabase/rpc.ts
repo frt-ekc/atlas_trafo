@@ -50,15 +50,33 @@ export function tarihAl(form: FormData, ad: string): string | null {
 export async function sicildenCalisan(
   form: FormData,
   ad = "sicil",
-): Promise<{ tamam: true; calisan: { id: number; adSoyad: string } } | { tamam: false; mesaj: string }> {
+): Promise<{ tamam: true; calisan: SecilenCalisan } | { tamam: false; mesaj: string }> {
   const sicil = metinAl(form, ad)?.split(/\s+/)[0] ?? null;
   if (!sicil) return { tamam: false, mesaj: "Çalışanın sicil numarası girilmelidir." };
   const supabase = await sunucuIstemcisi();
-  const { data, error } = await supabase.from("calisan").select("id, ad, soyad, aktif").eq("sicil_no", sicil).maybeSingle();
+  const { data, error } = await supabase
+    .from("calisan")
+    .select("id, ad, soyad, aktif, ise_giris_tarihi, isten_cikis_tarihi")
+    .eq("sicil_no", sicil)
+    .maybeSingle();
   if (error) return { tamam: false, mesaj: "Çalışan aranamadı. Lütfen tekrar deneyin." };
   if (!data) return { tamam: false, mesaj: `${sicil} sicil numaralı çalışan bulunamadı veya görüntüleme yetkisi yok.` };
   if (!data.aktif) return { tamam: false, mesaj: `${data.ad} ${data.soyad} aktif bir çalışan değildir.` };
-  return { tamam: true, calisan: { id: data.id, adSoyad: `${data.ad} ${data.soyad}` } };
+  return {
+    tamam: true,
+    calisan: { id: data.id, adSoyad: `${data.ad} ${data.soyad}`, iseGiris: data.ise_giris_tarihi, istenCikis: data.isten_cikis_tarihi },
+  };
+}
+
+export type SecilenCalisan = { id: number; adSoyad: string; iseGiris: string; istenCikis: string | null };
+
+// T-68: plan ve izin, çalışanın işe giriş ile çıkış tarihi arasında olmalı. Dışında kalan kayıt hiçbir
+// işe yaramaz, yalnızca yanıltır. Uygunsa null, değilse kullanıcıya gösterilecek mesaj.
+export function calismaDonemiDisi(c: SecilenCalisan, bas: string, bit: string = bas): string | null {
+  const gm = (g: string) => `${g.slice(8, 10)}.${g.slice(5, 7)}.${g.slice(0, 4)}`;
+  if (bas < c.iseGiris) return `${c.adSoyad} ${gm(c.iseGiris)} tarihinde işe başlıyor; bu tarihten önceki günler için kayıt girilemez.`;
+  if (c.istenCikis && bit > c.istenCikis) return `${c.adSoyad} ${gm(c.istenCikis)} tarihinde işten ayrıldı; sonraki günler için kayıt girilemez.`;
+  return null;
 }
 
 // KararAlanlari'ndan gelen karar: true = onay, false = ret, null = seçilmemiş

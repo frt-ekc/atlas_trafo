@@ -40,6 +40,7 @@ type Kisi = { sicil_no: string; ad: string; soyad: string } | null;
 type Plan = {
   id: number;
   calisan_id: number;
+  talep_eden_id: number | null;
   is_gunu: string;
   planli_dk: number;
   gerekce: string;
@@ -136,7 +137,7 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
       supabase
         .from("fazla_mesai_plani")
         .select(
-          "id, calisan_id, is_gunu, planli_dk, gerekce, durum, talep_zamani, karar_zamani, karar_aciklama, karar_veren_id, " +
+          "id, calisan_id, talep_eden_id, is_gunu, planli_dk, gerekce, durum, talep_zamani, karar_zamani, karar_aciklama, karar_veren_id, " +
             "calisan:calisan_id(sicil_no, ad, soyad), vardiya:vardiya_id(kod), " +
             "talep_eden:kullanici!talep_eden_id(ad_soyad), karar_veren:kullanici!karar_veren_id(ad_soyad)",
         )
@@ -391,7 +392,11 @@ export default async function FazlaMesaiSayfasi({ searchParams }: PageProps<"/fa
                               {p.karar_veren?.ad_soyad ?? (!p.karar_veren_id ? "Sistem" : p.durum === "iptal" ? "—" : "İK")} · {tarih(p.karar_zamani)}
                             </span>
                           )}
-                          {ik && p.durum === "talep" && (
+                          {/* Görevler ayrılığı (T-16): talebi giren kullanıcı karar veremez; düğme gösterilmez */}
+                          {ik && p.durum === "talep" && p.talep_eden_id === kullanici.id && (
+                            <span className="text-xs text-muted-foreground">Kendi talebiniz · başka bir İK kullanıcısı karar verir</span>
+                          )}
+                          {ik && p.durum === "talep" && p.talep_eden_id !== kullanici.id && (
                             <IslemPenceresi
                               dugme="Karar ver"
                               dugmeTuru="default"

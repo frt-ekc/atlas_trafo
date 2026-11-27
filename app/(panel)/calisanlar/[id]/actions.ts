@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { IslemSonucu } from "@/lib/islem-sonucu";
 import { metinAl, rpcCagir, sayiAl, tarihAl, zamanAl } from "@/lib/supabase/rpc";
+import { sunucuIstemcisi } from "@/lib/supabase/server";
 
 const ALANLAR = ["giris_zamani", "cikis_zamani", "durum"] as const;
 const DURUMLAR = ["tamam", "devamsiz", "izinli", "raporlu", "tatil", "vardiya_yok"];
@@ -68,10 +69,27 @@ export async function kartTanimla(_onceki: IslemSonucu, form: FormData): Promise
   if (!calisanId) return { durum: "hata", mesaj: "Çalışan seçilmelidir." };
   if (!kartNo || !/^[A-Z0-9-]{1,32}$/.test(kartNo)) return { durum: "hata", mesaj: "Kart numarası yalnızca harf, rakam ve tire içermelidir." };
 
-  const sonuc = await rpcCagir<number>("kart_tanimla", { p_calisan_id: calisanId, p_kart_no: kartNo });
-  if (!sonuc.tamam) {
-    return { durum: "hata", mesaj: sonuc.mesaj === "Bu kayıt daha önce eklenmiştir." ? `${kartNo} numaralı kart başka bir kayıtta kullanılıyor.` : sonuc.mesaj };
+  // T-75: kart numarası zaten kayıtlıysa kimde olduğu söylenir (veritabanı yalnızca "tekillik" hatası verir)
+  const supabase = await sunucuIstemcisi();
+  const { data: mevcut } = await supabase
+    .from("kart")
+    .select("durum, calisan:calisan_id(sicil_no, ad, soyad)")
+    .eq("kart_no", kartNo)
+    .maybeSingle();
+  const kart = mevcut as { durum: "aktif" | "iptal"; calisan: { sicil_no: string; ad: string; soyad: string } | null } | null;
+  if (kart) {
+    const kisi = kart.calisan ? `${kart.calisan.ad} ${kart.calisan.soyad} (${kart.calisan.sicil_no})` : "başka bir çalışan";
+    return {
+      durum: "hata",
+      mesaj:
+        kart.durum === "aktif"
+          ? `${kartNo} numaralı kart şu anda ${kisi} adına tanımlı.`
+          : `${kartNo} numaralı kart daha önce ${kisi} adına tanımlanmış ve iptal edilmiş; iptal edilen kart numarası yeniden kullanılamaz.`,
+    };
   }
+
+  const sonuc = await rpcCagir<number>("kart_tanimla", { p_calisan_id: calisanId, p_kart_no: kartNo });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
   revalidatePath("/calisanlar", "layout");
   return { durum: "tamam", mesaj: `${kartNo} numaralı kart tanımlandı.` };
 }
