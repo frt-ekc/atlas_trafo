@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OzetIzgarasi, OzetKarti } from "@/components/panel/ozet-karti";
@@ -22,6 +22,7 @@ import { aramaSuzgeci } from "@/components/liste/arama";
 import { BosDurum } from "@/components/liste/bos-durum";
 import { FiltreAlani, FiltreCubugu } from "@/components/liste/filtre-cubugu";
 import { TabloKutusu } from "@/components/liste/tablo-kutusu";
+import { KilitOnKontrolPaneli, type KilitOnKontrolu } from "@/components/panel/kilit-on-kontrol";
 
 export const metadata = { title: "Puantaj" };
 
@@ -97,6 +98,15 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
     kilitleyen: { ad_soyad: string } | null;
   } | null;
   const kilitli = donem?.durum === "kilitli";
+
+  // T-96: kilitten önce bütün engeller tek seferde (ay_kilit_on_kontrol, yalnızca okur).
+  // Fonksiyon veritabanında yoksa (canlıya henüz kurulmadıysa) onKontrol null olur ve sayfa eski
+  // hâliyle çalışır: açık işler aşağıdaki sayımlarla gösterilir.
+  const onKontrol =
+    !kilitli && ayBitti
+      ? (((await supabase.rpc("ay_kilit_on_kontrol", { p_yil: yil, p_ay: ayNo })).data as KilitOnKontrolu | null) ?? null)
+      : null;
+  const zorlaGecilebilirler = onKontrol?.engeller.filter((e) => e.tur === "zorla_gecilebilir") ?? [];
 
   // Kilidin izi (T-92, donem_kilit_izi): zorla kilitlendiyse gerekçe ve kilit anında sonuçlanmamış
   // kayıtların sayısı gösterilir. Yalnızca İK ve yönetici okur. T-92 öncesi kilitlenen ayların izi yoktur.
@@ -325,7 +335,58 @@ export default async function PuantajSayfasi({ searchParams }: PageProps<"/puant
         </p>
       )}
 
-      {!kilitli && ayBitti && (
+      {onKontrol && <KilitOnKontrolPaneli sonuc={onKontrol} />}
+
+      {!kilitli && ayBitti && onKontrol && !onKontrol.kilitlenebilir && (
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed p-4">
+          <div className="self-start">
+            <Button variant="destructive" size="sm" disabled>Ayı kilitle</Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Zorla geçilemeyen engeller çözülmeden ay kilitlenemez. Engeller yukarıdaki ön kontrolde listelenmiştir.
+          </p>
+        </div>
+      )}
+
+      {!kilitli && ayBitti && onKontrol?.kilitlenebilir && (
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed p-4">
+          <div className="self-start">
+            <IslemPenceresi
+              dugme="Ayı kilitle"
+              dugmeTuru="destructive"
+              baslik={`${ayAdi(ay)} dönemini kilitle`}
+              aciklama="Puantaj kesinleşir. Kilit geri açılamaz; sonraki düzeltmeler izleyen aya fark satırı olarak aktarılır."
+              onay="Ayı kilitle"
+              onayTuru="destructive"
+              islem={ayKilitle}
+              gizli={{ ay }}
+            >
+              {zorlaGecilebilirler.length > 0 ? (
+                <div className="flex flex-col gap-2 rounded-lg bg-destructive/10 p-3 text-sm">
+                  <p className="font-medium text-destructive">Sonuçlanmamış kayıtlar var:</p>
+                  <ul className="ml-4 list-disc">
+                    {zorlaGecilebilirler.map((e) => <li key={e.kod}>{e.mesaj}</li>)}
+                  </ul>
+                  <p>Bu kayıtlar sonuçlanmadan kilitlenirse sonuçlar izleyen aya fark satırı olarak aktarılır.</p>
+                  <ZorlaKilitAlanlari />
+                </div>
+              ) : (
+                <p className="rounded-lg bg-muted p-3 text-sm">Ön kontrolde engel bulunmadı.</p>
+              )}
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" name="onay" value="evet" required className="mt-0.5" />
+                Kilidin geri açılamayacağını onaylıyorum.
+              </label>
+            </IslemPenceresi>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Kilitlenen ay geri açılamaz; sonraki düzeltmeler izleyen aya fark satırı olarak aktarılır.
+          </p>
+        </div>
+      )}
+
+      {/* Ön kontrol fonksiyonu yoksa (veritabanı henüz güncellenmediyse) eski kilit bölümü */}
+      {!kilitli && ayBitti && !onKontrol && (
         <div className="flex flex-col gap-2 rounded-lg border border-dashed p-4">
           <div className="self-start">
             <IslemPenceresi
