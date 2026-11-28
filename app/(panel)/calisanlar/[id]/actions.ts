@@ -98,6 +98,8 @@ type CikisOzeti = {
   pasif_yapilan_hesap: number;
   // T-67: çıkış kilitli aya düştüyse (kilitli ayın planı ve izni değişmez)
   kilitli_ay_uyarisi?: string;
+  // T-69: çıkıştan sonraki günlerin kapatılan açık itirazları
+  kapatilan_itiraz?: number;
 };
 
 // İK işten çıkışı girer (isten_cikis_gir). Veritabanı denetler: iade edilmemiş geçici kart,
@@ -122,6 +124,7 @@ export async function istenCikis(_onceki: IslemSonucu, form: FormData): Promise<
     o?.silinen_plan ? `${o.silinen_plan} vardiya planı silindi` : null,
     o?.iptal_edilen_izin ? `${o.iptal_edilen_izin} izin iptal edildi` : null,
     o?.iptal_edilen_fm_talebi ? `${o.iptal_edilen_fm_talebi} fazla mesai talebi iptal edildi` : null,
+    o?.kapatilan_itiraz ? `çıkıştan sonraki günlerin ${o.kapatilan_itiraz} açık itirazı kapatıldı` : null,
     o?.vardiya_yok_yapilan_gun ? `${o.vardiya_yok_yapilan_gun} gün "Vardiya planı yok" olarak güncellendi` : null,
     o?.pasif_yapilan_hesap ? "kullanıcı hesabı pasife alındı" : null,
   ].filter(Boolean);

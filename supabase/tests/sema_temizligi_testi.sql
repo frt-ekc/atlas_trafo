@@ -47,5 +47,21 @@ select test.dogrula('ayar geçmişi yine değiştirilemez (koruma geri açıldı
     exists (select 1 from pg_trigger where tgname = 'ayar_gecmisi_degistirilemez'
             and tgrelid = 'pdks.ayar_gecmisi'::regclass and tgenabled = 'O'));
 
+-- T-03: security definer fonksiyonlarda geçici şema (pg_temp) en sonda aranır
+select test.dogrula('T-03: pdks''teki her security definer fonksiyonun search_path''inde pg_temp var',
+    not exists (select 1 from pg_proc p
+                where p.pronamespace = 'pdks'::regnamespace and p.prosecdef
+                  and not exists (select 1 from unnest(p.proconfig) c where c like 'search_path=%pg_temp%')));
+-- T-08: pdks'te yeni fonksiyon herkese kapalı doğar; hiçbir fonksiyon PUBLIC'e açık değil
+create function pdks.t08_deneme_fn() returns int language sql as 'select 1';
+select test.dogrula('T-08: yeni oluşturulan fonksiyon anon''a ve PUBLIC''e kapalı doğuyor',
+    not has_function_privilege('anon', 'pdks.t08_deneme_fn()', 'execute')
+    and not exists (select 1 from pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                    where p.oid = 'pdks.t08_deneme_fn()'::regprocedure and a.grantee = 0));
+drop function pdks.t08_deneme_fn();
+select test.dogrula('T-08: pdks fonksiyonlarının hiçbiri PUBLIC''e açık değil',
+    not exists (select 1 from pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                where p.pronamespace = 'pdks'::regnamespace and a.grantee = 0 and a.privilege_type = 'EXECUTE'));
+
 do $$ begin raise notice 'ŞEMA TEMİZLİĞİ TESTLERİ GEÇTİ'; end $$;
 rollback;
