@@ -112,7 +112,8 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231180000', 'kalan_kurallar',                 exists (select 1 from pg_trigger where tgname = 'duzeltme_itiraz_denetle')),
     ('20261231190000', 'puantaj_kalanlari',              to_regclass('pdks.fazla_mesai_onayi_yil_tek_gecerli') is not null),
     ('20261231200000', 'kilit_on_kontrol',               to_regprocedure('pdks.ay_kilit_on_kontrol(smallint, smallint)') is not null),
-    ('20261231210000', 'aleyhe_iz',                      to_regprocedure('pdks.duzeltme_amir_aleyhe()') is not null)
+    ('20261231210000', 'aleyhe_iz',                      to_regprocedure('pdks.duzeltme_amir_aleyhe()') is not null),
+    ('20261231220000', 'yabanci_anahtar_index',          to_regclass('pdks.duzeltme_soru') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum

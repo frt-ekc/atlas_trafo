@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 28 Kasım itibarıyla 74'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 7'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 28 Kasım itibarıyla 75'i düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 6'sı açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -30,8 +30,8 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Yüksek | 19 | 19 | 0 | 0 |
 | Orta | 34 | 25 | 8 | 1 |
 | Düşük | 34 | 21 | 11 | 2 |
-| Görüş | 19 | 8 | 7 | 4 |
-| **Toplam** | **107** | **74** | **26** | **7** |
+| Görüş | 19 | 9 | 7 | 3 |
+| **Toplam** | **107** | **75** | **26** | **6** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-85 (Düşük) ve T-96 (Görüş) de var: veritabanı tarafları hazır, ekranları açık.
 
@@ -237,7 +237,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | Bulgu | Önem | Adım | Kısa başlık | Grup | Kime | Öneri |
 |---|---|---|---|---|---|---|
 | T-01 | Orta | 1 | `gun_kaydi`'nda durum ve dakika alanları doğrudan, izsiz değiştirilebiliyor | K14 | Mehmet | ✅ Sınırlılık (karar verildi) |
-| T-02 | Görüş | 1 | 55 yabancı anahtar sütununda index yok | K14 | Yusuf | Düzelt (zaman kalırsa) |
+| T-02 | Görüş | 1 | 55 yabancı anahtar sütununda index yok | K14 | Yusuf | ✅ Düzeltildi (feature/T02-fk-index) |
 | T-03 | Görüş | 1 | 45 `security definer` fonksiyonun `search_path`'inde `pg_temp` yok | K14 | Yusuf | ✅ Düzeltildi (feature/T29-T95-T60) |
 | T-04 | Görüş | 1 | Testler UTC davranışını sınamıyor | K1 | Yusuf | ✅ Düzeltildi (PR #46) |
 | T-05 | Düşük | 1 | README'de işe giriş / işten çıkış test sayısı yanlış | K15 | Mehmet | ✅ Düzeltildi (belge, feature/T103-belge-duzeltmeleri) |
@@ -455,7 +455,11 @@ Taban: `main` @ `15ee334` (PR #34 dahil) · 30 migration · 21 test dosyası.
 - **Kanıt:** `pg_constraint` (contype = 'f') ile `pg_index.indkey[0]` karşılaştırması: 55 satır.
 - **Sade dille:** 76 çalışanlık örnek veride fark edilmez; Kasım'ın tamamı 4 saniyede işleniyor. 2000 çalışanda gün kaydı, düzeltme ve okutma tabloları büyüyünce bazı ekran ve RLS sorguları yavaşlayabilir. Bu henüz ölçülmedi; süre Adım 5'te ölçülecek.
 - **Öneri:** Adım 5'teki süre ölçümünden sonra karar verilsin. Gerekirse yalnızca sık sorgulanan 8–10 sütuna index eklensin.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T02-fk-index). Migration `20261231220000_yabanci_anahtar_index.sql`, test `yabanci_anahtar_index_testi.sql` (6 test).
+  - 28 Kasım'da 72 indexsiz yabancı anahtar vardı (yeni iz sütunlarıyla). Çoğu "giren / yapan / karar veren" iz sütunu; onlarla arama yapılmıyor, index eklenmedi.
+  - Çalışma sırasında arama yapılan yollar 1 yıllık hacimde (2000 çalışan: 1 M ham okutma, 2 M kanıt, 150 bin düzeltme; geçici kopyalarda) ölçüldü, indexsiz → indexli: dosya yükleme `aktarim_id` 160 → 0,5 ms; Sorular ekranı (İK) 200 sorunun düzeltmeleri `soru_id` 3160 → 0,5 ms; PDF döküm `calisan_id` 10 → 0,04 ms; ay kilidi / İtirazlar `itiraz_id` 16 → 0,1 ms.
+  - Eklenen 5 index: `ham_okutma (aktarim_id)`, `kanit_kaydi (aktarim_id)`, `duzeltme (soru_id)` ve `duzeltme (itiraz_id)` (kısmi, yalnızca dolu satırlar), `duzeltme (calisan_id, is_gunu)`.
+  - `calisan.departman_id` eklenmedi: RLS `amirin_calisani_mi` birincil anahtarla arıyor; 2000 satırlık tabloda süzme fark etmez.
 
 ### T-03 · 45 `security definer` fonksiyonun `search_path`'inde `pg_temp` yok
 - **Adım:** 1 · **Önem:** Görüş

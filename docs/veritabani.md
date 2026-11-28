@@ -171,6 +171,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/gecici_kart_kayip_testi.sql` | Geçici kartın kayıp / bulundu / iptal durumu, zimmet kapanışı, kayıp kart okutma uyarısı (T-85) için 11 test |
 | `supabase/migrations/20261231210000_aleyhe_iz.sql` | Amirin geç kalma / erken çıkış doğuran saati "çalışan aleyhine" işaretlenir (T-44); itirazı incelemeye alan ve arızaya karar veren / zamanı (T-35) |
 | `supabase/tests/aleyhe_iz_testi.sql` | Amirin aleyhe saati (tolerans, gece vardiyası, saatlik izin, esnek mesai) ve itiraz / arıza karar izi (T-44, T-35) için 15 test |
+| `supabase/migrations/20261231220000_yabanci_anahtar_index.sql` | Sık sorgulanan yabancı anahtarlara 5 index: dosya yükleme (`aktarim_id`), Sorular ekranı (`duzeltme.soru_id`), itiraz bağı (`duzeltme.itiraz_id`), döküm (`duzeltme.calisan_id, is_gunu`) (T-02) |
+| `supabase/tests/yabanci_anahtar_index_testi.sql` | Ölçülen yolların index kullandığı (T-02) için 6 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -581,6 +583,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - Ay kilidinden önce `ay_kilit_on_kontrol` bütün engelleri tek seferde verir (yalnızca okur). Kilit özeti düzeltmesiz kabul edilmiş itirazları da söyler (T-96, T-52).
 - İzinli / raporlu günde okutma varsa İK'ya uyarı yazılır (T-54). Geçici kart güvenlik ya da İK tarafından gerekçeyle kayıp / iptal yapılır, kayıp kart bulunursa yeniden aktif olur; kayıp kart okutulursa İK uyarılır (T-85).
 - İtirazı incelemeye alan ve zamanı (`itiraz.inceleyen_id`, `inceleme_zamani`), arıza şüphesine karar veren ve zamanı (`ariza.karar_veren_id`, `karar_zamani`) ayrı tutulur; `ariza.giren_id` yalnızca elle girendir (T-35).
+- İz sütunlarına ("giren / yapan / karar veren") index konmaz; index yalnızca çalışma sırasında arama yapılan ve ölçülen yabancı anahtarlardadır (T-02).
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.
