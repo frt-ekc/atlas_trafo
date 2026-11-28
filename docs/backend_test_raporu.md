@@ -20,7 +20,7 @@ Veritabanını (backend) 13 adımda, yalnızca yerel Supabase'te ve sahte veriyl
 
 Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıyla (rol taklidi) çağırdık; son sürüm kodunu veritabanından okuduk. Yalnızca 8–13. adımlarda 940'tan fazla çağrı yapıldı, her biri sonda geri alındı. Yeni bulunan her sorun için Kasım ayı uçtan uca oynandı: gece işi, amir soruları, İK kararları, itirazlar, fazla mesai havuzu, ay kilidi, sonraki aya fark satırı ve ERP aktarımı.
 
-107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 27 Kasım itibarıyla 72'si düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 9'u açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
+107 bulgu çıktı (103'ü test adımlarında; T-104 ekran PR'larının incelemesinde, T-105, T-106 ve T-108 düzeltmeler sırasında): 1 Kritik, 19 Yüksek, 34 Orta, 34 Düşük, 19 Görüş. 28 Kasım itibarıyla 74'ü düzeltildi (Kritik ve Yüksek'lerin hepsi), 26'sı kararla sınırlılık olarak kabul edildi, 7'si açık. Kritik bulgu (ekrandan dosya yüklenemiyordu, T-31) test sırasında düzeltildi (PR #35). Ekran tarafında T-37 ve T-38 düzeltildi (PR #40, #37); T-34'ün ekran tarafı düzeltildi, veritabanı tarafı açık (PR #40); T-89 ekranda ve veritabanında düzeltildi (PR #39, #49). Bulgular 16 kök neden grubunda toplandı; açık olanlar düzeltme listesinde, sınırlılıklar "Bilinen sınırlılıklar" bölümünde.
 
 ### Güncel özet tablo
 
@@ -30,8 +30,8 @@ Her fonksiyonu ekranın çağırdığı RPC ile ve ilgili rolün kullanıcısıy
 | Yüksek | 19 | 19 | 0 | 0 |
 | Orta | 34 | 25 | 8 | 1 |
 | Düşük | 34 | 21 | 11 | 2 |
-| Görüş | 19 | 6 | 7 | 6 |
-| **Toplam** | **107** | **72** | **26** | **9** |
+| Görüş | 19 | 8 | 7 | 4 |
+| **Toplam** | **107** | **74** | **26** | **7** |
 
 Her bulgunun altındaki "Durum" satırından betikle sayıldı (25 Kasım). "Açık" sütununda T-85 (Düşük) ve T-96 (Görüş) de var: veritabanı tarafları hazır, ekranları açık.
 
@@ -270,7 +270,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-32 | Orta | Endpoint | İK kararı, soruyu cevaplayan amirin adını siliyor | K2 | Yusuf | ✅ Düzeltildi (feature/T32-ik-karari-cevaplayan) |
 | T-33 | Orta | Endpoint | Kullanıcı ekleme ve rol / aktiflik değişikliği iz bırakmıyor | K6 | Yusuf | ✅ Düzeltildi (feature/T72-rol-onayi) |
 | T-34 | Düşük | Endpoint | Düzeltmeye başka çalışanın, başka günün ya da reddedilmiş bir itirazı bağlanabiliyor | K12 | Yusuf | ✅ Düzeltildi (feature/T07-T84-T34-kalanlar) |
-| T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | Düzelt (zaman kalırsa) |
+| T-35 | Görüş | Endpoint | İtirazı incelemeye alma ve arıza kararında "kim, ne zaman" eksik | K12 | Yusuf | ✅ Düzeltildi (feature/T44-T35-aleyhe-iz) |
 | T-36 | Düşük | Endpoint | `kart_tanimla` kart numarasının biçimini denetlemiyor | K11 | — | ✅ Sınırlılık (karar verildi) |
 | T-37 | Düşük | Endpoint | Veri aktarımı formu veritabanı hatasını ham gösteriyor | K13 | Gökalp | ✅ Düzeltildi (PR #40) |
 | T-38 | Orta | Endpoint | İşe giriş ve işten çıkış için ekran yok | K15 | Gökalp | ✅ Düzeltildi (PR #37) |
@@ -279,7 +279,7 @@ Karar çıkana kadar hepsi "Bilinen sınırlılıklar"da durur.
 | T-41 | Orta | 7 | Tek saatli cevap günü askıda bırakıyor: soru kapanıyor, eksik saat için yeni soru açılmıyor | K2 | Yusuf + Gökalp | ✅ Düzeltildi (ekran feature/53-t41-t11-ekran; veritabanı feature/T41-eksik-saat-reddi) |
 | T-42 | Orta | 7 | Kanıt sonradan gelince açık soru kapanmıyor, üst amire eskale oluyor | K2 | — | ✅ Sınırlılık (karar verildi) |
 | T-43 | Düşük | 7 | Amir izne çıkınca önceden açılmış soruları vekile geçmiyor | K2 | — | ✅ Sınırlılık (karar verildi) |
-| T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | Düzelt (zaman kalırsa) |
+| T-44 | Görüş | 7 | Amirin girdiği aleyhe saat "çalışan aleyhine" işaretlenmiyor | K2 | Yusuf | ✅ Düzeltildi (feature/T44-T35-aleyhe-iz) |
 | T-45 | Yüksek | 8 | Geriye dönük plan kararı UTC tarihiyle veriliyor | K1 | Yusuf | ✅ Düzeltildi — PR #46 (kod), PR #47 (kilitli ay testi / canlı kontrol listesi) |
 | T-46 | Yüksek | 8 | İşlenmiş güne girilen izin günü değiştirmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T46-gecmis-izin) |
 | T-47 | Yüksek | 8 | Çakışan izinler reddedilmiyor | K5 | Yusuf | ✅ Düzeltildi (feature/T47-cakisan-izin) |
@@ -1712,7 +1712,9 @@ HTTP testi veriyi kalıcı değiştirdiği için yerel veritabanı önce ve sonr
 - **Kanıt:** Madde 3 matrisi: `itiraz_incelemeye_al|itiraz|0|1|0|durum`, `ariza_karar|ariza|0|1|0|durum,giren_id`.
 - **Sade dille:** İki küçük işlemde kimin ne zaman yaptığı kayda geçmiyor. Önemi düşük, ama kayıt düzeninde istisna.
 - **Öneri:** Adım 14'te karar. Düzeltilecekse iki sütun ve fonksiyon güncellemesi.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T44-T35-aleyhe-iz). Migration `20261231210000_aleyhe_iz.sql`, test `aleyhe_iz_testi.sql` (4 test).
+  - `itiraz.inceleyen_id`, `inceleme_zamani`: `itiraz_incelemeye_al` yazar (T-15 görevler ayrılığı denetimi korundu).
+  - `ariza.karar_veren_id`, `karar_zamani`: `ariza_karar` yazar; `giren_id` artık karar verenle ezilmez. Eski kararlarda karar veren `giren_id`'den taşındı (zamanı bilinmez, boş). Ekran değişmedi.
 
 ### T-36 · `kart_tanimla` kart numarasının biçimini denetlemiyor
 - **Adım:** Endpoint · **Önem:** Düşük
@@ -1985,7 +1987,10 @@ Okunan fonksiyonlar: `soru_cevapla`, `soru_ik_karari`, `kayit_duzelt`, `duzeltme
 - **Kanıt:** `GY2|… 08:20–17:00 · 460 dk|… (giris_zamani=…08:20/amir)`. Satırda `/aleyhe` yok; DV1'de İK'nın devamsızlığı `/aleyhe` olarak görünüyor.
 - **Sade dille:** Amir "geldi ama 08:20'de geldi" dediğinde çalışan geç kalmış sayılıyor. Sistem bunu "çalışan aleyhine" diye işaretlemediği için İK aleyhe düzeltmeleri listelerken bunu görmez.
 - **Öneri:** Adım 14'te karar. Planlı saatten kötü sonuç doğuran amir saatleri için `p_aleyhine => true` (ve İK'ya bildirim). Ya da "amirin saat beyanı aleyhe sayılmaz" diye belgeye yazmak.
-- **Durum:** Açık
+- **Durum:** ✅ Düzeltildi (feature/T44-T35-aleyhe-iz). Migration `20261231210000_aleyhe_iz.sql`, test `aleyhe_iz_testi.sql` (11 test).
+  - Karar: amirin girdiği giriş / çıkış saati geç kalma ya da erken çıkış doğuruyorsa düzeltme "çalışan aleyhine" işaretlenir. Ölçü günün kendi hesabıdır (`gun_hesabi`): tolerans, esnek mesai, saatlik izin ve gece vardiyası aynı kuralla sayılır. Amirin yetkisi değişmez; işaret iz içindir, İK süzebilir, çalışan sayfasında ve PDF dökümünde görünür.
+  - `duzeltme`'de BEFORE INSERT tetikleyici `duzeltme_amir_aleyhe` (gece işi fonksiyonlarına ve `gun_hesabi`'ya dokunulmadı). Eski kısıt (aleyhe = yalnızca İK kaynağı) amirin giriş / çıkış saatini de kabul edecek şekilde değişti (`duzeltme_aleyhe_kaynagi`); devamsızlık yine yalnızca İK'da. İK'nın kendi saat düzeltmesi işaretlenmez.
+  - PDF dökümünde "(çalışan aleyhine, İK kararı)" → "(çalışan aleyhine)" (amirin saati İK kararı değildir).
 
 ### Denediklerim
 - 23 cevap / karar satırı (tablo 1).

@@ -169,6 +169,8 @@ olarak veritabanının içinde çalışır.
 | `supabase/tests/kilit_on_kontrol_testi.sql` | Ön kontrol engelleri ve kilit özeti (T-96, T-52) için 9 test |
 | `supabase/tests/izinli_gun_okutma_testi.sql` | İzinli / raporlu günde okutma uyarısı (T-54) için 5 test |
 | `supabase/tests/gecici_kart_kayip_testi.sql` | Geçici kartın kayıp / bulundu / iptal durumu, zimmet kapanışı, kayıp kart okutma uyarısı (T-85) için 11 test |
+| `supabase/migrations/20261231210000_aleyhe_iz.sql` | Amirin geç kalma / erken çıkış doğuran saati "çalışan aleyhine" işaretlenir (T-44); itirazı incelemeye alan ve arızaya karar veren / zamanı (T-35) |
+| `supabase/tests/aleyhe_iz_testi.sql` | Amirin aleyhe saati (tolerans, gece vardiyası, saatlik izin, esnek mesai) ve itiraz / arıza karar izi (T-44, T-35) için 15 test |
 | `supabase/tests/reddedilen_tatil_testi.sql` | Reddedilen tatil çalışması (T-102): bekleyen / reddedilen / onaylanan Pazar, reddedilen bayram, normal gün, panel, kilitli puantajda satır = kalem, kilitten sonra onay için 15 test |
 
 > **Migration** = veritabanını adım adım kuran, sırayla çalıştırılan SQL dosyası.
@@ -194,6 +196,8 @@ olarak veritabanının içinde çalışır.
    (`cevaplayan_id`, `cevap`) ve kim karar verdi (`ik_karar_veren_id`, `ik_karar_zamani`) ayrı tutulur (T-32).
    Amirin cevabı ya da İK'nın "geldi" kararı günü yarım bırakamaz: uygulanınca günde giriş ve çıkış
    olmalı, yoksa cevap reddedilir ve soru açık kalır (T-41).
+   Amirin yazdığı saat geç kalma ya da erken çıkış doğuruyorsa düzeltme "çalışan aleyhine" işaretlenir
+   (karar değil, iz; İK süzebilir, dökümde görünür). Ölçü günün hesabıdır: tolerans, esnek mesai ve saatlik izin sayılır (T-44).
 6. **Ay sonu kilidi (sorun 11).** Ay, son günü (İstanbul tarihiyle) geçmeden kilitlenemez; zorla da (T-89).
    Puantaja kodsuz girecek gün (karara bağlanmamış gün) varsa ay zorlamadan kilitlenmez; hata günleri
    adıyla söyler. Zorla kilitte bu günler özetin `kodsuz_gun_listesi` alanında kalır (T-90).
@@ -576,6 +580,7 @@ Değerler fonksiyona parametre olarak gider; kullanıcı girdisi SQL metnine ekl
 - **Yeni fonksiyon yazarken (T-03, T-08):** security definer fonksiyon `set search_path = pdks, pg_temp` ile yazılır; pdks'te yeni fonksiyon herkese kapalı doğar, ekrana açılacaksa `grant execute … to authenticated` gerekir. `sema_temizligi_testi` ikisini de denetler.
 - Ay kilidinden önce `ay_kilit_on_kontrol` bütün engelleri tek seferde verir (yalnızca okur). Kilit özeti düzeltmesiz kabul edilmiş itirazları da söyler (T-96, T-52).
 - İzinli / raporlu günde okutma varsa İK'ya uyarı yazılır (T-54). Geçici kart güvenlik ya da İK tarafından gerekçeyle kayıp / iptal yapılır, kayıp kart bulunursa yeniden aktif olur; kayıp kart okutulursa İK uyarılır (T-85).
+- İtirazı incelemeye alan ve zamanı (`itiraz.inceleyen_id`, `inceleme_zamani`), arıza şüphesine karar veren ve zamanı (`ariza.karar_veren_id`, `karar_zamani`) ayrı tutulur; `ariza.giren_id` yalnızca elle girendir (T-35).
 - Çalışanın "o gün işte miydi?" sorusu `aktif` alanıyla değil `ise_giris_tarihi` / `isten_cikis_tarihi` ile cevaplanır (gece işi ve puantaj kodları). `aktif`, çıkış girildiği anda `false` olur ve yalnızca yeni işlemleri (İSG belgesi, hesap bağlama, İSG uyarıları) durdurur.
 - İleri tarihli işten çıkış ve departman değiştirme yok. Departmanın geçmişi tutulmadığı için değiştirmek geçmiş günleri de yeni departmana taşırdı (amir görünürlüğü, departman özeti).
 - Giriş Supabase Auth ile yapılır; rol `kullanici.rol` sütunundan okunur ve RLS politikalarında kullanılır.

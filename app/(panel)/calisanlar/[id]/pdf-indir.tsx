@@ -114,7 +114,7 @@ function DokumBelgesi({ rp, dokum, hazirlayan }: { rp: ReactPdf; dokum: Dokum; h
       <Text style={{ width: "9%" }}>{d.alan}</Text>
       <Text style={{ width: "14%" }}>{d.eski}</Text>
       <Text style={{ width: "14%" }}>{d.yeni}</Text>
-      <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine, İK kararı)" : ""}</Text>
+      <Text style={{ width: "32%" }}>{d.gerekce}{d.aleyhine ? " (çalışan aleyhine)" : ""}</Text>
       <Text style={{ width: "20%" }}>{d.kaynak} · {d.yapan}{"\n"}{d.zaman}</Text>
     </View>
   );
