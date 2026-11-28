@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { rolGerekli } from "@/lib/oturum";
 import { tumSatirlar } from "@/lib/supabase/sayfali";
 import { sunucuIstemcisi } from "@/lib/supabase/server";
-import { kartIadeAl, kartVer } from "./actions";
+import { kartDurumu, kartIadeAl, kartVer } from "./actions";
 
 export const metadata = { title: "Geçici kartlar" };
 
@@ -75,6 +75,16 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
   }
 
   const kartlar = kartSonucu.data ?? [];
+
+  // T-85: kartın durum nedeni ve zamanı. Bu sütunlar veritabanında henüz yoksa (canlıya kurulmadıysa)
+  // sorgu hata verir: durum düğmesi gösterilmez, sayfa eskisi gibi çalışır.
+  const durumSonucu = await supabase
+    .from("gecici_kart")
+    .select("id, durum_nedeni, durum_zamani, degistiren:kullanici!durum_degistiren_id(ad_soyad)");
+  const durumDestekli = !durumSonucu.error;
+  const durumAyrintisi = new Map(
+    ((durumSonucu.data ?? []) as unknown as KartDurumAyrintisi[]).map((d) => [d.id, d]),
+  );
   const acikZimmetler = (acikSonucu.data ?? []) as unknown as ZimmetSatiri[];
   const sonHareketler = (sonSonucu.data ?? []) as unknown as ZimmetSatiri[];
 
@@ -140,11 +150,34 @@ export default async function GeciciKartlarSayfasi({ searchParams }: PageProps<"
                       </dd>
                     </dl>
                   ) : (
-                    <p className="flex-1 text-xs text-muted-foreground">{k.durum === "aktif" ? "Zimmet yok" : "Kullanılamaz"}</p>
+                    <p className="flex-1 text-xs text-muted-foreground">
+                      {k.durum === "aktif" ? (
+                        "Zimmet yok"
+                      ) : durumAyrintisi.get(k.id)?.durum_nedeni ? (
+                        // Kayıp ya da iptal: nedeni ve zamanı
+                        <>
+                          {durumAyrintisi.get(k.id)?.durum_nedeni}
+                          <span className="block tabular-nums">
+                            {tarihSaat(durumAyrintisi.get(k.id)?.durum_zamani ?? null)}
+                            {durumAyrintisi.get(k.id)?.degistiren?.ad_soyad && ` · ${durumAyrintisi.get(k.id)?.degistiren?.ad_soyad}`}
+                          </span>
+                        </>
+                      ) : (
+                        "Kullanılamaz"
+                      )}
+                    </p>
                   )}
-                  {yazabilir && (z || k.durum === "aktif") && (
-                    <div className="flex justify-end">
-                      {z ? <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} /> : <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />}
+                  {yazabilir && (z || k.durum === "aktif" || (durumDestekli && k.durum === "kayip")) && (
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {/* T-85: kayıp bildir, bulundu, iptal et */}
+                      {durumDestekli && k.durum !== "iptal" && (
+                        <KartDurumPenceresi kartId={k.id} kartNo={k.kart_no} durum={k.durum} zimmet={z} />
+                      )}
+                      {z ? (
+                        <IadeAlPenceresi kartNo={k.kart_no} zimmet={z} />
+                      ) : (
+                        k.durum === "aktif" && <KartVerPenceresi kartId={k.id} kartNo={k.kart_no} />
+                      )}
                     </div>
                   )}
                 </li>
@@ -247,6 +280,63 @@ function IadeAlPenceresi({ kartNo, zimmet }: { kartNo: string; zimmet: ZimmetSat
       islem={kartIadeAl}
       gizli={{ zimmet_id: zimmet.id, kart_no: kartNo }}
     />
+  );
+}
+
+type KartDurumAyrintisi = { id: number; durum_nedeni: string | null; durum_zamani: string | null; degistiren: { ad_soyad: string } | null };
+
+// T-85: Geçici kartın durumu (gecici_kart_durum). Aktif kart: kayıp bildir / iptal et. Kayıp kart: bulundu / iptal et.
+// Kayıp ya da iptal yapılırsa üstündeki açık zimmet kapanır; kayıp kart okutulursa İK'ya uyarı gider.
+function KartDurumPenceresi({ kartId, kartNo, durum, zimmet }: { kartId: number; kartNo: string; durum: string; zimmet?: ZimmetSatiri }) {
+  const secenekler =
+    durum === "kayip"
+      ? [
+          { deger: "aktif", ad: "Bulundu (yeniden kullanılabilir)" },
+          { deger: "iptal", ad: "İptal et (bir daha kullanılmaz)" },
+        ]
+      : [
+          { deger: "kayip", ad: "Kayıp bildir" },
+          { deger: "iptal", ad: "İptal et (bir daha kullanılmaz)" },
+        ];
+  const kisi = zimmet?.calisan ? `${zimmet.calisan.ad} ${zimmet.calisan.soyad}` : null;
+  return (
+    <IslemPenceresi
+      dugme="Durum"
+      dugmeTuru="ghost"
+      baslik={`${kartNo} kartının durumu`}
+      aciklama={durum === "kayip" ? "Kart kayıp olarak işaretli." : "Kart kullanımda."}
+      onay="Kaydet"
+      islem={kartDurumu}
+      gizli={{ kart_id: kartId, kart_no: kartNo }}
+    >
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">Yeni durum</legend>
+        {secenekler.map((o) => (
+          <label key={o.deger} className="flex items-center gap-2 text-sm">
+            <input type="radio" name="durum" value={o.deger} required /> {o.ad}
+          </label>
+        ))}
+      </fieldset>
+      <Alan etiket="Gerekçe" htmlFor={`durum-gerekce-${kartId}`}>
+        <Textarea
+          id={`durum-gerekce-${kartId}`}
+          name="gerekce"
+          rows={2}
+          required
+          minLength={5}
+          maxLength={500}
+          placeholder={durum === "kayip" ? "ör. Kart yemekhanede bulundu" : "ör. Çalışan kartı kaybettiğini bildirdi"}
+        />
+      </Alan>
+      {kisi && (
+        <p className="rounded-lg bg-dikkat-zemin p-3 text-sm text-dikkat">
+          Kart şu anda {kisi} adına zimmetli. Kayıp ya da iptal yapılırsa zimmet bu anda kapanır.
+        </p>
+      )}
+      <p className="text-xs text-muted-foreground">
+        İptal edilen kart bir daha kullanılamaz. Kayıp kart okutulursa İK&apos;ya uyarı gider.
+      </p>
+    </IslemPenceresi>
   );
 }
 

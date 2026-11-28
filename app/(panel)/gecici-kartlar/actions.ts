@@ -44,3 +44,24 @@ export async function kartIadeAl(_onceki: IslemSonucu, form: FormData): Promise<
   yenile();
   return { durum: "tamam", mesaj: `${kartNo} numaralı kart iade alındı.` };
 }
+
+// T-85: Geçici kartın durumunu değiştirir (gecici_kart_durum): kayıp bildir, kayıp kart bulundu (aktif),
+// iptal et. Güvenlik ya da İK; gerekçe en az 5 karakter. Kart kayıp ya da iptal yapılırsa üstündeki açık
+// zimmet kapanır (veritabanı yapar); kayıp kart okutulursa İK'ya uyarı gider.
+const KART_DURUMLARI = { kayip: "kayıp olarak işaretlendi", aktif: "bulundu, yeniden kullanılabilir", iptal: "iptal edildi" } as const;
+
+export async function kartDurumu(_onceki: IslemSonucu, form: FormData): Promise<IslemSonucu> {
+  const kartId = sayiAl(form, "kart_id");
+  const kartNo = metinAl(form, "kart_no") ?? "Geçici kart";
+  const durum = metinAl(form, "durum");
+  const gerekce = metinAl(form, "gerekce")?.trim() ?? "";
+  if (!kartId) return { durum: "hata", mesaj: "Kart seçilmelidir." };
+  if (durum !== "kayip" && durum !== "aktif" && durum !== "iptal") return { durum: "hata", mesaj: "Yeni durum seçilmelidir." };
+  if (gerekce.length < 5) return { durum: "hata", mesaj: "Durum değişikliğinin gerekçesi yazılmalı (en az 5 karakter)." };
+
+  const sonuc = await rpcCagir("gecici_kart_durum", { p_gecici_kart_id: kartId, p_durum: durum, p_gerekce: gerekce });
+  if (!sonuc.tamam) return { durum: "hata", mesaj: sonuc.mesaj };
+
+  yenile();
+  return { durum: "tamam", mesaj: `${kartNo} ${KART_DURUMLARI[durum]}.`, uyari: durum !== "aktif" };
+}
