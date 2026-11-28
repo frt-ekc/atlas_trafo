@@ -104,7 +104,16 @@ with beklenen(surum, ad, nesne) as (values
     ('20261231110000', 'kart_tanimlayan',                exists (select 1 from information_schema.columns where table_schema = 'pdks'
                                                                  and table_name = 'kart' and column_name = 'tanimlayan_id')),
     ('20261231120000', 'dosya_tarihi',                   pg_get_functiondef('pdks.dosya_yukle(text, text, date, jsonb, text)'::regprocedure) like '%ertesi gün değil%'),
-    ('20261231130000', 'paylasim_karari',                to_regprocedure('pdks.kart_paylasim_karar(bigint, boolean, text)') is not null)
+    ('20261231130000', 'paylasim_karari',                to_regprocedure('pdks.kart_paylasim_karar(bigint, boolean, text)') is not null),
+    ('20261231140000', 'calisan_kart_kurallari',         to_regprocedure('pdks.calisan_tarih_denetle(bigint, date, date)') is not null),
+    ('20261231150000', 'isg_belge_sirasi',               exists (select 1 from information_schema.columns where table_schema = 'pdks'
+                                                                 and table_name = 'v_isg_durum' and column_name = 'izleniyor')),
+    ('20261231160000', 'itiraz_kurallari',               to_regclass('pdks.itiraz_gunde_tek_acik') is not null),
+    ('20261231180000', 'kalan_kurallar',                 exists (select 1 from pg_trigger where tgname = 'duzeltme_itiraz_denetle')),
+    ('20261231190000', 'puantaj_kalanlari',              to_regclass('pdks.fazla_mesai_onayi_yil_tek_gecerli') is not null),
+    ('20261231200000', 'kilit_on_kontrol',               to_regprocedure('pdks.ay_kilit_on_kontrol(smallint, smallint)') is not null),
+    ('20261231210000', 'aleyhe_iz',                      to_regprocedure('pdks.duzeltme_amir_aleyhe()') is not null),
+    ('20261231220000', 'yabanci_anahtar_index',          to_regclass('pdks.duzeltme_soru') is not null)
 ), kayit as (
     -- CLI hiç kullanılmadıysa kayıt tablosu yoktur; o zaman hepsi "hayır" görünür
     select (xpath('/row/v/text()', x))[1]::text as surum
